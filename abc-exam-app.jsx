@@ -6,7 +6,7 @@
 フェーズ2:  計算コンポーネント・公式データ [✅]
 フェーズ3:  倫理・基礎データ定義          [✅]
 フェーズ4:  PF・金融商品データ            [✅]
-フェーズ5:  共通コンポーネント            [ ]
+フェーズ5:  共通コンポーネント            [✅]
 フェーズ6:  ホーム画面                   [ ]
 フェーズ7:  ①顧客本位・倫理タブ          [ ]
 フェーズ8:  ②資産運用の基礎タブ 前半     [ ]
@@ -2265,7 +2265,552 @@ const CASE_STUDIES = [
 ];
 
 // ============================================================
-// プレースホルダータブ（フェーズ5以降で実装）
+// フェーズ5: 共通コンポーネント
+// ============================================================
+
+// --- QuizComponent: 4択テストコンポーネント ---
+function QuizComponent({
+  quizzes,          // 問題配列
+  tabId,            // "ethics" | "basics" etc.
+  sectionId,        // "A" | "B" etc.
+  accentColor,
+  state,
+  setState,
+}) {
+  const [idx, setIdx]           = useState(0);
+  const [selected, setSelected] = useState(null);  // 選択肢インデックス
+  const [answered, setAnswered] = useState(false);
+  const [score, setScore]       = useState(0);
+  const [finished, setFinished] = useState(false);
+  const [history, setHistory]   = useState([]);     // {correct, keyword, isCalc}
+
+  const q = quizzes[idx];
+
+  const handleSelect = (i) => {
+    if (answered) return;
+    setSelected(i);
+    setAnswered(true);
+    const correct = i === q.answer;
+    if (correct) setScore((s) => s + 1);
+    setHistory((h) => [...h, { correct, keyword: q.keyword, isCalc: !!q.isCalc }]);
+  };
+
+  const handleNext = () => {
+    if (idx + 1 >= quizzes.length) {
+      setFinished(true);
+      // 進捗をセクション完了として記録
+      const allCorrect = score + (selected === q.answer ? 1 : 0);
+      if (allCorrect / quizzes.length >= 0.6) {
+        setState((s) => ({
+          ...s,
+          progress: {
+            ...s.progress,
+            [tabId]: { ...s.progress[tabId], [sectionId]: true },
+          },
+          testHistory: [
+            ...s.testHistory,
+            ...quizzes.map((quiz, qi) => ({
+              date:     new Date().toISOString(),
+              tab:      tabId,
+              section:  sectionId,
+              question: quiz.id,
+              correct:  history[qi]?.correct ?? false,
+              keyword:  quiz.keyword,
+              isCalc:   !!quiz.isCalc,
+            })),
+          ],
+        }));
+      }
+      return;
+    }
+    setIdx((i) => i + 1);
+    setSelected(null);
+    setAnswered(false);
+  };
+
+  const handleRetry = () => {
+    setIdx(0);
+    setSelected(null);
+    setAnswered(false);
+    setScore(0);
+    setFinished(false);
+    setHistory([]);
+  };
+
+  // 完了画面
+  if (finished) {
+    const total    = quizzes.length;
+    const pct      = Math.round((score / total) * 100);
+    const passed   = pct >= 60;
+    return (
+      <div style={{ ...STYLES.card, textAlign: "center" }}>
+        <div style={{ fontSize: 40, marginBottom: 8 }}>{passed ? "🎉" : "📚"}</div>
+        <div
+          style={{
+            fontSize:   22,
+            fontWeight: 900,
+            color:      passed ? COLORS.secondary : COLORS.accent,
+            marginBottom: 4,
+          }}
+        >
+          {score} / {total} 正解
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 900, color: accentColor, marginBottom: 12 }}>
+          {pct}点
+        </div>
+        <div
+          style={{
+            ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent),
+            fontSize: 14,
+            marginBottom: 16,
+          }}
+        >
+          {passed ? "セクション完了！" : "もう少し！60点以上でクリア"}
+        </div>
+
+        {/* 間違えた問題一覧 */}
+        {history.some((h) => !h.correct) && (
+          <div style={{ textAlign: "left", marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.danger, marginBottom: 8 }}>
+              間違えた問題のキーワード
+            </div>
+            {history
+              .map((h, i) => ({ ...h, quiz: quizzes[i] }))
+              .filter((h) => !h.correct)
+              .map((h, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding:      "6px 10px",
+                    background:   COLORS.danger + "10",
+                    border:       `1px solid ${COLORS.danger}33`,
+                    borderRadius: 8,
+                    fontSize:     12,
+                    marginBottom: 4,
+                    color:        COLORS.text,
+                  }}
+                >
+                  <span style={{ color: COLORS.danger, fontWeight: 700 }}>✗ </span>
+                  {h.keyword}
+                  {h.quiz.isCalc && <span style={{ ...STYLES.badge(COLORS.highlight), marginLeft: 6, fontSize: 10 }}>計算</span>}
+                  {h.quiz.isHikakke && <span style={{ ...STYLES.badge(COLORS.accent), marginLeft: 4, fontSize: 10 }}>ひっかけ</span>}
+                </div>
+              ))}
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={{ ...STYLES.btnOutline, flex: 1, color: accentColor, borderColor: accentColor }} onClick={handleRetry}>
+            もう一度
+          </button>
+          {passed && (
+            <div
+              style={{
+                flex:         1,
+                background:   COLORS.secondary + "20",
+                border:       `1.5px solid ${COLORS.secondary}`,
+                borderRadius: 12,
+                padding:      "8px 0",
+                fontSize:     13,
+                fontWeight:   700,
+                color:        COLORS.secondary,
+                display:      "flex",
+                alignItems:   "center",
+                justifyContent: "center",
+                gap:          4,
+              }}
+            >
+              <Check size={14} /> 完了済み
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 出題画面
+  return (
+    <div style={{ ...STYLES.card }}>
+      {/* 進捗バー */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: COLORS.textLight }}>
+        <span style={{ fontWeight: 700, color: accentColor }}>
+          問 {idx + 1} / {quizzes.length}
+        </span>
+        <span>正解 {score}問</span>
+      </div>
+      <div style={{ height: 4, background: COLORS.border, borderRadius: 4, marginBottom: 14, overflow: "hidden" }}>
+        <div
+          style={{
+            height:       "100%",
+            width:        `${((idx) / quizzes.length) * 100}%`,
+            background:   accentColor,
+            borderRadius: 4,
+            transition:   "width 0.3s ease",
+          }}
+        />
+      </div>
+
+      {/* バッジ */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+        {q.isCalc && <span style={STYLES.badge(COLORS.highlight)}>計算問題</span>}
+        {q.isHikakke && <span style={STYLES.badge(COLORS.accent)}>ひっかけ注意</span>}
+        <span style={STYLES.badge(COLORS.textLight)}>{q.keyword}</span>
+      </div>
+
+      {/* 問題文 */}
+      <div
+        style={{
+          fontSize:     14,
+          fontWeight:   700,
+          color:        COLORS.text,
+          lineHeight:   1.8,
+          marginBottom: 14,
+          padding:      "10px 12px",
+          background:   accentColor + "08",
+          borderRadius: 10,
+          border:       `1px solid ${accentColor}22`,
+        }}
+      >
+        {q.q}
+      </div>
+
+      {/* 選択肢 */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {q.choices.map((choice, i) => {
+          let bg     = "#fff";
+          let border = `1.5px solid ${COLORS.border}`;
+          let color  = COLORS.text;
+
+          if (answered) {
+            if (i === q.answer) {
+              bg = COLORS.secondary + "20"; border = `2px solid ${COLORS.secondary}`; color = COLORS.secondary;
+            } else if (i === selected && i !== q.answer) {
+              bg = COLORS.danger + "15"; border = `2px solid ${COLORS.danger}`; color = COLORS.danger;
+            }
+          } else if (selected === i) {
+            bg = accentColor + "15"; border = `2px solid ${accentColor}`;
+          }
+
+          return (
+            <button
+              key={i}
+              onClick={() => handleSelect(i)}
+              style={{
+                background:   bg,
+                border,
+                borderRadius: 12,
+                padding:      "10px 14px",
+                textAlign:    "left",
+                cursor:       answered ? "default" : "pointer",
+                display:      "flex",
+                alignItems:   "flex-start",
+                gap:          10,
+                transition:   "all 0.15s ease",
+                fontFamily:   "'Noto Sans JP', sans-serif",
+              }}
+            >
+              <span
+                style={{
+                  minWidth:       22,
+                  height:         22,
+                  borderRadius:   "50%",
+                  background:     answered && i === q.answer
+                    ? COLORS.secondary
+                    : answered && i === selected && i !== q.answer
+                    ? COLORS.danger
+                    : accentColor + "33",
+                  color:          answered && (i === q.answer || i === selected) ? "#fff" : accentColor,
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  fontSize:       11,
+                  fontWeight:     800,
+                  flexShrink:     0,
+                }}
+              >
+                {answered && i === q.answer
+                  ? "○"
+                  : answered && i === selected && i !== q.answer
+                  ? "✗"
+                  : ["①", "②", "③", "④"][i]}
+              </span>
+              <span style={{ fontSize: 13, color, lineHeight: 1.6 }}>{choice}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 解説（回答後） */}
+      {answered && (
+        <div
+          style={{
+            marginTop:    12,
+            padding:      "10px 12px",
+            background:   (selected === q.answer ? COLORS.secondary : COLORS.danger) + "10",
+            border:       `1px solid ${(selected === q.answer ? COLORS.secondary : COLORS.danger)}33`,
+            borderRadius: 10,
+          }}
+        >
+          <div
+            style={{
+              fontSize:     12,
+              fontWeight:   800,
+              color:        selected === q.answer ? COLORS.secondary : COLORS.danger,
+              marginBottom: 4,
+            }}
+          >
+            {selected === q.answer ? "✓ 正解！" : "✗ 不正解"}
+          </div>
+          <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.7 }}>
+            {q.explanation}
+          </div>
+        </div>
+      )}
+
+      {/* 次へボタン */}
+      {answered && (
+        <button
+          style={{
+            ...STYLES.btnPrimary,
+            width:      "100%",
+            marginTop:  12,
+            background: `linear-gradient(135deg, ${accentColor}, ${accentColor}BB)`,
+          }}
+          onClick={handleNext}
+        >
+          {idx + 1 >= quizzes.length ? "結果を見る" : "次の問題"}
+          <ChevronRight size={15} style={{ marginLeft: 4 }} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- SectionProgress: セクション完了状態表示 ---
+function SectionProgress({ tabId, sections, progress, color, onSelect }) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+      {sections.map((sec) => {
+        const done = progress[tabId]?.[sec.id] ?? false;
+        return (
+          <button
+            key={sec.id}
+            onClick={() => onSelect(sec.id)}
+            style={{
+              display:        "flex",
+              alignItems:     "center",
+              gap:            6,
+              background:     done ? color + "18" : "#fff",
+              border:         `1.5px solid ${done ? color : COLORS.border}`,
+              borderRadius:   20,
+              padding:        "5px 12px",
+              cursor:         "pointer",
+              fontFamily:     "'Noto Sans JP', sans-serif",
+              fontSize:       12,
+              fontWeight:     700,
+              color:          done ? color : COLORS.textLight,
+              transition:     "all 0.15s ease",
+            }}
+          >
+            {done
+              ? <Check size={12} color={color} />
+              : <div style={{ width: 12, height: 12, borderRadius: "50%", border: `1.5px solid ${COLORS.border}` }} />
+            }
+            {sec.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- MiniCalcCard: ホーム画面「今日の計算練習」用 ---
+function MiniCalcCard({ quiz, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+  const [answered, setAnswered] = useState(false);
+
+  if (!quiz) return null;
+
+  return (
+    <div style={{ ...STYLES.card }}>
+      <div style={{ ...STYLES.sectionTitle, fontSize: 14, color: COLORS.accent }}>
+        <Calculator size={15} color={COLORS.accent} /> 今日の計算練習
+      </div>
+      <div style={{ ...STYLES.badge(COLORS.highlight), marginBottom: 8 }}>計算問題</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, lineHeight: 1.7, marginBottom: 12 }}>
+        {quiz.q}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {quiz.choices.map((c, i) => {
+          let bg = "#fff", border = `1px solid ${COLORS.border}`, color = COLORS.text;
+          if (answered) {
+            if (i === quiz.answer) { bg = COLORS.secondary + "18"; border = `1.5px solid ${COLORS.secondary}`; color = COLORS.secondary; }
+            else if (i === selected) { bg = COLORS.danger + "12"; border = `1.5px solid ${COLORS.danger}`; color = COLORS.danger; }
+          }
+          return (
+            <button
+              key={i}
+              onClick={() => { if (answered) return; setSelected(i); setAnswered(true); onAnswer(i === quiz.answer); }}
+              style={{ background: bg, border, borderRadius: 10, padding: "8px 12px", textAlign: "left", cursor: answered ? "default" : "pointer", fontSize: 13, color, fontFamily: "'Noto Sans JP', sans-serif" }}
+            >
+              {["①","②","③","④"][i]} {c}
+            </button>
+          );
+        })}
+      </div>
+      {answered && (
+        <div style={{ marginTop: 10, padding: "8px 12px", background: COLORS.primary + "0A", borderRadius: 8, fontSize: 12, color: COLORS.text, lineHeight: 1.6 }}>
+          {quiz.explanation}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- SearchBar: 全タブ横断検索 ---
+const SEARCH_INDEX = [
+  { keyword: "フィデューシャリー",   tab: "ethics",    section: "A", desc: "受託者責任・顧客本位" },
+  { keyword: "KYC",                tab: "ethics",    section: "B", desc: "顧客情報収集" },
+  { keyword: "NISA",               tab: "ethics",    section: "C", desc: "新NISA・非課税投資" },
+  { keyword: "iDeCo",              tab: "ethics",    section: "C", desc: "個人型確定拠出年金" },
+  { keyword: "ESG",                tab: "ethics",    section: "C", desc: "環境・社会・ガバナンス投資" },
+  { keyword: "リターン",            tab: "basics",    section: "A", desc: "単純・年率・幾何平均リターン" },
+  { keyword: "標準偏差",            tab: "basics",    section: "B", desc: "リスク・分散・相関係数" },
+  { keyword: "シャープレシオ",       tab: "basics",    section: "B", desc: "リスク調整後リターン" },
+  { keyword: "現在価値",            tab: "basics",    section: "C", desc: "PV・FV・割引率" },
+  { keyword: "VaR",                tab: "basics",    section: "C", desc: "バリュー・アット・リスク" },
+  { keyword: "アセットアロケーション",tab: "basics",   section: "E", desc: "資産配分の重要性" },
+  { keyword: "分散効果",            tab: "portfolio", section: "A", desc: "相関係数と分散効果" },
+  { keyword: "効率的フロンティア",   tab: "portfolio", section: "B", desc: "最適ポートフォリオ" },
+  { keyword: "CAPM",               tab: "portfolio", section: "C", desc: "資本資産評価モデル" },
+  { keyword: "ベータ",              tab: "portfolio", section: "C", desc: "市場リスク感応度" },
+  { keyword: "トレイナーレシオ",     tab: "portfolio", section: "D", desc: "システマティックリスク調整後リターン" },
+  { keyword: "ジェンセンのアルファ", tab: "portfolio", section: "D", desc: "超過リターン指標" },
+  { keyword: "PER",                tab: "products",  section: "A", desc: "株価収益率" },
+  { keyword: "DDM",                tab: "products",  section: "A", desc: "配当割引モデル" },
+  { keyword: "デュレーション",       tab: "products",  section: "B", desc: "債券の金利感応度" },
+  { keyword: "YTM",                tab: "products",  section: "B", desc: "最終利回り" },
+  { keyword: "為替",               tab: "products",  section: "C", desc: "外国証券・為替リスク" },
+  { keyword: "ETF",                tab: "products",  section: "D", desc: "上場投資信託" },
+  { keyword: "REIT",               tab: "products",  section: "E", desc: "不動産投資信託" },
+];
+
+function SearchBar({ onNavigate }) {
+  const [query, setQuery]     = useState("");
+  const [results, setResults] = useState([]);
+  const [focus, setFocus]     = useState(false);
+
+  const handleChange = (e) => {
+    const v = e.target.value;
+    setQuery(v);
+    if (v.length < 1) { setResults([]); return; }
+    const r = SEARCH_INDEX.filter(
+      (item) =>
+        item.keyword.includes(v) ||
+        item.desc.includes(v) ||
+        item.tab.includes(v)
+    ).slice(0, 6);
+    setResults(r);
+  };
+
+  const tabColor = (tabId) => TABS.find((t) => t.id === tabId)?.color ?? COLORS.primary;
+
+  return (
+    <div style={{ position: "relative", marginBottom: 14 }}>
+      <div
+        style={{
+          display:      "flex",
+          alignItems:   "center",
+          gap:          8,
+          background:   "#fff",
+          border:       `1.5px solid ${focus ? COLORS.primary : COLORS.border}`,
+          borderRadius: 14,
+          padding:      "9px 14px",
+          boxShadow:    focus ? `0 0 0 3px ${COLORS.primary}22` : "none",
+          transition:   "all 0.18s ease",
+        }}
+      >
+        <Search size={16} color={focus ? COLORS.primary : COLORS.textMuted} />
+        <input
+          type="text"
+          placeholder="用語・公式・キーワードで検索..."
+          value={query}
+          onChange={handleChange}
+          onFocus={() => setFocus(true)}
+          onBlur={() => setTimeout(() => setFocus(false), 200)}
+          style={{
+            flex:       1,
+            border:     "none",
+            outline:    "none",
+            fontSize:   14,
+            color:      COLORS.text,
+            background: "transparent",
+            fontFamily: "'Noto Sans JP', sans-serif",
+          }}
+        />
+        {query && (
+          <button
+            onClick={() => { setQuery(""); setResults([]); }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.textMuted, padding: 0 }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {results.length > 0 && (
+        <div
+          style={{
+            position:     "absolute",
+            top:          "100%",
+            left:         0,
+            right:        0,
+            background:   "#fff",
+            border:       `1.5px solid ${COLORS.border}`,
+            borderRadius: 12,
+            boxShadow:    "0 8px 24px rgba(74,144,217,0.18)",
+            zIndex:       200,
+            overflow:     "hidden",
+            marginTop:    4,
+          }}
+        >
+          {results.map((r, i) => (
+            <div
+              key={i}
+              onMouseDown={() => { onNavigate(r.tab); setQuery(""); setResults([]); }}
+              style={{
+                display:     "flex",
+                alignItems:  "center",
+                gap:         10,
+                padding:     "10px 14px",
+                cursor:      "pointer",
+                borderBottom: i < results.length - 1 ? `1px solid ${COLORS.border}` : "none",
+              }}
+            >
+              <span
+                style={{
+                  ...STYLES.badge(tabColor(r.tab)),
+                  fontSize:  11,
+                  minWidth:  52,
+                  textAlign: "center",
+                }}
+              >
+                {TABS.find((t) => t.id === r.tab)?.short ?? r.tab}
+              </span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text }}>{r.keyword}</div>
+                <div style={{ fontSize: 11, color: COLORS.textLight }}>{r.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// プレースホルダータブ（フェーズ6以降で実装）
 // ============================================================
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
