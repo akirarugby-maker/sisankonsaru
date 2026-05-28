@@ -9,7 +9,7 @@
 フェーズ5:  共通コンポーネント            [✅]
 フェーズ6:  ホーム画面                   [✅]
 フェーズ7:  ①顧客本位・倫理タブ          [✅]
-フェーズ8:  ②資産運用の基礎タブ 前半     [ ]
+フェーズ8:  ②資産運用の基礎タブ 前半     [✅]
 フェーズ9:  ②資産運用の基礎タブ 後半     [ ]
 フェーズ10: ③ポートフォリオ理論タブ      [ ]
 フェーズ11: ④金融商品タブ               [ ]
@@ -3154,6 +3154,357 @@ function EthicsSectionC({ color, state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ8: ②資産運用の基礎タブ 前半（セクションA・B）
+// ============================================================
+
+// --- 単純リターン電卓 ---
+function ReturnCalculatorSection({ color }) {
+  return (
+    <div>
+      <InfoBox title="リターンの種類と使い分け" color={color}>
+        <strong>単純リターン（保有期間）</strong>：R = (期末価格 − 期初価格 + 配当) / 期初価格<br />
+        <strong>年率リターン（複利換算）</strong>：年率R = (1 + 保有期間R)^(1/年数) − 1<br />
+        <strong>算術平均</strong>：各期リターンの単純平均 → 将来予測に使用<br />
+        <strong>幾何平均</strong>：複利ベースの平均 → 過去実績評価に使用
+      </InfoBox>
+
+      {/* 公式カード */}
+      <FormulaCard {...FORMULA_DATA.simpleReturn} color={color} />
+      <FormulaCard {...FORMULA_DATA.annualReturn} color={color} />
+      <FormulaCard {...FORMULA_DATA.geoMean}      color={color} />
+
+      {/* 単純リターン電卓 */}
+      <CalcComponent
+        formulaName="単純リターン計算機"
+        accentColor={color}
+        inputs={[
+          { label: "期初価格", key: "p0",  unit: "円", defaultValue: "100" },
+          { label: "期末価格", key: "p1",  unit: "円", defaultValue: "115" },
+          { label: "配当",     key: "div", unit: "円", defaultValue: "3"   },
+          { label: "保有年数", key: "n",   unit: "年", defaultValue: "2"   },
+        ]}
+        calculate={({ p0, p1, div, n }) => {
+          const hpr     = (p1 - p0 + div) / p0;
+          const annualR = Math.pow(1 + hpr, 1 / n) - 1;
+          return {
+            results: [
+              { label: "保有期間リターン", value: (hpr * 100).toFixed(2), unit: "%", color },
+              { label: "年率リターン（複利）", value: (annualR * 100).toFixed(2), unit: "%", color: COLORS.secondary },
+            ],
+            steps: [
+              `保有期間リターン = (${p1} − ${p0} + ${div}) / ${p0} = ${(hpr * 100).toFixed(2)}%`,
+              `年率リターン = (1 + ${(hpr * 100).toFixed(2)}%)^(1/${n}) − 1 = ${(annualR * 100).toFixed(2)}%`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const p0 = vals.p0, div = vals.div, n = vals.n;
+          const data = Array.from({ length: 11 }, (_, i) => {
+            const rate = -0.1 + i * 0.04;
+            const p1   = p0 * (1 + rate);
+            const hpr  = (p1 - p0 + div) / p0;
+            const ann  = Math.pow(1 + hpr, 1 / n) - 1;
+            return {
+              price:  Math.round(p1),
+              hpr:    parseFloat((hpr * 100).toFixed(1)),
+              annual: parseFloat((ann * 100).toFixed(1)),
+            };
+          });
+          return (
+            <ChartCard title="期末価格別リターン比較" color={color} height={180}>
+              <LineChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="price" tick={{ fontSize: 10 }} label={{ value: "期末(円)", position: "insideRight", offset: -4, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} unit="%" />
+                <Tooltip formatter={(v) => `${v}%`} />
+                <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
+                <ReferenceLine y={0} stroke={COLORS.danger} strokeDasharray="3 3" />
+                <Line type="monotone" dataKey="hpr"    name="保有期間R" stroke={color}          strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="annual" name="年率R"    stroke={COLORS.secondary} strokeWidth={2} dot={false} />
+              </LineChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      {/* 算術vs幾何平均 電卓 */}
+      <CalcComponent
+        formulaName="算術平均 vs 幾何平均"
+        accentColor={COLORS.highlight}
+        inputs={[
+          { label: "1期リターン", key: "r1", unit: "%", defaultValue: "20" },
+          { label: "2期リターン", key: "r2", unit: "%", defaultValue: "-10" },
+          { label: "3期リターン", key: "r3", unit: "%", defaultValue: "15" },
+        ]}
+        calculate={({ r1, r2, r3 }) => {
+          const r = [r1, r2, r3].map((v) => v / 100);
+          const arith = (r1 + r2 + r3) / 3;
+          const geo   = (Math.pow((1 + r[0]) * (1 + r[1]) * (1 + r[2]), 1 / 3) - 1) * 100;
+          return {
+            results: [
+              { label: "算術平均", value: arith.toFixed(2), unit: "%", color: COLORS.highlight },
+              { label: "幾何平均", value: geo.toFixed(2),   unit: "%", color: COLORS.secondary },
+            ],
+            steps: [
+              `算術平均 = (${r1} + ${r2} + ${r3}) / 3 = ${arith.toFixed(2)}%`,
+              `幾何平均 = ((1+${r1/100})(1+${r2/100})(1+${r3/100}))^(1/3) − 1 = ${geo.toFixed(2)}%`,
+              `算術平均 ≥ 幾何平均（等号は全リターンが同値のとき）`,
+              `将来予測 → 算術平均 ／ 過去の実績評価 → 幾何平均`,
+            ],
+          };
+        }}
+      />
+    </div>
+  );
+}
+
+// --- リスク計算セクション ---
+function RiskCalculatorSection({ color }) {
+  const [sigmaVal, setSigmaVal] = useState(15);
+  const [meanVal,  setMeanVal]  = useState(5);
+  const normalData = generateNormalDist(meanVal, sigmaVal);
+
+  return (
+    <div>
+      <InfoBox title="リスク（標準偏差）とは" color={color}>
+        リスク＝リターンの「ばらつき」を標準偏差で表す。<br />
+        <strong>分散 σ²</strong> = Σ(Ri − Ra)² / n<br />
+        <strong>標準偏差 σ</strong> = √分散　（σが大きい＝高リスク）<br />
+        <strong>相関係数 ρ</strong> = Cov(A,B) / (σA × σB)　−1 ≤ ρ ≤ 1
+      </InfoBox>
+
+      <FormulaCard {...FORMULA_DATA.stdDev}      color={color} />
+      <FormulaCard {...FORMULA_DATA.correlation} color={color} />
+
+      {/* リスク電卓 */}
+      <CalcComponent
+        formulaName="標準偏差・相関係数計算機"
+        accentColor={color}
+        inputs={[
+          { label: "リターン1期(%)", key: "r1", defaultValue: "10"  },
+          { label: "リターン2期(%)", key: "r2", defaultValue: "20"  },
+          { label: "リターン3期(%)", key: "r3", defaultValue: "-5"  },
+          { label: "リターン4期(%)", key: "r4", defaultValue: "15"  },
+        ]}
+        calculate={({ r1, r2, r3, r4 }) => {
+          const rs   = [r1, r2, r3, r4];
+          const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
+          const variance = rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length;
+          const sigma    = Math.sqrt(variance);
+          return {
+            results: [
+              { label: "平均リターン", value: mean.toFixed(2),     unit: "%", color: COLORS.primary },
+              { label: "分散",         value: variance.toFixed(2), unit: "",  color },
+              { label: "標準偏差(σ)", value: sigma.toFixed(2),    unit: "%", color: COLORS.danger },
+            ],
+            steps: [
+              `平均 Ra = (${rs.join(" + ")}) / 4 = ${mean.toFixed(2)}%`,
+              `偏差² の合計 = ${rs.map((r) => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`,
+              `分散 = ${variance.toFixed(2)}`,
+              `標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const rs   = [vals.r1, vals.r2, vals.r3, vals.r4];
+          const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
+          const sigma = Math.sqrt(rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length);
+          const distData = generateNormalDist(mean, sigma, 50);
+          return (
+            <ChartCard title="リターン分布（正規分布近似）" color={color} height={160}>
+              <AreaChart data={distData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="x" tick={{ fontSize: 9 }} unit="%" />
+                <YAxis tick={{ fontSize: 9 }} />
+                <Tooltip formatter={(v) => v.toFixed(4)} labelFormatter={(l) => `${l}%`} />
+                <Area type="monotone" dataKey="y" stroke={color} fill={color + "33"} dot={false} />
+                <ReferenceLine x={mean}         stroke={COLORS.primary} strokeDasharray="3 3" label={{ value: "μ", position: "top", fontSize: 10 }} />
+                <ReferenceLine x={mean + sigma} stroke={COLORS.danger}  strokeDasharray="2 2" label={{ value: "+σ", position: "top", fontSize: 9 }} />
+                <ReferenceLine x={mean - sigma} stroke={COLORS.danger}  strokeDasharray="2 2" label={{ value: "-σ", position: "top", fontSize: 9 }} />
+              </AreaChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      {/* 2資産相関係数電卓 */}
+      <CalcComponent
+        formulaName="2資産の相関係数計算機"
+        accentColor={COLORS.highlight}
+        inputs={[
+          { label: "資産Aリターン1(%)", key: "a1", defaultValue: "10" },
+          { label: "資産Bリターン1(%)", key: "b1", defaultValue: "5"  },
+          { label: "資産Aリターン2(%)", key: "a2", defaultValue: "20" },
+          { label: "資産Bリターン2(%)", key: "b2", defaultValue: "-5" },
+          { label: "資産Aリターン3(%)", key: "a3", defaultValue: "-5" },
+          { label: "資産Bリターン3(%)", key: "b3", defaultValue: "15" },
+        ]}
+        calculate={({ a1, a2, a3, b1, b2, b3 }) => {
+          const as = [a1, a2, a3], bs = [b1, b2, b3];
+          const ma = as.reduce((s, v) => s + v, 0) / 3;
+          const mb = bs.reduce((s, v) => s + v, 0) / 3;
+          const sigA = Math.sqrt(as.reduce((s, v) => s + (v - ma) ** 2, 0) / 3);
+          const sigB = Math.sqrt(bs.reduce((s, v) => s + (v - mb) ** 2, 0) / 3);
+          const cov  = as.reduce((s, v, i) => s + (v - ma) * (bs[i] - mb), 0) / 3;
+          const rho  = sigA > 0 && sigB > 0 ? cov / (sigA * sigB) : 0;
+          return {
+            results: [
+              { label: "σA", value: sigA.toFixed(2), unit: "%", color: COLORS.primary },
+              { label: "σB", value: sigB.toFixed(2), unit: "%", color: COLORS.secondary },
+              { label: "共分散", value: cov.toFixed(2), unit: "",  color: COLORS.accent },
+              { label: "相関係数 ρ", value: rho.toFixed(3), unit: "", color: COLORS.highlight },
+            ],
+            steps: [
+              `平均: Ra=${ma.toFixed(1)}%, Rb=${mb.toFixed(1)}%`,
+              `σA = ${sigA.toFixed(2)}%、σB = ${sigB.toFixed(2)}%`,
+              `Cov(A,B) = ${cov.toFixed(2)}`,
+              `ρ = ${cov.toFixed(2)} / (${sigA.toFixed(2)} × ${sigB.toFixed(2)}) = ${rho.toFixed(3)}`,
+            ],
+          };
+        }}
+      />
+
+      {/* インタラクティブ正規分布グラフ */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <Activity size={15} color={color} /> 正規分布（インタラクティブ）
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <div>
+            <label style={STYLES.label}>平均リターン μ: {meanVal}%</label>
+            <input type="range" min="-10" max="20" value={meanVal} onChange={(e) => setMeanVal(Number(e.target.value))}
+              style={{ width: "100%" }} />
+          </div>
+          <div>
+            <label style={STYLES.label}>標準偏差 σ: {sigmaVal}%</label>
+            <input type="range" min="1" max="40" value={sigmaVal} onChange={(e) => setSigmaVal(Number(e.target.value))}
+              style={{ width: "100%" }} />
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+          {[
+            { label: `±1σ ≈ 68%`, lo: meanVal - sigmaVal,   hi: meanVal + sigmaVal },
+            { label: `±2σ ≈ 95%`, lo: meanVal - 2 * sigmaVal, hi: meanVal + 2 * sigmaVal },
+          ].map((band) => (
+            <span key={band.label} style={STYLES.badge(color)}>
+              {band.label}（{band.lo.toFixed(1)}〜{band.hi.toFixed(1)}%）
+            </span>
+          ))}
+        </div>
+        <ResponsiveContainer width="100%" height={160}>
+          <AreaChart data={normalData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+            <XAxis dataKey="x" tick={{ fontSize: 9 }} unit="%" />
+            <YAxis tick={{ fontSize: 9 }} />
+            <Tooltip formatter={(v) => v.toFixed(4)} labelFormatter={(l) => `${l}%`} />
+            <Area type="monotone" dataKey="y" stroke={color} fill={color + "30"} dot={false} />
+            <ReferenceLine x={meanVal}              stroke={COLORS.primary} strokeWidth={2} label={{ value: "μ", position: "insideTopRight", fontSize: 10 }} />
+            <ReferenceLine x={meanVal + sigmaVal}   stroke={COLORS.danger}  strokeDasharray="3 3" />
+            <ReferenceLine x={meanVal - sigmaVal}   stroke={COLORS.danger}  strokeDasharray="3 3" />
+            <ReferenceLine x={meanVal + 2*sigmaVal} stroke={COLORS.accent}  strokeDasharray="2 2" />
+            <ReferenceLine x={meanVal - 2*sigmaVal} stroke={COLORS.accent}  strokeDasharray="2 2" />
+          </AreaChart>
+        </ResponsiveContainer>
+        <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 4, textAlign: "center" }}>
+          赤線: ±1σ（68%）　橙線: ±2σ（95%）　VaR95% = μ − 1.645σ = {(meanVal - 1.645 * sigmaVal).toFixed(1)}%
+        </div>
+      </div>
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク",
+          "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）",
+          "相関係数ρ=-1：リスクをゼロにできる（理論上）",
+          "ρ=+1：分散効果なし、リスクは加重平均に等しい",
+          "シャープレシオ高い＝必ず良い投資ではない（比較対象による）",
+        ]}
+      />
+    </div>
+  );
+}
+
+// --- ②基礎タブ（前半）本体 ---
+const BASICS_SECTIONS_AB = [
+  { id: "A", label: "A: リターン計算" },
+  { id: "B", label: "B: リスク計算" },
+];
+
+function BasicsFrontTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = COLORS.accent;
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="資産運用の基礎"
+        subtitle="リターン・リスク・現在価値・統計学"
+        color={color}
+        icon={BookOpen}
+      />
+      <SectionTab sections={BASICS_SECTIONS_AB} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="basics" sections={BASICS_SECTIONS_AB} progress={state.progress} color={color} onSelect={setSection} />
+
+      {section === "A" && (
+        <div>
+          <ReturnCalculatorSection color={color} />
+          <button
+            style={{
+              ...(state.progress.basics?.A ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%",
+              marginTop: 4,
+              marginBottom: 12,
+              background: state.progress.basics?.A
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({
+              ...s,
+              _quizOpenBasicsA: !(s._quizOpenBasicsA),
+            }))}
+          >
+            {state.progress.basics?.A
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : "理解度テストを受ける（8問）"}
+          </button>
+          {state._quizOpenBasicsA && (
+            <QuizComponent quizzes={BASICS_QUIZZES.A} tabId="basics" sectionId="A" accentColor={color} state={state} setState={setState} />
+          )}
+        </div>
+      )}
+
+      {section === "B" && (
+        <div>
+          <RiskCalculatorSection color={color} />
+          <button
+            style={{
+              ...(state.progress.basics?.B ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%",
+              marginTop: 4,
+              marginBottom: 12,
+              background: state.progress.basics?.B
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({
+              ...s,
+              _quizOpenBasicsB: !(s._quizOpenBasicsB),
+            }))}
+          >
+            {state.progress.basics?.B
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : "理解度テストを受ける（8問）"}
+          </button>
+          {state._quizOpenBasicsB && (
+            <QuizComponent quizzes={BASICS_QUIZZES.B} tabId="basics" sectionId="B" accentColor={color} state={state} setState={setState} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -3665,10 +4016,11 @@ export default function ABCExamApp() {
         );
       case "ethics":
         return (
-          <EthicsTab
-            state={state}
-            setState={setState}
-          />
+          <EthicsTab state={state} setState={setState} />
+        );
+      case "basics":
+        return (
+          <BasicsFrontTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
