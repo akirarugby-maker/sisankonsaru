@@ -8,7 +8,7 @@
 フェーズ4:  PF・金融商品データ            [✅]
 フェーズ5:  共通コンポーネント            [✅]
 フェーズ6:  ホーム画面                   [✅]
-フェーズ7:  ①顧客本位・倫理タブ          [ ]
+フェーズ7:  ①顧客本位・倫理タブ          [✅]
 フェーズ8:  ②資産運用の基礎タブ 前半     [ ]
 フェーズ9:  ②資産運用の基礎タブ 後半     [ ]
 フェーズ10: ③ポートフォリオ理論タブ      [ ]
@@ -2812,6 +2812,348 @@ function SearchBar({ onNavigate }) {
 // ============================================================
 // プレースホルダータブ（フェーズ6以降で実装）
 // ============================================================
+// ============================================================
+// フェーズ7: ①顧客本位・倫理タブ
+// ============================================================
+const ETHICS_SECTIONS = [
+  { id: "A", label: "A: FD原則" },
+  { id: "B", label: "B: 信頼関係" },
+  { id: "C", label: "C: 新潮流" },
+];
+
+function EthicsTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = COLORS.secondary;
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="顧客本位・倫理"
+        subtitle="フィデューシャリーデューティー・信頼関係・新潮流"
+        color={color}
+        icon={Shield}
+      />
+
+      <SectionTab
+        sections={ETHICS_SECTIONS}
+        activeSection={section}
+        onSelect={setSection}
+        color={color}
+      />
+      <SectionProgress
+        tabId="ethics"
+        sections={ETHICS_SECTIONS}
+        progress={state.progress}
+        color={color}
+        onSelect={setSection}
+      />
+
+      {section === "A" && <EthicsSectionA color={color} state={state} setState={setState} />}
+      {section === "B" && <EthicsSectionB color={color} state={state} setState={setState} />}
+      {section === "C" && <EthicsSectionC color={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションA: フィデューシャリーデューティー ---
+function EthicsSectionA({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.progress.ethics?.A;
+
+  return (
+    <div>
+      <InfoBox title="フィデューシャリーデューティー（FD）とは" color={color}>
+        「顧客の最善の利益を最優先に考えた行動義務」＝受託者責任。<br />
+        金融庁が2017年に「顧客本位の業務運営に関する原則」を策定。<br />
+        プリンシプルベース（原則主義）アプローチを採用。ABC試験の最重要テーマ。
+      </InfoBox>
+
+      {/* 7原則カード */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <Award size={15} color={color} /> 顧客本位の7原則
+        </div>
+        {FD_PRINCIPLES.map((p) => (
+          <div
+            key={p.no}
+            style={{
+              display:      "flex",
+              gap:          10,
+              padding:      "9px 0",
+              borderBottom: p.no < 7 ? `1px solid ${COLORS.border}` : "none",
+              alignItems:   "flex-start",
+            }}
+          >
+            <div
+              style={{
+                minWidth:       26,
+                height:         26,
+                borderRadius:   8,
+                background:     color,
+                color:          "#fff",
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+                fontSize:       12,
+                fontWeight:     900,
+                flexShrink:     0,
+              }}
+            >
+              {p.no}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: COLORS.text, marginBottom: 2 }}>
+                {p.title}
+                <span style={{ ...STYLES.badge(color), marginLeft: 6, fontSize: 10 }}>{p.keyword}</span>
+              </div>
+              <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.6 }}>{p.detail}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "フィデューシャリー＝「受託者」の意味（信認義務）",
+          "顧客の利益 > 自社の利益 が大原則",
+          "利益相反：販売手数料の高い商品を優先して勧めること等",
+          "KYC（Know Your Customer）：顧客の状況把握義務",
+          "適合性の原則：顧客のリスク許容度に合った商品提案",
+          "7原則は法的拘束力なし・各社が自主的に遵守（プリンシプルベース）",
+        ]}
+      />
+
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%",
+          marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, ${color}CC)`,
+        }}
+        onClick={() => setShowQuiz((s) => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
+      </button>
+
+      {showQuiz && (
+        <QuizComponent
+          quizzes={ETHICS_QUIZZES.A}
+          tabId="ethics"
+          sectionId="A"
+          accentColor={color}
+          state={state}
+          setState={setState}
+        />
+      )}
+    </div>
+  );
+}
+
+// --- セクションB: 顧客との信頼関係構築 ---
+function EthicsSectionB({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.progress.ethics?.B;
+
+  return (
+    <div>
+      <InfoBox title="ライフプランニングの基本ステップ" color={color}>
+        <strong>Step1</strong> ゴール設定（いつまでに・いくら・何のために）<br />
+        <strong>Step2</strong> 現状把握（資産・負債・収入・支出）<br />
+        <strong>Step3</strong> ギャップ分析<br />
+        <strong>Step4</strong> 解決策の提案<br />
+        <strong>Step5</strong> 実行・モニタリング
+      </InfoBox>
+
+      {/* KYCカード */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <Search size={15} color={color} /> KYC（Know Your Customer）
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {KYC_ITEMS.map((item) => (
+            <div
+              key={item.label}
+              style={{
+                background:   color + "0C",
+                border:       `1px solid ${color}22`,
+                borderRadius: 12,
+                padding:      "10px 12px",
+              }}
+            >
+              <div style={{ fontSize: 16, marginBottom: 4 }}>{item.icon}</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color, marginBottom: 5 }}>{item.label}</div>
+              {item.items.map((it) => (
+                <div key={it} style={{ fontSize: 11, color: COLORS.textLight, lineHeight: 1.5 }}>• {it}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "ライフプランニングは「ゴール設定 → 現状把握」の順序が重要",
+          "リスク許容度は年齢・収入安定性・投資期間・心理的耐性で判断",
+          "定期的なモニタリングとリバランスで目標配分を維持",
+          "顧客との面談で最初に確認すべきは「投資目的・期間・ゴール」",
+        ]}
+      />
+
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%",
+          marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, ${color}CC)`,
+        }}
+        onClick={() => setShowQuiz((s) => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（5問）"}
+      </button>
+
+      {showQuiz && (
+        <QuizComponent
+          quizzes={ETHICS_QUIZZES.B}
+          tabId="ethics"
+          sectionId="B"
+          accentColor={color}
+          state={state}
+          setState={setState}
+        />
+      )}
+    </div>
+  );
+}
+
+// --- セクションC: 資産形成の新しい潮流 ---
+function EthicsSectionC({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [activeProduct, setActiveProduct] = useState("nisa");
+  const done = state.progress.ethics?.C;
+
+  const prod = TAX_ADVANTAGE_DATA[activeProduct];
+
+  return (
+    <div>
+      {/* NISA/iDeCo切替 */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {["nisa", "ideco"].map((key) => (
+          <button
+            key={key}
+            onClick={() => setActiveProduct(key)}
+            style={{
+              flex:         1,
+              background:   activeProduct === key
+                ? TAX_ADVANTAGE_DATA[key].color
+                : "transparent",
+              color:        activeProduct === key ? "#fff" : COLORS.textLight,
+              border:       `2px solid ${TAX_ADVANTAGE_DATA[key].color}`,
+              borderRadius: 12,
+              padding:      "9px 0",
+              cursor:       "pointer",
+              fontWeight:   800,
+              fontSize:     14,
+              fontFamily:   "'Noto Sans JP', sans-serif",
+              transition:   "all 0.18s ease",
+            }}
+          >
+            {TAX_ADVANTAGE_DATA[key].name.split("（")[0]}
+          </button>
+        ))}
+      </div>
+
+      {/* 詳細カード */}
+      <div style={{ ...STYLES.card, borderLeft: `4px solid ${prod.color}`, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: prod.color, marginBottom: 10 }}>
+          {prod.name}
+        </div>
+        {prod.points.map((pt) => (
+          <div
+            key={pt.label}
+            style={{
+              display:      "flex",
+              gap:          8,
+              padding:      "5px 0",
+              borderBottom: `1px solid ${COLORS.border}`,
+              fontSize:     13,
+            }}
+          >
+            <span style={{ color: COLORS.textLight, minWidth: 90, fontWeight: 600, fontSize: 12 }}>
+              {pt.label}
+            </span>
+            <span style={{ color: COLORS.text, fontWeight: pt.label === "損益通算" ? 700 : 400 }}>
+              {pt.value}
+            </span>
+          </div>
+        ))}
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: prod.color, marginBottom: 6 }}>ポイント</div>
+          {prod.tips.map((tip, i) => (
+            <div key={i} style={{ display: "flex", gap: 6, marginBottom: 4, fontSize: 12, color: COLORS.text }}>
+              <span style={{ color: prod.color, fontWeight: 700 }}>✓</span>
+              <span>{tip}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ESG解説 */}
+      <InfoBox title="ESG投資・サステナブル投資" color="#16A085">
+        <strong>E</strong>nvironment（環境）・<strong>S</strong>ocial（社会）・<strong>G</strong>overnance（ガバナンス）<br />
+        非財務情報を投資判断に組み込む。主なアプローチ：<br />
+        ①ネガティブスクリーニング（問題企業を除外）<br />
+        ②ポジティブスクリーニング（優良企業を選別）<br />
+        ③ESGインテグレーション（財務情報と統合）<br />
+        ④エンゲージメント（企業との対話で改善促進）<br />
+        ⑤インパクト投資（社会的成果と財務リターンの両立）
+      </InfoBox>
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "新NISA：年360万円（つみたて120＋成長240）・生涯1,800万円",
+          "NISA損失は他口座との損益通算・繰越控除ができない（頻出ひっかけ）",
+          "新NISAは売却した翌年に簿価分の枠が復活",
+          "iDeCo掛金は全額所得控除・原則60歳まで引き出し不可",
+          "iDeCoの拠出限度額は職業・加入年金制度で異なる",
+          "ESG：Sは「Social（社会）」。Safety・Stabilityではない",
+        ]}
+      />
+
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%",
+          marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, ${color}CC)`,
+        }}
+        onClick={() => setShowQuiz((s) => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
+      </button>
+
+      {showQuiz && (
+        <QuizComponent
+          quizzes={ETHICS_QUIZZES.C}
+          tabId="ethics"
+          sectionId="C"
+          accentColor={color}
+          state={state}
+          setState={setState}
+        />
+      )}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -3319,6 +3661,13 @@ export default function ABCExamApp() {
             state={state}
             setState={setState}
             onTabChange={setActiveTab}
+          />
+        );
+      case "ethics":
+        return (
+          <EthicsTab
+            state={state}
+            setState={setState}
           />
         );
       default: {
