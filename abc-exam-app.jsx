@@ -16,7 +16,7 @@
 フェーズ12: ⑤ケーススタディタブ          [✅]
 フェーズ13: ⑥苦手分析タブ               [✅]
 フェーズ14: AI機能（モック）統合         [✅]
-フェーズ15: 仕上げ・模擬試験・結合       [ ]
+フェーズ15: 仕上げ・模擬試験・結合       [✅]
 ========================================
 */
 
@@ -29,7 +29,7 @@ import {
 import {
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ReferenceLine, Area, AreaChart,
+  ReferenceLine, Area, AreaChart, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from "recharts";
 
@@ -6056,6 +6056,340 @@ function AnalysisTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ15: 仕上げ・模擬試験・結合
+// ============================================================
+
+function buildMockQuestions() {
+  const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+  const pick    = (arr, n) => shuffle(arr).slice(0, Math.min(n, arr.length));
+
+  const tag = (arr, tab) => arr.map((q) => ({ ...q, tab }));
+  const ethicsPool    = tag([...ETHICS_QUIZZES.A,    ...ETHICS_QUIZZES.B,    ...ETHICS_QUIZZES.C],    "ethics");
+  const basicsPool    = tag([...BASICS_QUIZZES.A,    ...BASICS_QUIZZES.B,    ...BASICS_QUIZZES.C],    "basics");
+  const portfolioPool = tag([...PORTFOLIO_QUIZZES.A, ...PORTFOLIO_QUIZZES.B, ...PORTFOLIO_QUIZZES.C, ...PORTFOLIO_QUIZZES.D], "portfolio");
+  const productsPool  = tag([...PRODUCTS_QUIZZES.A,  ...PRODUCTS_QUIZZES.B,  ...PRODUCTS_QUIZZES.C, ...PRODUCTS_QUIZZES.D, ...PRODUCTS_QUIZZES.E], "products");
+  const casePool      = CASE_STUDIES.flatMap((cs, ci) =>
+    cs.questions.map((q, qi) => ({
+      id: `case-${ci}-${qi}`, tab: "casestudy", keyword: cs.title, explanation: q.explanation || "", ...q,
+    }))
+  );
+
+  return [
+    ...pick(ethicsPool,    8),
+    ...pick(basicsPool,    10),
+    ...pick(portfolioPool, 10),
+    ...pick(productsPool,  8),
+    ...pick(casePool,      4),
+  ];
+}
+
+const MOCK_EXAM_TABS = {
+  ethics:    { label: "倫理",      color: COLORS.secondary },
+  basics:    { label: "基礎",      color: COLORS.accent    },
+  portfolio: { label: "PF理論",    color: COLORS.highlight },
+  products:  { label: "金融商品",  color: "#E67E22"        },
+  casestudy: { label: "ケース",    color: "#16A085"        },
+};
+
+function MockExam({ state, setState, onClose }) {
+  const [phase,      setPhase]    = useState("ready");
+  const [questions,  setQuestions]= useState([]);
+  const [answers,    setAnswers]  = useState([]);
+  const [idx,        setIdx]      = useState(0);
+  const [selected,   setSelected] = useState(null);
+  const [confirmed,  setConfirmed]= useState(false);
+  const [timeLeft,   setTimeLeft] = useState(3600);
+  const [result,     setResult]   = useState(null);
+  const [showWrong,  setShowWrong]= useState(false);
+
+  useEffect(() => {
+    if (phase !== "exam") return;
+    if (timeLeft <= 0) { finishExam(answers); return; }
+    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  });
+
+  const startExam = () => {
+    const qs = buildMockQuestions();
+    setQuestions(qs);
+    setAnswers(new Array(qs.length).fill(null));
+    setIdx(0); setSelected(null); setConfirmed(false);
+    setTimeLeft(3600); setPhase("exam");
+  };
+
+  const confirmAnswer = () => {
+    if (selected === null) return;
+    const next = [...answers];
+    next[idx] = selected;
+    setAnswers(next);
+    setConfirmed(true);
+  };
+
+  const handleNext = () => {
+    if (idx + 1 >= questions.length) {
+      finishExam(answers.map((a, i) => a !== null ? a : -1));
+    } else {
+      setIdx((i) => i + 1);
+      setSelected(null);
+      setConfirmed(false);
+    }
+  };
+
+  const finishExam = (finalAnswers) => {
+    const qs   = questions;
+    const ans  = finalAnswers || answers;
+    const correct = ans.filter((a, i) => a === qs[i]?.answer).length;
+    const score   = Math.round((correct / 40) * 100);
+
+    const tabStats = {};
+    qs.forEach((q, i) => {
+      if (!tabStats[q.tab]) tabStats[q.tab] = { correct: 0, total: 0 };
+      tabStats[q.tab].total++;
+      if (ans[i] === q.answer) tabStats[q.tab].correct++;
+    });
+
+    const calcIdxs   = qs.map((q, i) => q.isCalc ? i : null).filter((i) => i !== null);
+    const calcCorrect= calcIdxs.filter((i) => ans[i] === qs[i].answer).length;
+
+    const wrong = qs
+      .map((q, i) => ({ ...q, yourAnswer: ans[i], isCorrect: ans[i] === q.answer }))
+      .filter((q) => !q.isCorrect);
+
+    const r = { correct, score, passed: score >= 60, tabStats, calcCorrect, calcTotal: calcIdxs.length, wrong };
+    setResult(r);
+    setPhase("result");
+
+    setState((s) => ({
+      ...s,
+      testHistory: [
+        ...s.testHistory,
+        ...qs.map((q, i) => ({
+          date:     new Date().toISOString(),
+          tab:      q.tab,
+          section:  "mock",
+          question: q.id || `mock-${i}`,
+          correct:  ans[i] === q.answer,
+          keyword:  q.keyword || "",
+          isCalc:   !!q.isCalc,
+        })),
+      ],
+    }));
+  };
+
+  const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+  const ss = String(timeLeft % 60).padStart(2, "0");
+  const timerColor = timeLeft < 300 ? COLORS.danger : timeLeft < 600 ? COLORS.accent : COLORS.text;
+
+  // ── Ready Screen ──
+  if (phase === "ready") return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+      <div style={{ ...STYLES.cardLg, width: "100%", maxWidth: 400 }}>
+        <p style={{ fontWeight: 900, fontSize: 20, color: COLORS.primary, margin: "0 0 12px", textAlign: "center" }}>📝 模擬試験</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+          {[["形式","4肢択一・40問"], ["制限時間","60分"], ["合格基準","60点以上（60%）"],
+            ["出題構成","倫理8問・基礎10問・PF理論10問・金融商品8問・ケース4問"]
+          ].map(([k, v]) => (
+            <div key={k} style={{ display: "flex", gap: 8, fontSize: 13 }}>
+              <span style={{ color: COLORS.textLight, minWidth: 72, fontWeight: 600 }}>{k}</span>
+              <span style={{ color: COLORS.text }}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <InfoBox color={COLORS.accent}>
+          結果はテスト履歴に保存され、苦手分析タブに反映されます。
+        </InfoBox>
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button onClick={startExam} style={{ ...STYLES.btnPrimary, flex: 1, padding: 14, fontSize: 15 }}>試験を開始</button>
+          <button onClick={onClose}   style={{ ...STYLES.btnOutline, flex: 1, padding: 14, borderRadius: 12 }}>戻る</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Exam Screen ──
+  if (phase === "exam") {
+    const q = questions[idx];
+    if (!q) return null;
+    const tabInfo = MOCK_EXAM_TABS[q.tab] || { label: q.tab, color: COLORS.primary };
+    return (
+      <div style={{ position: "fixed", inset: 0, background: COLORS.bg, zIndex: 1000, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ background: "#fff", borderBottom: `1px solid ${COLORS.border}`, padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.textLight }}>{idx + 1} / 40</span>
+          <div style={{ flex: 1, background: COLORS.border, borderRadius: 6, height: 6, overflow: "hidden" }}>
+            <div style={{ width: `${((idx + 1) / 40) * 100}%`, height: "100%", background: COLORS.primary, borderRadius: 6, transition: "width 0.3s" }} />
+          </div>
+          <span style={{ fontSize: 15, fontWeight: 900, color: timerColor, minWidth: 54 }}>{mm}:{ss}</span>
+        </div>
+
+        {/* Question */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 8px" }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+            <span style={STYLES.badge(tabInfo.color)}>{tabInfo.label}</span>
+            {q.isCalc && <span style={STYLES.badge(COLORS.highlight)}>計算</span>}
+            {q.isHikakke && <span style={STYLES.badge(COLORS.danger)}>ひっかけ注意</span>}
+          </div>
+          <p style={{ fontSize: 15, fontWeight: 700, color: COLORS.text, lineHeight: 1.7, margin: "0 0 16px" }}>{q.q}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {q.choices.map((c, i) => {
+              let bg = "#fff", border = `1.5px solid ${COLORS.border}`, col = COLORS.text;
+              if (confirmed) {
+                if (i === q.answer)        { bg = `${COLORS.secondary}18`; border = `2px solid ${COLORS.secondary}`; col = COLORS.secondary; }
+                else if (i === selected)   { bg = `${COLORS.danger}12`;    border = `2px solid ${COLORS.danger}`;    col = COLORS.danger; }
+              } else if (i === selected) {
+                bg = `${COLORS.primary}12`; border = `2px solid ${COLORS.primary}`; col = COLORS.primary;
+              }
+              return (
+                <button
+                  key={i}
+                  onClick={() => !confirmed && setSelected(i)}
+                  disabled={confirmed}
+                  style={{ background: bg, border, borderRadius: 12, padding: "12px 14px", textAlign: "left", cursor: confirmed ? "default" : "pointer", fontSize: 13, color: col, lineHeight: 1.5, fontFamily: "'Noto Sans JP', sans-serif", transition: "all 0.15s" }}
+                >
+                  <strong style={{ marginRight: 6 }}>{["①","②","③","④"][i]}</strong>{c}
+                </button>
+              );
+            })}
+          </div>
+          {confirmed && q.explanation && (
+            <div style={{ background: `${COLORS.primary}0C`, border: `1px solid ${COLORS.primary}30`, borderRadius: 12, padding: "10px 14px", marginTop: 12 }}>
+              <p style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.65, margin: 0 }}><strong>解説：</strong>{q.explanation}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "10px 16px 16px", borderTop: `1px solid ${COLORS.border}`, flexShrink: 0 }}>
+          {!confirmed ? (
+            <button onClick={confirmAnswer} disabled={selected === null} style={{ ...STYLES.btnPrimary, width: "100%", padding: 13, fontSize: 15, opacity: selected === null ? 0.5 : 1 }}>
+              答える
+            </button>
+          ) : (
+            <button onClick={handleNext} style={{ ...STYLES.btnSecondary, width: "100%", padding: 13, fontSize: 15 }}>
+              {idx + 1 < 40 ? `次の問題 →` : `結果を見る`}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Result Screen ──
+  if (phase === "result" && result) {
+    const barData = Object.entries(result.tabStats).map(([tab, s]) => ({
+      name: MOCK_EXAM_TABS[tab]?.label || tab,
+      正答率: Math.round((s.correct / s.total) * 100),
+      color: MOCK_EXAM_TABS[tab]?.color || COLORS.primary,
+    }));
+
+    return (
+      <div style={{ position: "fixed", inset: 0, background: COLORS.bg, zIndex: 1000, overflowY: "auto" }}>
+        <div style={{ padding: "20px 16px 32px" }}>
+          {/* Score */}
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <p style={{ fontSize: 14, color: COLORS.textLight, margin: "0 0 4px" }}>模擬試験 結果</p>
+            <div style={{ fontSize: 64, fontWeight: 900, color: result.passed ? COLORS.secondary : COLORS.danger, lineHeight: 1 }}>
+              {result.score}<span style={{ fontSize: 24 }}>点</span>
+            </div>
+            <div style={{ fontSize: 14, color: COLORS.textLight, margin: "4px 0 10px" }}>
+              40問中 {result.correct}問正解
+            </div>
+            <div style={{
+              display: "inline-block", padding: "6px 22px", borderRadius: 24,
+              background: result.passed ? `${COLORS.secondary}20` : `${COLORS.danger}18`,
+              border: `2px solid ${result.passed ? COLORS.secondary : COLORS.danger}`,
+              fontSize: 16, fontWeight: 900, color: result.passed ? COLORS.secondary : COLORS.danger,
+            }}>
+              {result.passed ? "🎉 合格！" : "📚 不合格（60点以上で合格）"}
+            </div>
+          </div>
+
+          {/* Tab-wise chart */}
+          <div style={{ ...STYLES.card, marginBottom: 14 }}>
+            <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: "0 0 10px" }}>分野別正答率</p>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} unit="%" />
+                <Tooltip formatter={(v) => `${v}%`} />
+                <Bar dataKey="正答率" radius={[4, 4, 0, 0]}>
+                  {barData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Bar>
+                <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Calc accuracy */}
+          {result.calcTotal > 0 && (
+            <div style={{ ...STYLES.card, marginBottom: 14, display: "flex", alignItems: "center", gap: 14 }}>
+              <Calculator size={28} color={COLORS.highlight} />
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: "0 0 2px" }}>計算問題の正答率</p>
+                <p style={{ fontSize: 13, color: COLORS.highlight, fontWeight: 700, margin: 0 }}>
+                  {result.calcCorrect} / {result.calcTotal}問
+                  （{Math.round((result.calcCorrect / result.calcTotal) * 100)}%）
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Wrong answers */}
+          {result.wrong.length > 0 && (
+            <div style={{ ...STYLES.card, marginBottom: 14 }}>
+              <button
+                onClick={() => setShowWrong((s) => !s)}
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", width: "100%", padding: 0, fontFamily: "'Noto Sans JP', sans-serif" }}
+              >
+                <AlertTriangle size={16} color={COLORS.danger} />
+                <span style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, flex: 1, textAlign: "left" }}>
+                  間違えた問題（{result.wrong.length}問）
+                </span>
+                <ChevronRight size={16} color={COLORS.textMuted} style={{ transform: showWrong ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+              </button>
+              {showWrong && (
+                <div style={{ marginTop: 12 }}>
+                  {result.wrong.map((q, i) => {
+                    const ti = MOCK_EXAM_TABS[q.tab] || { label: q.tab, color: COLORS.primary };
+                    return (
+                      <div key={i} style={{ borderTop: `1px solid ${COLORS.border}`, paddingTop: 10, marginTop: 10 }}>
+                        <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                          <span style={STYLES.badge(ti.color)}>{ti.label}</span>
+                        </div>
+                        <p style={{ fontSize: 13, color: COLORS.text, fontWeight: 600, margin: "0 0 6px", lineHeight: 1.6 }}>{q.q}</p>
+                        <p style={{ fontSize: 12, color: COLORS.danger, margin: "0 0 2px" }}>
+                          あなたの答え: {q.yourAnswer >= 0 ? `${["①","②","③","④"][q.yourAnswer]} ${q.choices?.[q.yourAnswer]}` : "未回答"}
+                        </p>
+                        <p style={{ fontSize: 12, color: COLORS.secondary, margin: "0 0 6px" }}>
+                          正解: {["①","②","③","④"][q.answer]} {q.choices?.[q.answer]}
+                        </p>
+                        {q.explanation && (
+                          <p style={{ fontSize: 11, color: COLORS.textLight, lineHeight: 1.6, margin: 0 }}>{q.explanation}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => { setPhase("ready"); setResult(null); setShowWrong(false); }} style={{ ...STYLES.btnPrimary, flex: 1, padding: 13 }}>もう一度挑戦</button>
+            <button onClick={onClose} style={{ ...STYLES.btnOutline, flex: 1, padding: 13, borderRadius: 12 }}>ホームへ</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -6145,8 +6479,9 @@ function HomeTab({ state, setState, onTabChange }) {
     const picks = ALL_CALC_QUIZZES;
     return picks[Math.floor(Math.random() * picks.length)] ?? null;
   });
-  const [showExamInfo, setShowExamInfo] = useState(false);
+  const [showExamInfo, setShowExamInfo]   = useState(false);
   const [todayAnswered, setTodayAnswered] = useState(false);
+  const [showMockExam,  setShowMockExam]  = useState(false);
 
   const daysLeft = (() => {
     if (!state.examDate) return null;
@@ -6414,6 +6749,31 @@ function HomeTab({ state, setState, onTabChange }) {
           }}
         >
           <RefreshCw size={12} style={{ marginRight: 5 }} /> 進捗をリセット
+        </button>
+      </div>
+
+      {/* 模擬試験モーダル */}
+      {showMockExam && (
+        <MockExam state={state} setState={setState} onClose={() => setShowMockExam(false)} />
+      )}
+
+      {/* ⑤ 模擬試験スタート */}
+      <div style={{
+        ...STYLES.card,
+        marginBottom: 12,
+        background: `linear-gradient(135deg, ${COLORS.primary}18, ${COLORS.highlight}12)`,
+        border: `1.5px solid ${COLORS.primary}40`,
+        display: "flex", alignItems: "center", gap: 14,
+      }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontWeight: 800, fontSize: 15, color: COLORS.primary, margin: "0 0 3px" }}>📝 模擬試験</p>
+          <p style={{ fontSize: 12, color: COLORS.textLight, margin: 0 }}>40問・60分・4肢択一 ／ 60点以上で合格</p>
+        </div>
+        <button
+          onClick={() => setShowMockExam(true)}
+          style={{ ...STYLES.btnPrimary, padding: "10px 18px", flexShrink: 0, fontSize: 13 }}
+        >
+          開始
         </button>
       </div>
 
