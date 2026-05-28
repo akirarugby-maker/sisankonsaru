@@ -20,14 +20,14 @@
 ========================================
 */
 
-import { useState, useEffect, useCallback } from "react";
-import { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import { useState, useEffect, useCallback } from "https://esm.sh/react@18";
+import { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } from "https://esm.sh/lucide-react@0.460.0";
+import { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "https://esm.sh/recharts@2";
 
 // ============================================================
 // デザイントークン
 // ============================================================
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "https://esm.sh/react@18/jsx-runtime";
 const COLORS = {
   primary: "#4A90D9",
   secondary: "#50C878",
@@ -10530,6 +10530,6 @@ function ABCExamApp() {
   });
 }
 
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createElement } from 'https://esm.sh/react@18';
+import { createRoot } from 'https://esm.sh/react-dom@18/client';
 createRoot(document.getElementById('root')).render(createElement(ABCExamApp));
