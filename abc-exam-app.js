@@ -1,3 +1,44 @@
+
+const { useState, useEffect, useCallback } = React;
+const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
+        XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+        ReferenceLine, Area, AreaChart, Cell,
+        RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
+
+// Lucide アイコンシム（lucide-react の代替）
+const LucideReact = (() => {
+  const mk = (...paths) => function IconComp(props) {
+    const { size = 24, color = 'currentColor', style, ...rest } = props || {};
+    return React.createElement('svg', Object.assign({
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: color, strokeWidth: 2,
+      strokeLinecap: 'round', strokeLinejoin: 'round', style
+    }, rest), ...paths.map((d, i) =>
+      React.createElement('path', { key: i, d })
+    ));
+  };
+  return {
+    Home:        mk('m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z','M9 22V12h6v10'),
+    Search:      mk('M21 21l-4.35-4.35','M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0'),
+    BookOpen:    mk('M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z','M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'),
+    Calculator:  mk('M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z','M8 6h8','M8 10h8','M8 14h4','M8 18h4'),
+    BarChart2:   mk('M18 20V10','M12 20V4','M6 20v-6'),
+    TrendingUp:  mk('M23 6 13.5 15.5 8.5 10.5 1 18','M17 6h6v6'),
+    PieChart:    mk('M21.21 15.89A10 10 0 1 1 8 2.83','M22 12A10 10 0 0 0 12 2v10z'),
+    DollarSign:  mk('M12 1v22','M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'),
+    Shield:      mk('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'),
+    RefreshCw:   mk('M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8','M21 3v5h-5','M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16','M8 16H3v5'),
+    Check:       mk('M20 6 9 17l-5-5'),
+    ChevronRight:mk('M9 18l6-6-6-6'),
+    Award:       mk('M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12z','M8.21 13.89 7 23l5-3 5 3-1.21-9.12'),
+    AlertTriangle:mk('M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z','M12 9v4','M12 17h.01'),
+    Percent:     mk('M19 5 5 19','M6.5 6.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0','M16.5 16.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0'),
+    Activity:    mk('M22 12h-4l-3 9L9 3l-3 9H2'),
+  };
+})();
+
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
 ========================================
 💹 ABCコンサルタント試験アプリ - ビルド進捗
@@ -20,14 +61,10 @@
 ========================================
 */
 
-import { useState, useEffect, useCallback } from "https://esm.sh/react@18";
-import { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } from "https://esm.sh/lucide-react@0.460.0";
-import { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "https://esm.sh/recharts@2";
 
 // ============================================================
 // デザイントークン
 // ============================================================
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "https://esm.sh/react@18/jsx-runtime";
 const COLORS = {
   primary: "#4A90D9",
   secondary: "#50C878",
@@ -264,7 +301,7 @@ function NavigationBar({
   activeTab,
   onTabChange
 }) {
-  return /*#__PURE__*/_jsx("nav", {
+  return /*#__PURE__*/React.createElement("nav", {
     style: {
       position: "fixed",
       bottom: 0,
@@ -278,52 +315,49 @@ function NavigationBar({
       padding: "6px 0 8px",
       zIndex: 1000,
       boxShadow: "0 -4px 16px rgba(74,144,217,0.12)"
-    },
-    children: TABS.map(tab => {
-      const Icon = tab.icon;
-      const active = activeTab === tab.id;
-      return /*#__PURE__*/_jsxs("button", {
-        onClick: () => onTabChange(tab.id),
-        style: {
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 3,
-          padding: "4px 6px",
-          borderRadius: 10,
-          transition: "all 0.18s ease",
-          minWidth: 44
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-            background: active ? tab.color + "22" : "transparent",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.18s ease"
-          },
-          children: /*#__PURE__*/_jsx(Icon, {
-            size: 18,
-            color: active ? tab.color : COLORS.textMuted
-          })
-        }), /*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 10,
-            fontWeight: active ? 800 : 500,
-            color: active ? tab.color : COLORS.textMuted,
-            fontFamily: "'Noto Sans JP', sans-serif"
-          },
-          children: tab.short || tab.label
-        })]
-      }, tab.id);
-    })
-  });
+    }
+  }, TABS.map(tab => {
+    const Icon = tab.icon;
+    const active = activeTab === tab.id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: tab.id,
+      onClick: () => onTabChange(tab.id),
+      style: {
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 3,
+        padding: "4px 6px",
+        borderRadius: 10,
+        transition: "all 0.18s ease",
+        minWidth: 44
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        background: active ? tab.color + "22" : "transparent",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "all 0.18s ease"
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      size: 18,
+      color: active ? tab.color : COLORS.textMuted
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        fontWeight: active ? 800 : 500,
+        color: active ? tab.color : COLORS.textMuted,
+        fontFamily: "'Noto Sans JP', sans-serif"
+      }
+    }, tab.short || tab.label));
+  }));
 }
 
 // ============================================================
@@ -335,7 +369,7 @@ function PageHeader({
   color = COLORS.primary,
   icon: Icon
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       background: `linear-gradient(135deg, ${color}18, ${color}08)`,
       border: `1.5px solid ${color}33`,
@@ -345,42 +379,36 @@ function PageHeader({
       display: "flex",
       alignItems: "center",
       gap: 14
-    },
-    children: [Icon && /*#__PURE__*/_jsx("div", {
-      style: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        background: color + "25",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0
-      },
-      children: /*#__PURE__*/_jsx(Icon, {
-        size: 24,
-        color: color
-      })
-    }), /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 19,
-          fontWeight: 800,
-          color: COLORS.text,
-          fontFamily: "'Noto Sans JP', sans-serif"
-        },
-        children: title
-      }), subtitle && /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 13,
-          color: COLORS.textLight,
-          marginTop: 4,
-          fontFamily: "'Noto Sans JP', sans-serif"
-        },
-        children: subtitle
-      })]
-    })]
-  });
+    }
+  }, Icon && /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      background: color + "25",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    size: 24,
+    color: color
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 19,
+      fontWeight: 800,
+      color: COLORS.text,
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }, title), subtitle && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.textLight,
+      marginTop: 4,
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }, subtitle)));
 }
 
 // ============================================================
@@ -392,54 +420,50 @@ function StepDisplay({
   steps
 }) {
   if (!steps || steps.length === 0) return null;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#F0F8FF",
       border: `1px solid ${COLORS.border}`,
       borderRadius: 12,
       padding: 12,
       marginTop: 10
-    },
-    children: [/*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: COLORS.primary,
-        marginBottom: 8
-      },
-      children: "\u8A08\u7B97\u904E\u7A0B"
-    }), steps.map((step, i) => /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 10,
-        marginBottom: 5,
-        alignItems: "flex-start"
-      },
-      children: [/*#__PURE__*/_jsx("span", {
-        style: {
-          minWidth: 22,
-          height: 22,
-          background: COLORS.primary,
-          color: "#fff",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 11,
-          fontWeight: 800,
-          flexShrink: 0
-        },
-        children: i + 1
-      }), /*#__PURE__*/_jsx("span", {
-        style: {
-          fontSize: 13,
-          color: COLORS.text,
-          lineHeight: 1.6
-        },
-        children: step
-      })]
-    }, i))]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.primary,
+      marginBottom: 8
+    }
+  }, "\u8A08\u7B97\u904E\u7A0B"), steps.map((step, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      marginBottom: 5,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      minWidth: 22,
+      height: 22,
+      background: COLORS.primary,
+      color: "#fff",
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 11,
+      fontWeight: 800,
+      flexShrink: 0
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.6
+    }
+  }, step))));
 }
 
 // --- ResultCard: 計算結果表示 ---
@@ -450,7 +474,7 @@ function ResultCard({
   color = COLORS.primary,
   large = false
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       background: color + "12",
       border: `2px solid ${color}44`,
@@ -458,32 +482,28 @@ function ResultCard({
       padding: large ? "16px 20px" : "12px 16px",
       textAlign: "center",
       flex: 1
-    },
-    children: [/*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 12,
-        color: COLORS.textLight,
-        fontWeight: 600,
-        marginBottom: 4
-      },
-      children: label
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        fontSize: large ? 28 : 22,
-        fontWeight: 900,
-        color: color,
-        lineHeight: 1
-      },
-      children: [value, unit && /*#__PURE__*/_jsx("span", {
-        style: {
-          fontSize: large ? 14 : 12,
-          marginLeft: 3,
-          fontWeight: 700
-        },
-        children: unit
-      })]
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      fontWeight: 600,
+      marginBottom: 4
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: large ? 28 : 22,
+      fontWeight: 900,
+      color: color,
+      lineHeight: 1
+    }
+  }, value, unit && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: large ? 14 : 12,
+      marginLeft: 3,
+      fontWeight: 700
+    }
+  }, unit)));
 }
 
 // --- CalcComponent: 汎用電卓コンポーネント ---
@@ -523,113 +543,101 @@ function CalcComponent({
     setResult(null);
     setShowChart(false);
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      color: accentColor
+    }
+  }, /*#__PURE__*/React.createElement(Calculator, {
+    size: 17,
+    color: accentColor
+  }), " ", formulaName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, inputs.map(inp => /*#__PURE__*/React.createElement("div", {
+    key: inp.key
+  }, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, inp.label, inp.unit && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textMuted
+    }
+  }, " (", inp.unit, ")")), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: values[inp.key],
+    step: inp.step ?? "any",
+    min: inp.min,
+    max: inp.max,
+    onChange: e => setValues(v => ({
+      ...v,
+      [inp.key]: e.target.value
+    })),
+    style: STYLES.input
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnPrimary,
+      flex: 1,
+      background: `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`
     },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.sectionTitle,
-        color: accentColor
-      },
-      children: [/*#__PURE__*/_jsx(Calculator, {
-        size: 17,
-        color: accentColor
-      }), " ", formulaName]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 8,
-        marginBottom: 12
-      },
-      children: inputs.map(inp => /*#__PURE__*/_jsxs("div", {
-        children: [/*#__PURE__*/_jsxs("label", {
-          style: STYLES.label,
-          children: [inp.label, inp.unit && /*#__PURE__*/_jsxs("span", {
-            style: {
-              color: COLORS.textMuted
-            },
-            children: [" (", inp.unit, ")"]
-          })]
-        }), /*#__PURE__*/_jsx("input", {
-          type: "number",
-          value: values[inp.key],
-          step: inp.step ?? "any",
-          min: inp.min,
-          max: inp.max,
-          onChange: e => setValues(v => ({
-            ...v,
-            [inp.key]: e.target.value
-          })),
-          style: STYLES.input
-        })]
-      }, inp.key))
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 8
-      },
-      children: [/*#__PURE__*/_jsx("button", {
-        style: {
-          ...STYLES.btnPrimary,
-          flex: 1,
-          background: `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`
-        },
-        onClick: handleCalc,
-        children: "\u8A08\u7B97\u3059\u308B"
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...STYLES.btnOutline,
-          color: accentColor,
-          borderColor: accentColor
-        },
-        onClick: handleReset,
-        children: "\u30EA\u30BB\u30C3\u30C8"
-      })]
-    }), result?.error && /*#__PURE__*/_jsx("div", {
-      style: {
-        marginTop: 10,
-        padding: "8px 12px",
-        background: COLORS.danger + "18",
-        border: `1px solid ${COLORS.danger}44`,
-        borderRadius: 10,
-        fontSize: 13,
-        color: COLORS.danger
-      },
-      children: result.error
-    }), result && !result.error && /*#__PURE__*/_jsxs(_Fragment, {
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          marginTop: 12,
-          flexWrap: "wrap"
-        },
-        children: result.results.map((r, i) => /*#__PURE__*/_jsx(ResultCard, {
-          label: r.label,
-          value: r.value,
-          unit: r.unit,
-          color: r.color || accentColor,
-          large: i === 0
-        }, i))
-      }), /*#__PURE__*/_jsx(StepDisplay, {
-        steps: result.steps
-      }), chartBuilder && /*#__PURE__*/_jsx("button", {
-        style: {
-          ...STYLES.btnOutline,
-          color: accentColor,
-          borderColor: accentColor,
-          width: "100%",
-          marginTop: 10,
-          fontSize: 13
-        },
-        onClick: () => setShowChart(s => !s),
-        children: showChart ? "グラフを隠す" : "グラフで確認"
-      }), showChart && chartBuilder && chartBuilder(Object.fromEntries(Object.entries(values).map(([k, v]) => [k, parseFloat(v)])), result)]
-    })]
-  });
+    onClick: handleCalc
+  }, "\u8A08\u7B97\u3059\u308B"), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnOutline,
+      color: accentColor,
+      borderColor: accentColor
+    },
+    onClick: handleReset
+  }, "\u30EA\u30BB\u30C3\u30C8")), result?.error && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      padding: "8px 12px",
+      background: COLORS.danger + "18",
+      border: `1px solid ${COLORS.danger}44`,
+      borderRadius: 10,
+      fontSize: 13,
+      color: COLORS.danger
+    }
+  }, result.error), result && !result.error && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 12,
+      flexWrap: "wrap"
+    }
+  }, result.results.map((r, i) => /*#__PURE__*/React.createElement(ResultCard, {
+    key: i,
+    label: r.label,
+    value: r.value,
+    unit: r.unit,
+    color: r.color || accentColor,
+    large: i === 0
+  }))), /*#__PURE__*/React.createElement(StepDisplay, {
+    steps: result.steps
+  }), chartBuilder && /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnOutline,
+      color: accentColor,
+      borderColor: accentColor,
+      width: "100%",
+      marginTop: 10,
+      fontSize: 13
+    },
+    onClick: () => setShowChart(s => !s)
+  }, showChart ? "グラフを隠す" : "グラフで確認"), showChart && chartBuilder && chartBuilder(Object.fromEntries(Object.entries(values).map(([k, v]) => [k, parseFloat(v)])), result)));
 }
 
 // --- FormulaCard: 公式カード ---
@@ -642,160 +650,142 @@ function FormulaCard({
   onOpenCalc
 }) {
   const [expanded, setExpanded] = useState(false);
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 10,
       borderLeft: `4px solid ${color}`,
       cursor: "pointer"
     },
-    onClick: () => setExpanded(e => !e),
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontWeight: 800,
-          fontSize: 14,
-          color: COLORS.text
-        },
-        children: name
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 6,
-          alignItems: "center"
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: STYLES.badge(color),
-          children: "\u516C\u5F0F"
-        }), /*#__PURE__*/_jsx(ChevronRight, {
-          size: 16,
-          color: color,
-          style: {
-            transform: expanded ? "rotate(90deg)" : "none",
-            transition: "transform 0.2s"
-          }
-        })]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        marginTop: 8,
-        background: color + "10",
-        border: `1px solid ${color}30`,
-        borderRadius: 10,
-        padding: "8px 12px",
-        fontFamily: "monospace",
-        fontSize: 14,
-        color: color,
-        fontWeight: 700,
-        letterSpacing: 0.5
-      },
-      children: formula
-    }), expanded && /*#__PURE__*/_jsxs("div", {
-      style: {
-        marginTop: 10
-      },
-      children: [variables && /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 12,
-            fontWeight: 700,
-            color: COLORS.textLight,
-            marginBottom: 6
-          },
-          children: "\u5909\u6570\u306E\u610F\u5473"
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            gap: 4
-          },
-          children: variables.map((v, i) => /*#__PURE__*/_jsxs("div", {
-            style: {
-              display: "flex",
-              gap: 8,
-              fontSize: 13
-            },
-            children: [/*#__PURE__*/_jsx("span", {
-              style: {
-                fontFamily: "monospace",
-                fontWeight: 700,
-                color: color,
-                minWidth: 40
-              },
-              children: v.symbol
-            }), /*#__PURE__*/_jsx("span", {
-              style: {
-                color: COLORS.text
-              },
-              children: v.meaning
-            })]
-          }, i))
-        })]
-      }), example && /*#__PURE__*/_jsxs("div", {
-        style: {
-          background: COLORS.secondary + "12",
-          border: `1px solid ${COLORS.secondary}33`,
-          borderRadius: 10,
-          padding: "10px 12px"
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 12,
-            fontWeight: 700,
-            color: COLORS.secondary,
-            marginBottom: 6
-          },
-          children: "\u8A08\u7B97\u4F8B"
-        }), example.inputs && /*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 13,
-            color: COLORS.text,
-            marginBottom: 4
-          },
-          children: example.inputs
-        }), example.steps && /*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            marginBottom: 4
-          },
-          children: example.steps
-        }), example.output && /*#__PURE__*/_jsxs("div", {
-          style: {
-            fontSize: 15,
-            fontWeight: 800,
-            color: COLORS.secondary
-          },
-          children: ["\u2192 ", example.output]
-        })]
-      }), onOpenCalc && /*#__PURE__*/_jsxs("button", {
-        style: {
-          ...STYLES.btnSecondary,
-          width: "100%",
-          marginTop: 10,
-          fontSize: 13
-        },
-        onClick: e => {
-          e.stopPropagation();
-          onOpenCalc();
-        },
-        children: [/*#__PURE__*/_jsx(Calculator, {
-          size: 13,
-          style: {
-            marginRight: 6
-          }
-        }), "\u96FB\u5353\u3067\u8A08\u7B97\u3057\u3066\u307F\u308B"]
-      })]
-    })]
-  });
+    onClick: () => setExpanded(e => !e)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.text
+    }
+  }, name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(color)
+  }, "\u516C\u5F0F"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: color,
+    style: {
+      transform: expanded ? "rotate(90deg)" : "none",
+      transition: "transform 0.2s"
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      background: color + "10",
+      border: `1px solid ${color}30`,
+      borderRadius: 10,
+      padding: "8px 12px",
+      fontFamily: "monospace",
+      fontSize: 14,
+      color: color,
+      fontWeight: 700,
+      letterSpacing: 0.5
+    }
+  }, formula), expanded && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, variables && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 6
+    }
+  }, "\u5909\u6570\u306E\u610F\u5473"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4
+    }
+  }, variables.map((v, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 8,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "monospace",
+      fontWeight: 700,
+      color: color,
+      minWidth: 40
+    }
+  }, v.symbol), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text
+    }
+  }, v.meaning))))), example && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.secondary + "12",
+      border: `1px solid ${COLORS.secondary}33`,
+      borderRadius: 10,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.secondary,
+      marginBottom: 6
+    }
+  }, "\u8A08\u7B97\u4F8B"), example.inputs && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      marginBottom: 4
+    }
+  }, example.inputs), example.steps && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      marginBottom: 4
+    }
+  }, example.steps), example.output && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: COLORS.secondary
+    }
+  }, "\u2192 ", example.output)), onOpenCalc && /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnSecondary,
+      width: "100%",
+      marginTop: 10,
+      fontSize: 13
+    },
+    onClick: e => {
+      e.stopPropagation();
+      onOpenCalc();
+    }
+  }, /*#__PURE__*/React.createElement(Calculator, {
+    size: 13,
+    style: {
+      marginRight: 6
+    }
+  }), "\u96FB\u5353\u3067\u8A08\u7B97\u3057\u3066\u307F\u308B")));
 }
 
 // --- ExamTipCard: 試験頻出ポイントカード ---
@@ -803,54 +793,50 @@ function ExamTipCard({
   tips,
   color = COLORS.accent
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       borderLeft: `4px solid ${color}`,
       marginBottom: 12
-    },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.sectionTitle,
-        fontSize: 14,
-        color
-      },
-      children: [/*#__PURE__*/_jsx(AlertTriangle, {
-        size: 15,
-        color: color
-      }), " \u8A66\u9A13\u983B\u51FA\u30DD\u30A4\u30F3\u30C8"]
-    }), tips.map((tip, i) => /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 8,
-        marginBottom: 6,
-        alignItems: "flex-start"
-      },
-      children: [/*#__PURE__*/_jsx("span", {
-        style: {
-          minWidth: 20,
-          height: 20,
-          background: color,
-          color: "#fff",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 10,
-          fontWeight: 800,
-          flexShrink: 0
-        },
-        children: "!"
-      }), /*#__PURE__*/_jsx("span", {
-        style: {
-          fontSize: 13,
-          color: COLORS.text,
-          lineHeight: 1.6
-        },
-        children: tip
-      })]
-    }, i))]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(AlertTriangle, {
+    size: 15,
+    color: color
+  }), " \u8A66\u9A13\u983B\u51FA\u30DD\u30A4\u30F3\u30C8"), tips.map((tip, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 6,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      minWidth: 20,
+      height: 20,
+      background: color,
+      color: "#fff",
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 10,
+      fontWeight: 800,
+      flexShrink: 0
+    }
+  }, "!"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.6
+    }
+  }, tip))));
 }
 
 // --- SectionTab: タブ内セクション切替 ---
@@ -860,7 +846,7 @@ function SectionTab({
   onSelect,
   color
 }) {
-  return /*#__PURE__*/_jsx("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -868,25 +854,24 @@ function SectionTab({
       marginBottom: 14,
       paddingBottom: 4,
       scrollbarWidth: "none"
-    },
-    children: sections.map(sec => /*#__PURE__*/_jsx("button", {
-      onClick: () => onSelect(sec.id),
-      style: {
-        background: activeSection === sec.id ? color : "transparent",
-        color: activeSection === sec.id ? "#fff" : COLORS.textLight,
-        border: `1.5px solid ${activeSection === sec.id ? color : COLORS.border}`,
-        borderRadius: 20,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 700,
-        whiteSpace: "nowrap",
-        transition: "all 0.18s ease",
-        fontFamily: "'Noto Sans JP', sans-serif"
-      },
-      children: sec.label
-    }, sec.id))
-  });
+    }
+  }, sections.map(sec => /*#__PURE__*/React.createElement("button", {
+    key: sec.id,
+    onClick: () => onSelect(sec.id),
+    style: {
+      background: activeSection === sec.id ? color : "transparent",
+      color: activeSection === sec.id ? "#fff" : COLORS.textLight,
+      border: `1.5px solid ${activeSection === sec.id ? color : COLORS.border}`,
+      borderRadius: 20,
+      padding: "6px 14px",
+      cursor: "pointer",
+      fontSize: 12,
+      fontWeight: 700,
+      whiteSpace: "nowrap",
+      transition: "all 0.18s ease",
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }, sec.label)));
 }
 
 // --- ChartCard: グラフラッパー ---
@@ -896,27 +881,24 @@ function ChartCard({
   children,
   color = COLORS.primary
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 12
-    },
-    children: [title && /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.sectionTitle,
-        fontSize: 14,
-        marginBottom: 10
-      },
-      children: [/*#__PURE__*/_jsx(BarChart2, {
-        size: 15,
-        color: color
-      }), " ", title]
-    }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-      width: "100%",
-      height: height,
-      children: children
-    })]
-  });
+    }
+  }, title && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement(BarChart2, {
+    size: 15,
+    color: color
+  }), " ", title), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: height
+  }, children));
 }
 
 // --- InfoBox: 解説・定義ボックス ---
@@ -925,31 +907,28 @@ function InfoBox({
   children,
   color = COLORS.primary
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       background: color + "0C",
       border: `1.5px solid ${color}33`,
       borderRadius: 14,
       padding: "12px 14px",
       marginBottom: 10
-    },
-    children: [title && /*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 13,
-        fontWeight: 800,
-        color,
-        marginBottom: 6
-      },
-      children: title
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 13,
-        color: COLORS.text,
-        lineHeight: 1.7
-      },
-      children: children
-    })]
-  });
+    }
+  }, title && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 800,
+      color,
+      marginBottom: 6
+    }
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, children));
 }
 
 // --- 公式データ定義 ---
@@ -2124,298 +2103,267 @@ function QuizComponent({
     const total = quizzes.length;
     const pct = Math.round(score / total * 100);
     const passed = pct >= 60;
-    return /*#__PURE__*/_jsxs("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         ...STYLES.card,
         textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 40,
+        marginBottom: 8
+      }
+    }, passed ? "🎉" : "📚"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        fontWeight: 900,
+        color: passed ? COLORS.secondary : COLORS.accent,
+        marginBottom: 4
+      }
+    }, score, " / ", total, " \u6B63\u89E3"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 28,
+        fontWeight: 900,
+        color: accentColor,
+        marginBottom: 12
+      }
+    }, pct, "\u70B9"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent),
+        fontSize: 14,
+        marginBottom: 16
+      }
+    }, passed ? "セクション完了！" : "もう少し！60点以上でクリア"), history.some(h => !h.correct) && /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "left",
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: COLORS.danger,
+        marginBottom: 8
+      }
+    }, "\u9593\u9055\u3048\u305F\u554F\u984C\u306E\u30AD\u30FC\u30EF\u30FC\u30C9"), history.map((h, i) => ({
+      ...h,
+      quiz: quizzes[i]
+    })).filter(h => !h.correct).map((h, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        padding: "6px 10px",
+        background: COLORS.danger + "10",
+        border: `1px solid ${COLORS.danger}33`,
+        borderRadius: 8,
+        fontSize: 12,
+        marginBottom: 4,
+        color: COLORS.text
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.danger,
+        fontWeight: 700
+      }
+    }, "\u2717 "), h.keyword, h.quiz.isCalc && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...STYLES.badge(COLORS.highlight),
+        marginLeft: 6,
+        fontSize: 10
+      }
+    }, "\u8A08\u7B97"), h.quiz.isHikakke && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...STYLES.badge(COLORS.accent),
+        marginLeft: 4,
+        fontSize: 10
+      }
+    }, "\u3072\u3063\u304B\u3051")))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      style: {
+        ...STYLES.btnOutline,
+        flex: 1,
+        color: accentColor,
+        borderColor: accentColor
       },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 40,
-          marginBottom: 8
-        },
-        children: passed ? "🎉" : "📚"
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 22,
-          fontWeight: 900,
-          color: passed ? COLORS.secondary : COLORS.accent,
-          marginBottom: 4
-        },
-        children: [score, " / ", total, " \u6B63\u89E3"]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 28,
-          fontWeight: 900,
-          color: accentColor,
-          marginBottom: 12
-        },
-        children: [pct, "\u70B9"]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent),
-          fontSize: 14,
-          marginBottom: 16
-        },
-        children: passed ? "セクション完了！" : "もう少し！60点以上でクリア"
-      }), history.some(h => !h.correct) && /*#__PURE__*/_jsxs("div", {
-        style: {
-          textAlign: "left",
-          marginBottom: 16
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 13,
-            fontWeight: 700,
-            color: COLORS.danger,
-            marginBottom: 8
-          },
-          children: "\u9593\u9055\u3048\u305F\u554F\u984C\u306E\u30AD\u30FC\u30EF\u30FC\u30C9"
-        }), history.map((h, i) => ({
-          ...h,
-          quiz: quizzes[i]
-        })).filter(h => !h.correct).map((h, i) => /*#__PURE__*/_jsxs("div", {
-          style: {
-            padding: "6px 10px",
-            background: COLORS.danger + "10",
-            border: `1px solid ${COLORS.danger}33`,
-            borderRadius: 8,
-            fontSize: 12,
-            marginBottom: 4,
-            color: COLORS.text
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              color: COLORS.danger,
-              fontWeight: 700
-            },
-            children: "\u2717 "
-          }), h.keyword, h.quiz.isCalc && /*#__PURE__*/_jsx("span", {
-            style: {
-              ...STYLES.badge(COLORS.highlight),
-              marginLeft: 6,
-              fontSize: 10
-            },
-            children: "\u8A08\u7B97"
-          }), h.quiz.isHikakke && /*#__PURE__*/_jsx("span", {
-            style: {
-              ...STYLES.badge(COLORS.accent),
-              marginLeft: 4,
-              fontSize: 10
-            },
-            children: "\u3072\u3063\u304B\u3051"
-          })]
-        }, i))]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8
-        },
-        children: [/*#__PURE__*/_jsx("button", {
-          style: {
-            ...STYLES.btnOutline,
-            flex: 1,
-            color: accentColor,
-            borderColor: accentColor
-          },
-          onClick: handleRetry,
-          children: "\u3082\u3046\u4E00\u5EA6"
-        }), passed && /*#__PURE__*/_jsxs("div", {
-          style: {
-            flex: 1,
-            background: COLORS.secondary + "20",
-            border: `1.5px solid ${COLORS.secondary}`,
-            borderRadius: 12,
-            padding: "8px 0",
-            fontSize: 13,
-            fontWeight: 700,
-            color: COLORS.secondary,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 4
-          },
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14
-          }), " \u5B8C\u4E86\u6E08\u307F"]
-        })]
-      })]
-    });
+      onClick: handleRetry
+    }, "\u3082\u3046\u4E00\u5EA6"), passed && /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        background: COLORS.secondary + "20",
+        border: `1.5px solid ${COLORS.secondary}`,
+        borderRadius: 12,
+        padding: "8px 0",
+        fontSize: 13,
+        fontWeight: 700,
+        color: COLORS.secondary,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4
+      }
+    }, /*#__PURE__*/React.createElement(Check, {
+      size: 14
+    }), " \u5B8C\u4E86\u6E08\u307F")));
   }
 
   // 出題画面
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: 8,
+      fontSize: 12,
+      color: COLORS.textLight
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: accentColor
+    }
+  }, "\u554F ", idx + 1, " / ", quizzes.length), /*#__PURE__*/React.createElement("span", null, "\u6B63\u89E3 ", score, "\u554F")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 4,
+      background: COLORS.border,
+      borderRadius: 4,
+      marginBottom: 14,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${idx / quizzes.length * 100}%`,
+      background: accentColor,
+      borderRadius: 4,
+      transition: "width 0.3s ease"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      marginBottom: 10,
+      flexWrap: "wrap"
+    }
+  }, q.isCalc && /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.highlight)
+  }, "\u8A08\u7B97\u554F\u984C"), q.isHikakke && /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.accent)
+  }, "\u3072\u3063\u304B\u3051\u6CE8\u610F"), /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.textLight)
+  }, q.keyword)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: COLORS.text,
+      lineHeight: 1.8,
+      marginBottom: 14,
+      padding: "10px 12px",
+      background: accentColor + "08",
+      borderRadius: 10,
+      border: `1px solid ${accentColor}22`
+    }
+  }, q.q), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, q.choices.map((choice, i) => {
+    let bg = "#fff";
+    let border = `1.5px solid ${COLORS.border}`;
+    let color = COLORS.text;
+    if (answered) {
+      if (i === q.answer) {
+        bg = COLORS.secondary + "20";
+        border = `2px solid ${COLORS.secondary}`;
+        color = COLORS.secondary;
+      } else if (i === selected && i !== q.answer) {
+        bg = COLORS.danger + "15";
+        border = `2px solid ${COLORS.danger}`;
+        color = COLORS.danger;
+      }
+    } else if (selected === i) {
+      bg = accentColor + "15";
+      border = `2px solid ${accentColor}`;
+    }
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => handleSelect(i),
+      style: {
+        background: bg,
+        border,
+        borderRadius: 12,
+        padding: "10px 14px",
+        textAlign: "left",
+        cursor: answered ? "default" : "pointer",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        transition: "all 0.15s ease",
+        fontFamily: "'Noto Sans JP', sans-serif"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        minWidth: 22,
+        height: 22,
+        borderRadius: "50%",
+        background: answered && i === q.answer ? COLORS.secondary : answered && i === selected && i !== q.answer ? COLORS.danger : accentColor + "33",
+        color: answered && (i === q.answer || i === selected) ? "#fff" : accentColor,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 11,
+        fontWeight: 800,
+        flexShrink: 0
+      }
+    }, answered && i === q.answer ? "○" : answered && i === selected && i !== q.answer ? "✗" : ["①", "②", "③", "④"][i]), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        color,
+        lineHeight: 1.6
+      }
+    }, choice));
+  })), answered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: "10px 12px",
+      background: (selected === q.answer ? COLORS.secondary : COLORS.danger) + "10",
+      border: `1px solid ${selected === q.answer ? COLORS.secondary : COLORS.danger}33`,
+      borderRadius: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
+      color: selected === q.answer ? COLORS.secondary : COLORS.danger,
+      marginBottom: 4
+    }
+  }, selected === q.answer ? "✓ 正解！" : "✗ 不正解"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, q.explanation)), answered && /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnPrimary,
+      width: "100%",
+      marginTop: 12,
+      background: `linear-gradient(135deg, ${accentColor}, ${accentColor}BB)`
     },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: 8,
-        fontSize: 12,
-        color: COLORS.textLight
-      },
-      children: [/*#__PURE__*/_jsxs("span", {
-        style: {
-          fontWeight: 700,
-          color: accentColor
-        },
-        children: ["\u554F ", idx + 1, " / ", quizzes.length]
-      }), /*#__PURE__*/_jsxs("span", {
-        children: ["\u6B63\u89E3 ", score, "\u554F"]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        height: 4,
-        background: COLORS.border,
-        borderRadius: 4,
-        marginBottom: 14,
-        overflow: "hidden"
-      },
-      children: /*#__PURE__*/_jsx("div", {
-        style: {
-          height: "100%",
-          width: `${idx / quizzes.length * 100}%`,
-          background: accentColor,
-          borderRadius: 4,
-          transition: "width 0.3s ease"
-        }
-      })
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 6,
-        marginBottom: 10,
-        flexWrap: "wrap"
-      },
-      children: [q.isCalc && /*#__PURE__*/_jsx("span", {
-        style: STYLES.badge(COLORS.highlight),
-        children: "\u8A08\u7B97\u554F\u984C"
-      }), q.isHikakke && /*#__PURE__*/_jsx("span", {
-        style: STYLES.badge(COLORS.accent),
-        children: "\u3072\u3063\u304B\u3051\u6CE8\u610F"
-      }), /*#__PURE__*/_jsx("span", {
-        style: STYLES.badge(COLORS.textLight),
-        children: q.keyword
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 700,
-        color: COLORS.text,
-        lineHeight: 1.8,
-        marginBottom: 14,
-        padding: "10px 12px",
-        background: accentColor + "08",
-        borderRadius: 10,
-        border: `1px solid ${accentColor}22`
-      },
-      children: q.q
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 8
-      },
-      children: q.choices.map((choice, i) => {
-        let bg = "#fff";
-        let border = `1.5px solid ${COLORS.border}`;
-        let color = COLORS.text;
-        if (answered) {
-          if (i === q.answer) {
-            bg = COLORS.secondary + "20";
-            border = `2px solid ${COLORS.secondary}`;
-            color = COLORS.secondary;
-          } else if (i === selected && i !== q.answer) {
-            bg = COLORS.danger + "15";
-            border = `2px solid ${COLORS.danger}`;
-            color = COLORS.danger;
-          }
-        } else if (selected === i) {
-          bg = accentColor + "15";
-          border = `2px solid ${accentColor}`;
-        }
-        return /*#__PURE__*/_jsxs("button", {
-          onClick: () => handleSelect(i),
-          style: {
-            background: bg,
-            border,
-            borderRadius: 12,
-            padding: "10px 14px",
-            textAlign: "left",
-            cursor: answered ? "default" : "pointer",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            transition: "all 0.15s ease",
-            fontFamily: "'Noto Sans JP', sans-serif"
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              minWidth: 22,
-              height: 22,
-              borderRadius: "50%",
-              background: answered && i === q.answer ? COLORS.secondary : answered && i === selected && i !== q.answer ? COLORS.danger : accentColor + "33",
-              color: answered && (i === q.answer || i === selected) ? "#fff" : accentColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 11,
-              fontWeight: 800,
-              flexShrink: 0
-            },
-            children: answered && i === q.answer ? "○" : answered && i === selected && i !== q.answer ? "✗" : ["①", "②", "③", "④"][i]
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 13,
-              color,
-              lineHeight: 1.6
-            },
-            children: choice
-          })]
-        }, i);
-      })
-    }), answered && /*#__PURE__*/_jsxs("div", {
-      style: {
-        marginTop: 12,
-        padding: "10px 12px",
-        background: (selected === q.answer ? COLORS.secondary : COLORS.danger) + "10",
-        border: `1px solid ${selected === q.answer ? COLORS.secondary : COLORS.danger}33`,
-        borderRadius: 10
-      },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 12,
-          fontWeight: 800,
-          color: selected === q.answer ? COLORS.secondary : COLORS.danger,
-          marginBottom: 4
-        },
-        children: selected === q.answer ? "✓ 正解！" : "✗ 不正解"
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 13,
-          color: COLORS.text,
-          lineHeight: 1.7
-        },
-        children: q.explanation
-      })]
-    }), answered && /*#__PURE__*/_jsxs("button", {
-      style: {
-        ...STYLES.btnPrimary,
-        width: "100%",
-        marginTop: 12,
-        background: `linear-gradient(135deg, ${accentColor}, ${accentColor}BB)`
-      },
-      onClick: handleNext,
-      children: [idx + 1 >= quizzes.length ? "結果を見る" : "次の問題", /*#__PURE__*/_jsx(ChevronRight, {
-        size: 15,
-        style: {
-          marginLeft: 4
-        }
-      })]
-    })]
-  });
+    onClick: handleNext
+  }, idx + 1 >= quizzes.length ? "結果を見る" : "次の問題", /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 15,
+    style: {
+      marginLeft: 4
+    }
+  })));
 }
 
 // --- SectionProgress: セクション完了状態表示 ---
@@ -2426,46 +2374,45 @@ function SectionProgress({
   color,
   onSelect
 }) {
-  return /*#__PURE__*/_jsx("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
       flexWrap: "wrap",
       marginBottom: 14
-    },
-    children: sections.map(sec => {
-      const done = progress[tabId]?.[sec.id] ?? false;
-      return /*#__PURE__*/_jsxs("button", {
-        onClick: () => onSelect(sec.id),
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          background: done ? color + "18" : "#fff",
-          border: `1.5px solid ${done ? color : COLORS.border}`,
-          borderRadius: 20,
-          padding: "5px 12px",
-          cursor: "pointer",
-          fontFamily: "'Noto Sans JP', sans-serif",
-          fontSize: 12,
-          fontWeight: 700,
-          color: done ? color : COLORS.textLight,
-          transition: "all 0.15s ease"
-        },
-        children: [done ? /*#__PURE__*/_jsx(Check, {
-          size: 12,
-          color: color
-        }) : /*#__PURE__*/_jsx("div", {
-          style: {
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            border: `1.5px solid ${COLORS.border}`
-          }
-        }), sec.label]
-      }, sec.id);
-    })
-  });
+    }
+  }, sections.map(sec => {
+    const done = progress[tabId]?.[sec.id] ?? false;
+    return /*#__PURE__*/React.createElement("button", {
+      key: sec.id,
+      onClick: () => onSelect(sec.id),
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        background: done ? color + "18" : "#fff",
+        border: `1.5px solid ${done ? color : COLORS.border}`,
+        borderRadius: 20,
+        padding: "5px 12px",
+        cursor: "pointer",
+        fontFamily: "'Noto Sans JP', sans-serif",
+        fontSize: 12,
+        fontWeight: 700,
+        color: done ? color : COLORS.textLight,
+        transition: "all 0.15s ease"
+      }
+    }, done ? /*#__PURE__*/React.createElement(Check, {
+      size: 12,
+      color: color
+    }) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 12,
+        height: 12,
+        borderRadius: "50%",
+        border: `1.5px solid ${COLORS.border}`
+      }
+    }), sec.label);
+  }));
 }
 
 // --- MiniCalcCard: ホーム画面「今日の計算練習」用 ---
@@ -2476,90 +2423,84 @@ function MiniCalcCard({
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
   if (!quiz) return null;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card
-    },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.sectionTitle,
-        fontSize: 14,
-        color: COLORS.accent
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color: COLORS.accent
+    }
+  }, /*#__PURE__*/React.createElement(Calculator, {
+    size: 15,
+    color: COLORS.accent
+  }), " \u4ECA\u65E5\u306E\u8A08\u7B97\u7DF4\u7FD2"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.badge(COLORS.highlight),
+      marginBottom: 8
+    }
+  }, "\u8A08\u7B97\u554F\u984C"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: COLORS.text,
+      lineHeight: 1.7,
+      marginBottom: 12
+    }
+  }, quiz.q), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, quiz.choices.map((c, i) => {
+    let bg = "#fff",
+      border = `1px solid ${COLORS.border}`,
+      color = COLORS.text;
+    if (answered) {
+      if (i === quiz.answer) {
+        bg = COLORS.secondary + "18";
+        border = `1.5px solid ${COLORS.secondary}`;
+        color = COLORS.secondary;
+      } else if (i === selected) {
+        bg = COLORS.danger + "12";
+        border = `1.5px solid ${COLORS.danger}`;
+        color = COLORS.danger;
+      }
+    }
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => {
+        if (answered) return;
+        setSelected(i);
+        setAnswered(true);
+        onAnswer(i === quiz.answer);
       },
-      children: [/*#__PURE__*/_jsx(Calculator, {
-        size: 15,
-        color: COLORS.accent
-      }), " \u4ECA\u65E5\u306E\u8A08\u7B97\u7DF4\u7FD2"]
-    }), /*#__PURE__*/_jsx("div", {
       style: {
-        ...STYLES.badge(COLORS.highlight),
-        marginBottom: 8
-      },
-      children: "\u8A08\u7B97\u554F\u984C"
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 13,
-        fontWeight: 700,
-        color: COLORS.text,
-        lineHeight: 1.7,
-        marginBottom: 12
-      },
-      children: quiz.q
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 6
-      },
-      children: quiz.choices.map((c, i) => {
-        let bg = "#fff",
-          border = `1px solid ${COLORS.border}`,
-          color = COLORS.text;
-        if (answered) {
-          if (i === quiz.answer) {
-            bg = COLORS.secondary + "18";
-            border = `1.5px solid ${COLORS.secondary}`;
-            color = COLORS.secondary;
-          } else if (i === selected) {
-            bg = COLORS.danger + "12";
-            border = `1.5px solid ${COLORS.danger}`;
-            color = COLORS.danger;
-          }
-        }
-        return /*#__PURE__*/_jsxs("button", {
-          onClick: () => {
-            if (answered) return;
-            setSelected(i);
-            setAnswered(true);
-            onAnswer(i === quiz.answer);
-          },
-          style: {
-            background: bg,
-            border,
-            borderRadius: 10,
-            padding: "8px 12px",
-            textAlign: "left",
-            cursor: answered ? "default" : "pointer",
-            fontSize: 13,
-            color,
-            fontFamily: "'Noto Sans JP', sans-serif"
-          },
-          children: [["①", "②", "③", "④"][i], " ", c]
-        }, i);
-      })
-    }), answered && /*#__PURE__*/_jsx("div", {
-      style: {
-        marginTop: 10,
+        background: bg,
+        border,
+        borderRadius: 10,
         padding: "8px 12px",
-        background: COLORS.primary + "0A",
-        borderRadius: 8,
-        fontSize: 12,
-        color: COLORS.text,
-        lineHeight: 1.6
-      },
-      children: quiz.explanation
-    })]
-  });
+        textAlign: "left",
+        cursor: answered ? "default" : "pointer",
+        fontSize: 13,
+        color,
+        fontFamily: "'Noto Sans JP', sans-serif"
+      }
+    }, ["①", "②", "③", "④"][i], " ", c);
+  })), answered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      padding: "8px 12px",
+      background: COLORS.primary + "0A",
+      borderRadius: 8,
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.6
+    }
+  }, quiz.explanation));
 }
 
 // --- SearchBar: 全タブ横断検索 ---
@@ -2701,111 +2642,102 @@ function SearchBar({
     setResults(r);
   };
   const tabColor = tabId => TABS.find(t => t.id === tabId)?.color ?? COLORS.primary;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative",
       marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      background: "#fff",
+      border: `1.5px solid ${focus ? COLORS.primary : COLORS.border}`,
+      borderRadius: 14,
+      padding: "9px 14px",
+      boxShadow: focus ? `0 0 0 3px ${COLORS.primary}22` : "none",
+      transition: "all 0.18s ease"
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 16,
+    color: focus ? COLORS.primary : COLORS.textMuted
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    placeholder: "\u7528\u8A9E\u30FB\u516C\u5F0F\u30FB\u30AD\u30FC\u30EF\u30FC\u30C9\u3067\u691C\u7D22...",
+    value: query,
+    onChange: handleChange,
+    onFocus: () => setFocus(true),
+    onBlur: () => setTimeout(() => setFocus(false), 200),
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 14,
+      color: COLORS.text,
+      background: "transparent",
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }), query && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setQuery("");
+      setResults([]);
     },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        background: "#fff",
-        border: `1.5px solid ${focus ? COLORS.primary : COLORS.border}`,
-        borderRadius: 14,
-        padding: "9px 14px",
-        boxShadow: focus ? `0 0 0 3px ${COLORS.primary}22` : "none",
-        transition: "all 0.18s ease"
-      },
-      children: [/*#__PURE__*/_jsx(Search, {
-        size: 16,
-        color: focus ? COLORS.primary : COLORS.textMuted
-      }), /*#__PURE__*/_jsx("input", {
-        type: "text",
-        placeholder: "\u7528\u8A9E\u30FB\u516C\u5F0F\u30FB\u30AD\u30FC\u30EF\u30FC\u30C9\u3067\u691C\u7D22...",
-        value: query,
-        onChange: handleChange,
-        onFocus: () => setFocus(true),
-        onBlur: () => setTimeout(() => setFocus(false), 200),
-        style: {
-          flex: 1,
-          border: "none",
-          outline: "none",
-          fontSize: 14,
-          color: COLORS.text,
-          background: "transparent",
-          fontFamily: "'Noto Sans JP', sans-serif"
-        }
-      }), query && /*#__PURE__*/_jsx("button", {
-        onClick: () => {
-          setQuery("");
-          setResults([]);
-        },
-        style: {
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: COLORS.textMuted,
-          padding: 0
-        },
-        children: "\u2715"
-      })]
-    }), results.length > 0 && /*#__PURE__*/_jsx("div", {
-      style: {
-        position: "absolute",
-        top: "100%",
-        left: 0,
-        right: 0,
-        background: "#fff",
-        border: `1.5px solid ${COLORS.border}`,
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(74,144,217,0.18)",
-        zIndex: 200,
-        overflow: "hidden",
-        marginTop: 4
-      },
-      children: results.map((r, i) => /*#__PURE__*/_jsxs("div", {
-        onMouseDown: () => {
-          onNavigate(r.tab);
-          setQuery("");
-          setResults([]);
-        },
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 14px",
-          cursor: "pointer",
-          borderBottom: i < results.length - 1 ? `1px solid ${COLORS.border}` : "none"
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            ...STYLES.badge(tabColor(r.tab)),
-            fontSize: 11,
-            minWidth: 52,
-            textAlign: "center"
-          },
-          children: TABS.find(t => t.id === r.tab)?.short ?? r.tab
-        }), /*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 13,
-              fontWeight: 700,
-              color: COLORS.text
-            },
-            children: r.keyword
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 11,
-              color: COLORS.textLight
-            },
-            children: r.desc
-          })]
-        })]
-      }, i))
-    })]
-  });
+    style: {
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      color: COLORS.textMuted,
+      padding: 0
+    }
+  }, "\u2715")), results.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: "100%",
+      left: 0,
+      right: 0,
+      background: "#fff",
+      border: `1.5px solid ${COLORS.border}`,
+      borderRadius: 12,
+      boxShadow: "0 8px 24px rgba(74,144,217,0.18)",
+      zIndex: 200,
+      overflow: "hidden",
+      marginTop: 4
+    }
+  }, results.map((r, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onMouseDown: () => {
+      onNavigate(r.tab);
+      setQuery("");
+      setResults([]);
+    },
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "10px 14px",
+      cursor: "pointer",
+      borderBottom: i < results.length - 1 ? `1px solid ${COLORS.border}` : "none"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(tabColor(r.tab)),
+      fontSize: 11,
+      minWidth: 52,
+      textAlign: "center"
+    }
+  }, TABS.find(t => t.id === r.tab)?.short ?? r.tab), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: COLORS.text
+    }
+  }, r.keyword), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, r.desc))))));
 }
 
 // ============================================================
@@ -2830,40 +2762,39 @@ function EthicsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.secondary;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u9867\u5BA2\u672C\u4F4D\u30FB\u502B\u7406",
-      subtitle: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC\u30FB\u4FE1\u983C\u95A2\u4FC2\u30FB\u65B0\u6F6E\u6D41",
-      color: color,
-      icon: Shield
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: ETHICS_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "ethics",
-      sections: ETHICS_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), section === "A" && /*#__PURE__*/_jsx(EthicsSectionA, {
-      color: color,
-      state: state,
-      setState: setState
-    }), section === "B" && /*#__PURE__*/_jsx(EthicsSectionB, {
-      color: color,
-      state: state,
-      setState: setState
-    }), section === "C" && /*#__PURE__*/_jsx(EthicsSectionC, {
-      color: color,
-      state: state,
-      setState: setState
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u9867\u5BA2\u672C\u4F4D\u30FB\u502B\u7406",
+    subtitle: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC\u30FB\u4FE1\u983C\u95A2\u4FC2\u30FB\u65B0\u6F6E\u6D41",
+    color: color,
+    icon: Shield
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: ETHICS_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "ethics",
+    sections: ETHICS_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), section === "A" && /*#__PURE__*/React.createElement(EthicsSectionA, {
+    color: color,
+    state: state,
+    setState: setState
+  }), section === "B" && /*#__PURE__*/React.createElement(EthicsSectionB, {
+    color: color,
+    state: state,
+    setState: setState
+  }), section === "C" && /*#__PURE__*/React.createElement(EthicsSectionC, {
+    color: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションA: フィデューシャリーデューティー ---
@@ -2874,103 +2805,89 @@ function EthicsSectionA({
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.A;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC\uFF08FD\uFF09\u3068\u306F",
-      color: color,
-      children: ["\u300C\u9867\u5BA2\u306E\u6700\u5584\u306E\u5229\u76CA\u3092\u6700\u512A\u5148\u306B\u8003\u3048\u305F\u884C\u52D5\u7FA9\u52D9\u300D\uFF1D\u53D7\u8A17\u8005\u8CAC\u4EFB\u3002", /*#__PURE__*/_jsx("br", {}), "\u91D1\u878D\u5E81\u304C2017\u5E74\u306B\u300C\u9867\u5BA2\u672C\u4F4D\u306E\u696D\u52D9\u904B\u55B6\u306B\u95A2\u3059\u308B\u539F\u5247\u300D\u3092\u7B56\u5B9A\u3002", /*#__PURE__*/_jsx("br", {}), "\u30D7\u30EA\u30F3\u30B7\u30D7\u30EB\u30D9\u30FC\u30B9\uFF08\u539F\u5247\u4E3B\u7FA9\uFF09\u30A2\u30D7\u30ED\u30FC\u30C1\u3092\u63A1\u7528\u3002ABC\u8A66\u9A13\u306E\u6700\u91CD\u8981\u30C6\u30FC\u30DE\u3002"]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(Award, {
-          size: 15,
-          color: color
-        }), " \u9867\u5BA2\u672C\u4F4D\u306E7\u539F\u5247"]
-      }), FD_PRINCIPLES.map(p => /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 10,
-          padding: "9px 0",
-          borderBottom: p.no < 7 ? `1px solid ${COLORS.border}` : "none",
-          alignItems: "flex-start"
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            minWidth: 26,
-            height: 26,
-            borderRadius: 8,
-            background: color,
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            fontWeight: 900,
-            flexShrink: 0
-          },
-          children: p.no
-        }), /*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 13,
-              fontWeight: 800,
-              color: COLORS.text,
-              marginBottom: 2
-            },
-            children: [p.title, /*#__PURE__*/_jsx("span", {
-              style: {
-                ...STYLES.badge(color),
-                marginLeft: 6,
-                fontSize: 10
-              },
-              children: p.keyword
-            })]
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 12,
-              color: COLORS.textLight,
-              lineHeight: 1.6
-            },
-            children: p.detail
-          })]
-        })]
-      }, p.no))]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["フィデューシャリー＝「受託者」の意味（信認義務）", "顧客の利益 > 自社の利益 が大原則", "利益相反：販売手数料の高い商品を優先して勧めること等", "KYC（Know Your Customer）：顧客の状況把握義務", "適合性の原則：顧客のリスク許容度に合った商品提案", "7原則は法的拘束力なし・各社が自主的に遵守（プリンシプルベース）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
-      },
-      onClick: () => setShowQuiz(s => !s),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（8問）"
-    }), showQuiz && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: ETHICS_QUIZZES.A,
-      tabId: "ethics",
-      sectionId: "A",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC\uFF08FD\uFF09\u3068\u306F",
+    color: color
+  }, "\u300C\u9867\u5BA2\u306E\u6700\u5584\u306E\u5229\u76CA\u3092\u6700\u512A\u5148\u306B\u8003\u3048\u305F\u884C\u52D5\u7FA9\u52D9\u300D\uFF1D\u53D7\u8A17\u8005\u8CAC\u4EFB\u3002", /*#__PURE__*/React.createElement("br", null), "\u91D1\u878D\u5E81\u304C2017\u5E74\u306B\u300C\u9867\u5BA2\u672C\u4F4D\u306E\u696D\u52D9\u904B\u55B6\u306B\u95A2\u3059\u308B\u539F\u5247\u300D\u3092\u7B56\u5B9A\u3002", /*#__PURE__*/React.createElement("br", null), "\u30D7\u30EA\u30F3\u30B7\u30D7\u30EB\u30D9\u30FC\u30B9\uFF08\u539F\u5247\u4E3B\u7FA9\uFF09\u30A2\u30D7\u30ED\u30FC\u30C1\u3092\u63A1\u7528\u3002ABC\u8A66\u9A13\u306E\u6700\u91CD\u8981\u30C6\u30FC\u30DE\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(Award, {
+    size: 15,
+    color: color
+  }), " \u9867\u5BA2\u672C\u4F4D\u306E7\u539F\u5247"), FD_PRINCIPLES.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.no,
+    style: {
+      display: "flex",
+      gap: 10,
+      padding: "9px 0",
+      borderBottom: p.no < 7 ? `1px solid ${COLORS.border}` : "none",
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 26,
+      height: 26,
+      borderRadius: 8,
+      background: color,
+      color: "#fff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 12,
+      fontWeight: 900,
+      flexShrink: 0
+    }
+  }, p.no), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 800,
+      color: COLORS.text,
+      marginBottom: 2
+    }
+  }, p.title, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(color),
+      marginLeft: 6,
+      fontSize: 10
+    }
+  }, p.keyword)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      lineHeight: 1.6
+    }
+  }, p.detail))))), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["フィデューシャリー＝「受託者」の意味（信認義務）", "顧客の利益 > 自社の利益 が大原則", "利益相反：販売手数料の高い商品を優先して勧めること等", "KYC（Know Your Customer）：顧客の状況把握義務", "適合性の原則：顧客のリスク許容度に合った商品提案", "7原則は法的拘束力なし・各社が自主的に遵守（プリンシプルベース）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: ETHICS_QUIZZES.A,
+    tabId: "ethics",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションB: 顧客との信頼関係構築 ---
@@ -2981,101 +2898,80 @@ function EthicsSectionB({
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.B;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30E9\u30A4\u30D5\u30D7\u30E9\u30F3\u30CB\u30F3\u30B0\u306E\u57FA\u672C\u30B9\u30C6\u30C3\u30D7",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "Step1"
-      }), " \u30B4\u30FC\u30EB\u8A2D\u5B9A\uFF08\u3044\u3064\u307E\u3067\u306B\u30FB\u3044\u304F\u3089\u30FB\u4F55\u306E\u305F\u3081\u306B\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "Step2"
-      }), " \u73FE\u72B6\u628A\u63E1\uFF08\u8CC7\u7523\u30FB\u8CA0\u50B5\u30FB\u53CE\u5165\u30FB\u652F\u51FA\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "Step3"
-      }), " \u30AE\u30E3\u30C3\u30D7\u5206\u6790", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "Step4"
-      }), " \u89E3\u6C7A\u7B56\u306E\u63D0\u6848", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "Step5"
-      }), " \u5B9F\u884C\u30FB\u30E2\u30CB\u30BF\u30EA\u30F3\u30B0"]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(Search, {
-          size: 15,
-          color: color
-        }), " KYC\uFF08Know Your Customer\uFF09"]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8
-        },
-        children: KYC_ITEMS.map(item => /*#__PURE__*/_jsxs("div", {
-          style: {
-            background: color + "0C",
-            border: `1px solid ${color}22`,
-            borderRadius: 12,
-            padding: "10px 12px"
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 16,
-              marginBottom: 4
-            },
-            children: item.icon
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 12,
-              fontWeight: 800,
-              color,
-              marginBottom: 5
-            },
-            children: item.label
-          }), item.items.map(it => /*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 11,
-              color: COLORS.textLight,
-              lineHeight: 1.5
-            },
-            children: ["\u2022 ", it]
-          }, it))]
-        }, item.label))
-      })]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["ライフプランニングは「ゴール設定 → 現状把握」の順序が重要", "リスク許容度は年齢・収入安定性・投資期間・心理的耐性で判断", "定期的なモニタリングとリバランスで目標配分を維持", "顧客との面談で最初に確認すべきは「投資目的・期間・ゴール」"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
-      },
-      onClick: () => setShowQuiz(s => !s),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（5問）"
-    }), showQuiz && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: ETHICS_QUIZZES.B,
-      tabId: "ethics",
-      sectionId: "B",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30E9\u30A4\u30D5\u30D7\u30E9\u30F3\u30CB\u30F3\u30B0\u306E\u57FA\u672C\u30B9\u30C6\u30C3\u30D7",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "Step1"), " \u30B4\u30FC\u30EB\u8A2D\u5B9A\uFF08\u3044\u3064\u307E\u3067\u306B\u30FB\u3044\u304F\u3089\u30FB\u4F55\u306E\u305F\u3081\u306B\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step2"), " \u73FE\u72B6\u628A\u63E1\uFF08\u8CC7\u7523\u30FB\u8CA0\u50B5\u30FB\u53CE\u5165\u30FB\u652F\u51FA\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step3"), " \u30AE\u30E3\u30C3\u30D7\u5206\u6790", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step4"), " \u89E3\u6C7A\u7B56\u306E\u63D0\u6848", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step5"), " \u5B9F\u884C\u30FB\u30E2\u30CB\u30BF\u30EA\u30F3\u30B0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 15,
+    color: color
+  }), " KYC\uFF08Know Your Customer\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8
+    }
+  }, KYC_ITEMS.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.label,
+    style: {
+      background: color + "0C",
+      border: `1px solid ${color}22`,
+      borderRadius: 12,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      marginBottom: 4
+    }
+  }, item.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
+      color,
+      marginBottom: 5
+    }
+  }, item.label), item.items.map(it => /*#__PURE__*/React.createElement("div", {
+    key: it,
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      lineHeight: 1.5
+    }
+  }, "\u2022 ", it)))))), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["ライフプランニングは「ゴール設定 → 現状把握」の順序が重要", "リスク許容度は年齢・収入安定性・投資期間・心理的耐性で判断", "定期的なモニタリングとリバランスで目標配分を維持", "顧客との面談で最初に確認すべきは「投資目的・期間・ゴール」"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（5問）"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: ETHICS_QUIZZES.B,
+    tabId: "ethics",
+    sectionId: "B",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションC: 資産形成の新しい潮流 ---
@@ -3088,136 +2984,114 @@ function EthicsSectionC({
   const [activeProduct, setActiveProduct] = useState("nisa");
   const done = state.progress.ethics?.C;
   const prod = TAX_ADVANTAGE_DATA[activeProduct];
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsx("div", {
-      style: {
-        display: "flex",
-        gap: 8,
-        marginBottom: 12
-      },
-      children: ["nisa", "ideco"].map(key => /*#__PURE__*/_jsx("button", {
-        onClick: () => setActiveProduct(key),
-        style: {
-          flex: 1,
-          background: activeProduct === key ? TAX_ADVANTAGE_DATA[key].color : "transparent",
-          color: activeProduct === key ? "#fff" : COLORS.textLight,
-          border: `2px solid ${TAX_ADVANTAGE_DATA[key].color}`,
-          borderRadius: 12,
-          padding: "9px 0",
-          cursor: "pointer",
-          fontWeight: 800,
-          fontSize: 14,
-          fontFamily: "'Noto Sans JP', sans-serif",
-          transition: "all 0.18s ease"
-        },
-        children: TAX_ADVANTAGE_DATA[key].name.split("（")[0]
-      }, key))
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        borderLeft: `4px solid ${prod.color}`,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 15,
-          fontWeight: 800,
-          color: prod.color,
-          marginBottom: 10
-        },
-        children: prod.name
-      }), prod.points.map(pt => /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          padding: "5px 0",
-          borderBottom: `1px solid ${COLORS.border}`,
-          fontSize: 13
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            color: COLORS.textLight,
-            minWidth: 90,
-            fontWeight: 600,
-            fontSize: 12
-          },
-          children: pt.label
-        }), /*#__PURE__*/_jsx("span", {
-          style: {
-            color: COLORS.text,
-            fontWeight: pt.label === "損益通算" ? 700 : 400
-          },
-          children: pt.value
-        })]
-      }, pt.label)), /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginTop: 10
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 12,
-            fontWeight: 700,
-            color: prod.color,
-            marginBottom: 6
-          },
-          children: "\u30DD\u30A4\u30F3\u30C8"
-        }), prod.tips.map((tip, i) => /*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            gap: 6,
-            marginBottom: 4,
-            fontSize: 12,
-            color: COLORS.text
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              color: prod.color,
-              fontWeight: 700
-            },
-            children: "\u2713"
-          }), /*#__PURE__*/_jsx("span", {
-            children: tip
-          })]
-        }, i))]
-      })]
-    }), /*#__PURE__*/_jsxs(InfoBox, {
-      title: "ESG\u6295\u8CC7\u30FB\u30B5\u30B9\u30C6\u30CA\u30D6\u30EB\u6295\u8CC7",
-      color: "#16A085",
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "E"
-      }), "nvironment\uFF08\u74B0\u5883\uFF09\u30FB", /*#__PURE__*/_jsx("strong", {
-        children: "S"
-      }), "ocial\uFF08\u793E\u4F1A\uFF09\u30FB", /*#__PURE__*/_jsx("strong", {
-        children: "G"
-      }), "overnance\uFF08\u30AC\u30D0\u30CA\u30F3\u30B9\uFF09", /*#__PURE__*/_jsx("br", {}), "\u975E\u8CA1\u52D9\u60C5\u5831\u3092\u6295\u8CC7\u5224\u65AD\u306B\u7D44\u307F\u8FBC\u3080\u3002\u4E3B\u306A\u30A2\u30D7\u30ED\u30FC\u30C1\uFF1A", /*#__PURE__*/_jsx("br", {}), "\u2460\u30CD\u30AC\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u554F\u984C\u4F01\u696D\u3092\u9664\u5916\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2461\u30DD\u30B8\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u512A\u826F\u4F01\u696D\u3092\u9078\u5225\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2462ESG\u30A4\u30F3\u30C6\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\uFF08\u8CA1\u52D9\u60C5\u5831\u3068\u7D71\u5408\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2463\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8\uFF08\u4F01\u696D\u3068\u306E\u5BFE\u8A71\u3067\u6539\u5584\u4FC3\u9032\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2464\u30A4\u30F3\u30D1\u30AF\u30C8\u6295\u8CC7\uFF08\u793E\u4F1A\u7684\u6210\u679C\u3068\u8CA1\u52D9\u30EA\u30BF\u30FC\u30F3\u306E\u4E21\u7ACB\uFF09"]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["新NISA：年360万円（つみたて120＋成長240）・生涯1,800万円", "NISA損失は他口座との損益通算・繰越控除ができない（頻出ひっかけ）", "新NISAは売却した翌年に簿価分の枠が復活", "iDeCo掛金は全額所得控除・原則60歳まで引き出し不可", "iDeCoの拠出限度額は職業・加入年金制度で異なる", "ESG：Sは「Social（社会）」。Safety・Stabilityではない"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
-      },
-      onClick: () => setShowQuiz(s => !s),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（8問）"
-    }), showQuiz && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: ETHICS_QUIZZES.C,
-      tabId: "ethics",
-      sectionId: "C",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, ["nisa", "ideco"].map(key => /*#__PURE__*/React.createElement("button", {
+    key: key,
+    onClick: () => setActiveProduct(key),
+    style: {
+      flex: 1,
+      background: activeProduct === key ? TAX_ADVANTAGE_DATA[key].color : "transparent",
+      color: activeProduct === key ? "#fff" : COLORS.textLight,
+      border: `2px solid ${TAX_ADVANTAGE_DATA[key].color}`,
+      borderRadius: 12,
+      padding: "9px 0",
+      cursor: "pointer",
+      fontWeight: 800,
+      fontSize: 14,
+      fontFamily: "'Noto Sans JP', sans-serif",
+      transition: "all 0.18s ease"
+    }
+  }, TAX_ADVANTAGE_DATA[key].name.split("（")[0]))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      borderLeft: `4px solid ${prod.color}`,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: prod.color,
+      marginBottom: 10
+    }
+  }, prod.name), prod.points.map(pt => /*#__PURE__*/React.createElement("div", {
+    key: pt.label,
+    style: {
+      display: "flex",
+      gap: 8,
+      padding: "5px 0",
+      borderBottom: `1px solid ${COLORS.border}`,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textLight,
+      minWidth: 90,
+      fontWeight: 600,
+      fontSize: 12
+    }
+  }, pt.label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text,
+      fontWeight: pt.label === "損益通算" ? 700 : 400
+    }
+  }, pt.value))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: prod.color,
+      marginBottom: 6
+    }
+  }, "\u30DD\u30A4\u30F3\u30C8"), prod.tips.map((tip, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 6,
+      marginBottom: 4,
+      fontSize: 12,
+      color: COLORS.text
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: prod.color,
+      fontWeight: 700
+    }
+  }, "\u2713"), /*#__PURE__*/React.createElement("span", null, tip))))), /*#__PURE__*/React.createElement(InfoBox, {
+    title: "ESG\u6295\u8CC7\u30FB\u30B5\u30B9\u30C6\u30CA\u30D6\u30EB\u6295\u8CC7",
+    color: "#16A085"
+  }, /*#__PURE__*/React.createElement("strong", null, "E"), "nvironment\uFF08\u74B0\u5883\uFF09\u30FB", /*#__PURE__*/React.createElement("strong", null, "S"), "ocial\uFF08\u793E\u4F1A\uFF09\u30FB", /*#__PURE__*/React.createElement("strong", null, "G"), "overnance\uFF08\u30AC\u30D0\u30CA\u30F3\u30B9\uFF09", /*#__PURE__*/React.createElement("br", null), "\u975E\u8CA1\u52D9\u60C5\u5831\u3092\u6295\u8CC7\u5224\u65AD\u306B\u7D44\u307F\u8FBC\u3080\u3002\u4E3B\u306A\u30A2\u30D7\u30ED\u30FC\u30C1\uFF1A", /*#__PURE__*/React.createElement("br", null), "\u2460\u30CD\u30AC\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u554F\u984C\u4F01\u696D\u3092\u9664\u5916\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2461\u30DD\u30B8\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u512A\u826F\u4F01\u696D\u3092\u9078\u5225\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2462ESG\u30A4\u30F3\u30C6\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\uFF08\u8CA1\u52D9\u60C5\u5831\u3068\u7D71\u5408\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2463\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8\uFF08\u4F01\u696D\u3068\u306E\u5BFE\u8A71\u3067\u6539\u5584\u4FC3\u9032\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2464\u30A4\u30F3\u30D1\u30AF\u30C8\u6295\u8CC7\uFF08\u793E\u4F1A\u7684\u6210\u679C\u3068\u8CA1\u52D9\u30EA\u30BF\u30FC\u30F3\u306E\u4E21\u7ACB\uFF09"), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["新NISA：年360万円（つみたて120＋成長240）・生涯1,800万円", "NISA損失は他口座との損益通算・繰越控除ができない（頻出ひっかけ）", "新NISAは売却した翌年に簿価分の枠が復活", "iDeCo掛金は全額所得控除・原則60歳まで引き出し不可", "iDeCoの拠出限度額は職業・加入年金制度で異なる", "ESG：Sは「Social（社会）」。Safety・Stabilityではない"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: ETHICS_QUIZZES.C,
+    tabId: "ethics",
+    sectionId: "C",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // ============================================================
@@ -3228,196 +3102,180 @@ function EthicsSectionC({
 function ReturnCalculatorSection({
   color
 }) {
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30EA\u30BF\u30FC\u30F3\u306E\u7A2E\u985E\u3068\u4F7F\u3044\u5206\u3051",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u5358\u7D14\u30EA\u30BF\u30FC\u30F3\uFF08\u4FDD\u6709\u671F\u9593\uFF09"
-      }), "\uFF1AR = (\u671F\u672B\u4FA1\u683C \u2212 \u671F\u521D\u4FA1\u683C + \u914D\u5F53) / \u671F\u521D\u4FA1\u683C", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u5E74\u7387\u30EA\u30BF\u30FC\u30F3\uFF08\u8907\u5229\u63DB\u7B97\uFF09"
-      }), "\uFF1A\u5E74\u7387R = (1 + \u4FDD\u6709\u671F\u9593R)^(1/\u5E74\u6570) \u2212 1", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u7B97\u8853\u5E73\u5747"
-      }), "\uFF1A\u5404\u671F\u30EA\u30BF\u30FC\u30F3\u306E\u5358\u7D14\u5E73\u5747 \u2192 \u5C06\u6765\u4E88\u6E2C\u306B\u4F7F\u7528", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u5E7E\u4F55\u5E73\u5747"
-      }), "\uFF1A\u8907\u5229\u30D9\u30FC\u30B9\u306E\u5E73\u5747 \u2192 \u904E\u53BB\u5B9F\u7E3E\u8A55\u4FA1\u306B\u4F7F\u7528"]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.simpleReturn,
-      color: color
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.annualReturn,
-      color: color
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.geoMean,
-      color: color
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u5358\u7D14\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "期初価格",
-        key: "p0",
-        unit: "円",
-        defaultValue: "100"
-      }, {
-        label: "期末価格",
-        key: "p1",
-        unit: "円",
-        defaultValue: "115"
-      }, {
-        label: "配当",
-        key: "div",
-        unit: "円",
-        defaultValue: "3"
-      }, {
-        label: "保有年数",
-        key: "n",
-        unit: "年",
-        defaultValue: "2"
-      }],
-      calculate: ({
-        p0,
-        p1,
-        div,
-        n
-      }) => {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30EA\u30BF\u30FC\u30F3\u306E\u7A2E\u985E\u3068\u4F7F\u3044\u5206\u3051",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u5358\u7D14\u30EA\u30BF\u30FC\u30F3\uFF08\u4FDD\u6709\u671F\u9593\uFF09"), "\uFF1AR = (\u671F\u672B\u4FA1\u683C \u2212 \u671F\u521D\u4FA1\u683C + \u914D\u5F53) / \u671F\u521D\u4FA1\u683C", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5E74\u7387\u30EA\u30BF\u30FC\u30F3\uFF08\u8907\u5229\u63DB\u7B97\uFF09"), "\uFF1A\u5E74\u7387R = (1 + \u4FDD\u6709\u671F\u9593R)^(1/\u5E74\u6570) \u2212 1", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u7B97\u8853\u5E73\u5747"), "\uFF1A\u5404\u671F\u30EA\u30BF\u30FC\u30F3\u306E\u5358\u7D14\u5E73\u5747 \u2192 \u5C06\u6765\u4E88\u6E2C\u306B\u4F7F\u7528", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5E7E\u4F55\u5E73\u5747"), "\uFF1A\u8907\u5229\u30D9\u30FC\u30B9\u306E\u5E73\u5747 \u2192 \u904E\u53BB\u5B9F\u7E3E\u8A55\u4FA1\u306B\u4F7F\u7528"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.simpleReturn, {
+    color: color
+  })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.annualReturn, {
+    color: color
+  })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.geoMean, {
+    color: color
+  })), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u5358\u7D14\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "期初価格",
+      key: "p0",
+      unit: "円",
+      defaultValue: "100"
+    }, {
+      label: "期末価格",
+      key: "p1",
+      unit: "円",
+      defaultValue: "115"
+    }, {
+      label: "配当",
+      key: "div",
+      unit: "円",
+      defaultValue: "3"
+    }, {
+      label: "保有年数",
+      key: "n",
+      unit: "年",
+      defaultValue: "2"
+    }],
+    calculate: ({
+      p0,
+      p1,
+      div,
+      n
+    }) => {
+      const hpr = (p1 - p0 + div) / p0;
+      const annualR = Math.pow(1 + hpr, 1 / n) - 1;
+      return {
+        results: [{
+          label: "保有期間リターン",
+          value: (hpr * 100).toFixed(2),
+          unit: "%",
+          color
+        }, {
+          label: "年率リターン（複利）",
+          value: (annualR * 100).toFixed(2),
+          unit: "%",
+          color: COLORS.secondary
+        }],
+        steps: [`保有期間リターン = (${p1} − ${p0} + ${div}) / ${p0} = ${(hpr * 100).toFixed(2)}%`, `年率リターン = (1 + ${(hpr * 100).toFixed(2)}%)^(1/${n}) − 1 = ${(annualR * 100).toFixed(2)}%`]
+      };
+    },
+    chartBuilder: vals => {
+      const p0 = vals.p0,
+        div = vals.div,
+        n = vals.n;
+      const data = Array.from({
+        length: 11
+      }, (_, i) => {
+        const rate = -0.1 + i * 0.04;
+        const p1 = p0 * (1 + rate);
         const hpr = (p1 - p0 + div) / p0;
-        const annualR = Math.pow(1 + hpr, 1 / n) - 1;
+        const ann = Math.pow(1 + hpr, 1 / n) - 1;
         return {
-          results: [{
-            label: "保有期間リターン",
-            value: (hpr * 100).toFixed(2),
-            unit: "%",
-            color
-          }, {
-            label: "年率リターン（複利）",
-            value: (annualR * 100).toFixed(2),
-            unit: "%",
-            color: COLORS.secondary
-          }],
-          steps: [`保有期間リターン = (${p1} − ${p0} + ${div}) / ${p0} = ${(hpr * 100).toFixed(2)}%`, `年率リターン = (1 + ${(hpr * 100).toFixed(2)}%)^(1/${n}) − 1 = ${(annualR * 100).toFixed(2)}%`]
+          price: Math.round(p1),
+          hpr: parseFloat((hpr * 100).toFixed(1)),
+          annual: parseFloat((ann * 100).toFixed(1))
         };
-      },
-      chartBuilder: vals => {
-        const p0 = vals.p0,
-          div = vals.div,
-          n = vals.n;
-        const data = Array.from({
-          length: 11
-        }, (_, i) => {
-          const rate = -0.1 + i * 0.04;
-          const p1 = p0 * (1 + rate);
-          const hpr = (p1 - p0 + div) / p0;
-          const ann = Math.pow(1 + hpr, 1 / n) - 1;
-          return {
-            price: Math.round(p1),
-            hpr: parseFloat((hpr * 100).toFixed(1)),
-            annual: parseFloat((ann * 100).toFixed(1))
-          };
-        });
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u671F\u672B\u4FA1\u683C\u5225\u30EA\u30BF\u30FC\u30F3\u6BD4\u8F03",
-          color: color,
-          height: 180,
-          children: /*#__PURE__*/_jsxs(LineChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -18,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "price",
-              tick: {
-                fontSize: 10
-              },
-              label: {
-                value: "期末(円)",
-                position: "insideRight",
-                offset: -4,
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 10
-              },
-              unit: "%"
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}%`
-            }), /*#__PURE__*/_jsx(Legend, {
-              iconSize: 10,
-              wrapperStyle: {
-                fontSize: 11
-              }
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              y: 0,
-              stroke: COLORS.danger,
-              strokeDasharray: "3 3"
-            }), /*#__PURE__*/_jsx(Line, {
-              type: "monotone",
-              dataKey: "hpr",
-              name: "\u4FDD\u6709\u671F\u9593R",
-              stroke: color,
-              strokeWidth: 2,
-              dot: false
-            }), /*#__PURE__*/_jsx(Line, {
-              type: "monotone",
-              dataKey: "annual",
-              name: "\u5E74\u7387R",
-              stroke: COLORS.secondary,
-              strokeWidth: 2,
-              dot: false
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u7B97\u8853\u5E73\u5747 vs \u5E7E\u4F55\u5E73\u5747",
-      accentColor: COLORS.highlight,
-      inputs: [{
-        label: "1期リターン",
-        key: "r1",
-        unit: "%",
-        defaultValue: "20"
-      }, {
-        label: "2期リターン",
-        key: "r2",
-        unit: "%",
-        defaultValue: "-10"
-      }, {
-        label: "3期リターン",
-        key: "r3",
-        unit: "%",
-        defaultValue: "15"
-      }],
-      calculate: ({
-        r1,
-        r2,
-        r3
-      }) => {
-        const r = [r1, r2, r3].map(v => v / 100);
-        const arith = (r1 + r2 + r3) / 3;
-        const geo = (Math.pow((1 + r[0]) * (1 + r[1]) * (1 + r[2]), 1 / 3) - 1) * 100;
-        return {
-          results: [{
-            label: "算術平均",
-            value: arith.toFixed(2),
-            unit: "%",
-            color: COLORS.highlight
-          }, {
-            label: "幾何平均",
-            value: geo.toFixed(2),
-            unit: "%",
-            color: COLORS.secondary
-          }],
-          steps: [`算術平均 = (${r1} + ${r2} + ${r3}) / 3 = ${arith.toFixed(2)}%`, `幾何平均 = ((1+${r1 / 100})(1+${r2 / 100})(1+${r3 / 100}))^(1/3) − 1 = ${geo.toFixed(2)}%`, `算術平均 ≥ 幾何平均（等号は全リターンが同値のとき）`, `将来予測 → 算術平均 ／ 過去の実績評価 → 幾何平均`]
-        };
-      }
-    })]
-  });
+      });
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u671F\u672B\u4FA1\u683C\u5225\u30EA\u30BF\u30FC\u30F3\u6BD4\u8F03",
+        color: color,
+        height: 180
+      }, /*#__PURE__*/React.createElement(LineChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -18,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "price",
+        tick: {
+          fontSize: 10
+        },
+        label: {
+          value: "期末(円)",
+          position: "insideRight",
+          offset: -4,
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 10
+        },
+        unit: "%"
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => `${v}%`
+      }), /*#__PURE__*/React.createElement(Legend, {
+        iconSize: 10,
+        wrapperStyle: {
+          fontSize: 11
+        }
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        y: 0,
+        stroke: COLORS.danger,
+        strokeDasharray: "3 3"
+      }), /*#__PURE__*/React.createElement(Line, {
+        type: "monotone",
+        dataKey: "hpr",
+        name: "\u4FDD\u6709\u671F\u9593R",
+        stroke: color,
+        strokeWidth: 2,
+        dot: false
+      }), /*#__PURE__*/React.createElement(Line, {
+        type: "monotone",
+        dataKey: "annual",
+        name: "\u5E74\u7387R",
+        stroke: COLORS.secondary,
+        strokeWidth: 2,
+        dot: false
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u7B97\u8853\u5E73\u5747 vs \u5E7E\u4F55\u5E73\u5747",
+    accentColor: COLORS.highlight,
+    inputs: [{
+      label: "1期リターン",
+      key: "r1",
+      unit: "%",
+      defaultValue: "20"
+    }, {
+      label: "2期リターン",
+      key: "r2",
+      unit: "%",
+      defaultValue: "-10"
+    }, {
+      label: "3期リターン",
+      key: "r3",
+      unit: "%",
+      defaultValue: "15"
+    }],
+    calculate: ({
+      r1,
+      r2,
+      r3
+    }) => {
+      const r = [r1, r2, r3].map(v => v / 100);
+      const arith = (r1 + r2 + r3) / 3;
+      const geo = (Math.pow((1 + r[0]) * (1 + r[1]) * (1 + r[2]), 1 / 3) - 1) * 100;
+      return {
+        results: [{
+          label: "算術平均",
+          value: arith.toFixed(2),
+          unit: "%",
+          color: COLORS.highlight
+        }, {
+          label: "幾何平均",
+          value: geo.toFixed(2),
+          unit: "%",
+          color: COLORS.secondary
+        }],
+        steps: [`算術平均 = (${r1} + ${r2} + ${r3}) / 3 = ${arith.toFixed(2)}%`, `幾何平均 = ((1+${r1 / 100})(1+${r2 / 100})(1+${r3 / 100}))^(1/3) − 1 = ${geo.toFixed(2)}%`, `算術平均 ≥ 幾何平均（等号は全リターンが同値のとき）`, `将来予測 → 算術平均 ／ 過去の実績評価 → 幾何平均`]
+      };
+    }
+  }));
 }
 
 // --- リスク計算セクション ---
@@ -3427,356 +3285,330 @@ function RiskCalculatorSection({
   const [sigmaVal, setSigmaVal] = useState(15);
   const [meanVal, setMeanVal] = useState(5);
   const normalData = generateNormalDist(meanVal, sigmaVal);
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30EA\u30B9\u30AF\uFF08\u6A19\u6E96\u504F\u5DEE\uFF09\u3068\u306F",
-      color: color,
-      children: ["\u30EA\u30B9\u30AF\uFF1D\u30EA\u30BF\u30FC\u30F3\u306E\u300C\u3070\u3089\u3064\u304D\u300D\u3092\u6A19\u6E96\u504F\u5DEE\u3067\u8868\u3059\u3002", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u5206\u6563 \u03C3\xB2"
-      }), " = \u03A3(Ri \u2212 Ra)\xB2 / n", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u6A19\u6E96\u504F\u5DEE \u03C3"
-      }), " = \u221A\u5206\u6563\u3000\uFF08\u03C3\u304C\u5927\u304D\u3044\uFF1D\u9AD8\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u76F8\u95A2\u4FC2\u6570 \u03C1"
-      }), " = Cov(A,B) / (\u03C3A \xD7 \u03C3B)\u3000\u22121 \u2264 \u03C1 \u2264 1"]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.stdDev,
-      color: color
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.correlation,
-      color: color
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u6A19\u6E96\u504F\u5DEE\u30FB\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "リターン1期(%)",
-        key: "r1",
-        defaultValue: "10"
-      }, {
-        label: "リターン2期(%)",
-        key: "r2",
-        defaultValue: "20"
-      }, {
-        label: "リターン3期(%)",
-        key: "r3",
-        defaultValue: "-5"
-      }, {
-        label: "リターン4期(%)",
-        key: "r4",
-        defaultValue: "15"
-      }],
-      calculate: ({
-        r1,
-        r2,
-        r3,
-        r4
-      }) => {
-        const rs = [r1, r2, r3, r4];
-        const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
-        const variance = rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length;
-        const sigma = Math.sqrt(variance);
-        return {
-          results: [{
-            label: "平均リターン",
-            value: mean.toFixed(2),
-            unit: "%",
-            color: COLORS.primary
-          }, {
-            label: "分散",
-            value: variance.toFixed(2),
-            unit: "",
-            color
-          }, {
-            label: "標準偏差(σ)",
-            value: sigma.toFixed(2),
-            unit: "%",
-            color: COLORS.danger
-          }],
-          steps: [`平均 Ra = (${rs.join(" + ")}) / 4 = ${mean.toFixed(2)}%`, `偏差² の合計 = ${rs.map(r => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`, `分散 = ${variance.toFixed(2)}`, `標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`]
-        };
-      },
-      chartBuilder: vals => {
-        const rs = [vals.r1, vals.r2, vals.r3, vals.r4];
-        const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
-        const sigma = Math.sqrt(rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length);
-        const distData = generateNormalDist(mean, sigma, 50);
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u30EA\u30BF\u30FC\u30F3\u5206\u5E03\uFF08\u6B63\u898F\u5206\u5E03\u8FD1\u4F3C\uFF09",
-          color: color,
-          height: 160,
-          children: /*#__PURE__*/_jsxs(AreaChart, {
-            data: distData,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -24,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "x",
-              tick: {
-                fontSize: 9
-              },
-              unit: "%"
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              }
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => v.toFixed(4),
-              labelFormatter: l => `${l}%`
-            }), /*#__PURE__*/_jsx(Area, {
-              type: "monotone",
-              dataKey: "y",
-              stroke: color,
-              fill: color + "33",
-              dot: false
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              x: mean,
-              stroke: COLORS.primary,
-              strokeDasharray: "3 3",
-              label: {
-                value: "μ",
-                position: "top",
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              x: mean + sigma,
-              stroke: COLORS.danger,
-              strokeDasharray: "2 2",
-              label: {
-                value: "+σ",
-                position: "top",
-                fontSize: 9
-              }
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              x: mean - sigma,
-              stroke: COLORS.danger,
-              strokeDasharray: "2 2",
-              label: {
-                value: "-σ",
-                position: "top",
-                fontSize: 9
-              }
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "2\u8CC7\u7523\u306E\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
-      accentColor: COLORS.highlight,
-      inputs: [{
-        label: "資産Aリターン1(%)",
-        key: "a1",
-        defaultValue: "10"
-      }, {
-        label: "資産Bリターン1(%)",
-        key: "b1",
-        defaultValue: "5"
-      }, {
-        label: "資産Aリターン2(%)",
-        key: "a2",
-        defaultValue: "20"
-      }, {
-        label: "資産Bリターン2(%)",
-        key: "b2",
-        defaultValue: "-5"
-      }, {
-        label: "資産Aリターン3(%)",
-        key: "a3",
-        defaultValue: "-5"
-      }, {
-        label: "資産Bリターン3(%)",
-        key: "b3",
-        defaultValue: "15"
-      }],
-      calculate: ({
-        a1,
-        a2,
-        a3,
-        b1,
-        b2,
-        b3
-      }) => {
-        const as = [a1, a2, a3],
-          bs = [b1, b2, b3];
-        const ma = as.reduce((s, v) => s + v, 0) / 3;
-        const mb = bs.reduce((s, v) => s + v, 0) / 3;
-        const sigA = Math.sqrt(as.reduce((s, v) => s + (v - ma) ** 2, 0) / 3);
-        const sigB = Math.sqrt(bs.reduce((s, v) => s + (v - mb) ** 2, 0) / 3);
-        const cov = as.reduce((s, v, i) => s + (v - ma) * (bs[i] - mb), 0) / 3;
-        const rho = sigA > 0 && sigB > 0 ? cov / (sigA * sigB) : 0;
-        return {
-          results: [{
-            label: "σA",
-            value: sigA.toFixed(2),
-            unit: "%",
-            color: COLORS.primary
-          }, {
-            label: "σB",
-            value: sigB.toFixed(2),
-            unit: "%",
-            color: COLORS.secondary
-          }, {
-            label: "共分散",
-            value: cov.toFixed(2),
-            unit: "",
-            color: COLORS.accent
-          }, {
-            label: "相関係数 ρ",
-            value: rho.toFixed(3),
-            unit: "",
-            color: COLORS.highlight
-          }],
-          steps: [`平均: Ra=${ma.toFixed(1)}%, Rb=${mb.toFixed(1)}%`, `σA = ${sigA.toFixed(2)}%、σB = ${sigB.toFixed(2)}%`, `Cov(A,B) = ${cov.toFixed(2)}`, `ρ = ${cov.toFixed(2)} / (${sigA.toFixed(2)} × ${sigB.toFixed(2)}) = ${rho.toFixed(3)}`]
-        };
-      }
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(Activity, {
-          size: 15,
-          color: color
-        }), " \u6B63\u898F\u5206\u5E03\uFF08\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6\uFF09"]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 10,
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsxs("label", {
-            style: STYLES.label,
-            children: ["\u5E73\u5747\u30EA\u30BF\u30FC\u30F3 \u03BC: ", meanVal, "%"]
-          }), /*#__PURE__*/_jsx("input", {
-            type: "range",
-            min: "-10",
-            max: "20",
-            value: meanVal,
-            onChange: e => setMeanVal(Number(e.target.value)),
-            style: {
-              width: "100%"
-            }
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsxs("label", {
-            style: STYLES.label,
-            children: ["\u6A19\u6E96\u504F\u5DEE \u03C3: ", sigmaVal, "%"]
-          }), /*#__PURE__*/_jsx("input", {
-            type: "range",
-            min: "1",
-            max: "40",
-            value: sigmaVal,
-            onChange: e => setSigmaVal(Number(e.target.value)),
-            style: {
-              width: "100%"
-            }
-          })]
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          marginBottom: 8,
-          flexWrap: "wrap"
-        },
-        children: [{
-          label: `±1σ ≈ 68%`,
-          lo: meanVal - sigmaVal,
-          hi: meanVal + sigmaVal
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30EA\u30B9\u30AF\uFF08\u6A19\u6E96\u504F\u5DEE\uFF09\u3068\u306F",
+    color: color
+  }, "\u30EA\u30B9\u30AF\uFF1D\u30EA\u30BF\u30FC\u30F3\u306E\u300C\u3070\u3089\u3064\u304D\u300D\u3092\u6A19\u6E96\u504F\u5DEE\u3067\u8868\u3059\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5206\u6563 \u03C3\xB2"), " = \u03A3(Ri \u2212 Ra)\xB2 / n", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6A19\u6E96\u504F\u5DEE \u03C3"), " = \u221A\u5206\u6563\u3000\uFF08\u03C3\u304C\u5927\u304D\u3044\uFF1D\u9AD8\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u76F8\u95A2\u4FC2\u6570 \u03C1"), " = Cov(A,B) / (\u03C3A \xD7 \u03C3B)\u3000\u22121 \u2264 \u03C1 \u2264 1"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.stdDev, {
+    color: color
+  })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.correlation, {
+    color: color
+  })), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u6A19\u6E96\u504F\u5DEE\u30FB\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "リターン1期(%)",
+      key: "r1",
+      defaultValue: "10"
+    }, {
+      label: "リターン2期(%)",
+      key: "r2",
+      defaultValue: "20"
+    }, {
+      label: "リターン3期(%)",
+      key: "r3",
+      defaultValue: "-5"
+    }, {
+      label: "リターン4期(%)",
+      key: "r4",
+      defaultValue: "15"
+    }],
+    calculate: ({
+      r1,
+      r2,
+      r3,
+      r4
+    }) => {
+      const rs = [r1, r2, r3, r4];
+      const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
+      const variance = rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length;
+      const sigma = Math.sqrt(variance);
+      return {
+        results: [{
+          label: "平均リターン",
+          value: mean.toFixed(2),
+          unit: "%",
+          color: COLORS.primary
         }, {
-          label: `±2σ ≈ 95%`,
-          lo: meanVal - 2 * sigmaVal,
-          hi: meanVal + 2 * sigmaVal
-        }].map(band => /*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(color),
-          children: [band.label, "\uFF08", band.lo.toFixed(1), "\u301C", band.hi.toFixed(1), "%\uFF09"]
-        }, band.label))
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 160,
-        children: /*#__PURE__*/_jsxs(AreaChart, {
-          data: normalData,
-          margin: {
-            top: 4,
-            right: 8,
-            left: -24,
-            bottom: 0
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "x",
-            tick: {
-              fontSize: 9
-            },
-            unit: "%"
-          }), /*#__PURE__*/_jsx(YAxis, {
-            tick: {
-              fontSize: 9
-            }
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => v.toFixed(4),
-            labelFormatter: l => `${l}%`
-          }), /*#__PURE__*/_jsx(Area, {
-            type: "monotone",
-            dataKey: "y",
-            stroke: color,
-            fill: color + "30",
-            dot: false
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: meanVal,
-            stroke: COLORS.primary,
-            strokeWidth: 2,
-            label: {
-              value: "μ",
-              position: "insideTopRight",
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: meanVal + sigmaVal,
-            stroke: COLORS.danger,
-            strokeDasharray: "3 3"
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: meanVal - sigmaVal,
-            stroke: COLORS.danger,
-            strokeDasharray: "3 3"
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: meanVal + 2 * sigmaVal,
-            stroke: COLORS.accent,
-            strokeDasharray: "2 2"
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: meanVal - 2 * sigmaVal,
-            stroke: COLORS.accent,
-            strokeDasharray: "2 2"
-          })]
-        })
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 11,
-          color: COLORS.textLight,
-          marginTop: 4,
-          textAlign: "center"
+          label: "分散",
+          value: variance.toFixed(2),
+          unit: "",
+          color
+        }, {
+          label: "標準偏差(σ)",
+          value: sigma.toFixed(2),
+          unit: "%",
+          color: COLORS.danger
+        }],
+        steps: [`平均 Ra = (${rs.join(" + ")}) / 4 = ${mean.toFixed(2)}%`, `偏差² の合計 = ${rs.map(r => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`, `分散 = ${variance.toFixed(2)}`, `標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`]
+      };
+    },
+    chartBuilder: vals => {
+      const rs = [vals.r1, vals.r2, vals.r3, vals.r4];
+      const mean = rs.reduce((s, r) => s + r, 0) / rs.length;
+      const sigma = Math.sqrt(rs.reduce((s, r) => s + (r - mean) ** 2, 0) / rs.length);
+      const distData = generateNormalDist(mean, sigma, 50);
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u30EA\u30BF\u30FC\u30F3\u5206\u5E03\uFF08\u6B63\u898F\u5206\u5E03\u8FD1\u4F3C\uFF09",
+        color: color,
+        height: 160
+      }, /*#__PURE__*/React.createElement(AreaChart, {
+        data: distData,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -24,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "x",
+        tick: {
+          fontSize: 9
         },
-        children: ["\u8D64\u7DDA: \xB11\u03C3\uFF0868%\uFF09\u3000\u6A59\u7DDA: \xB12\u03C3\uFF0895%\uFF09\u3000VaR95% = \u03BC \u2212 1.645\u03C3 = ", (meanVal - 1.645 * sigmaVal).toFixed(1), "%"]
-      })]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク", "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）", "相関係数ρ=-1：リスクをゼロにできる（理論上）", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "シャープレシオ高い＝必ず良い投資ではない（比較対象による）"]
-    })]
-  });
+        unit: "%"
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        }
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => v.toFixed(4),
+        labelFormatter: l => `${l}%`
+      }), /*#__PURE__*/React.createElement(Area, {
+        type: "monotone",
+        dataKey: "y",
+        stroke: color,
+        fill: color + "33",
+        dot: false
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        x: mean,
+        stroke: COLORS.primary,
+        strokeDasharray: "3 3",
+        label: {
+          value: "μ",
+          position: "top",
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        x: mean + sigma,
+        stroke: COLORS.danger,
+        strokeDasharray: "2 2",
+        label: {
+          value: "+σ",
+          position: "top",
+          fontSize: 9
+        }
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        x: mean - sigma,
+        stroke: COLORS.danger,
+        strokeDasharray: "2 2",
+        label: {
+          value: "-σ",
+          position: "top",
+          fontSize: 9
+        }
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "2\u8CC7\u7523\u306E\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
+    accentColor: COLORS.highlight,
+    inputs: [{
+      label: "資産Aリターン1(%)",
+      key: "a1",
+      defaultValue: "10"
+    }, {
+      label: "資産Bリターン1(%)",
+      key: "b1",
+      defaultValue: "5"
+    }, {
+      label: "資産Aリターン2(%)",
+      key: "a2",
+      defaultValue: "20"
+    }, {
+      label: "資産Bリターン2(%)",
+      key: "b2",
+      defaultValue: "-5"
+    }, {
+      label: "資産Aリターン3(%)",
+      key: "a3",
+      defaultValue: "-5"
+    }, {
+      label: "資産Bリターン3(%)",
+      key: "b3",
+      defaultValue: "15"
+    }],
+    calculate: ({
+      a1,
+      a2,
+      a3,
+      b1,
+      b2,
+      b3
+    }) => {
+      const as = [a1, a2, a3],
+        bs = [b1, b2, b3];
+      const ma = as.reduce((s, v) => s + v, 0) / 3;
+      const mb = bs.reduce((s, v) => s + v, 0) / 3;
+      const sigA = Math.sqrt(as.reduce((s, v) => s + (v - ma) ** 2, 0) / 3);
+      const sigB = Math.sqrt(bs.reduce((s, v) => s + (v - mb) ** 2, 0) / 3);
+      const cov = as.reduce((s, v, i) => s + (v - ma) * (bs[i] - mb), 0) / 3;
+      const rho = sigA > 0 && sigB > 0 ? cov / (sigA * sigB) : 0;
+      return {
+        results: [{
+          label: "σA",
+          value: sigA.toFixed(2),
+          unit: "%",
+          color: COLORS.primary
+        }, {
+          label: "σB",
+          value: sigB.toFixed(2),
+          unit: "%",
+          color: COLORS.secondary
+        }, {
+          label: "共分散",
+          value: cov.toFixed(2),
+          unit: "",
+          color: COLORS.accent
+        }, {
+          label: "相関係数 ρ",
+          value: rho.toFixed(3),
+          unit: "",
+          color: COLORS.highlight
+        }],
+        steps: [`平均: Ra=${ma.toFixed(1)}%, Rb=${mb.toFixed(1)}%`, `σA = ${sigA.toFixed(2)}%、σB = ${sigB.toFixed(2)}%`, `Cov(A,B) = ${cov.toFixed(2)}`, `ρ = ${cov.toFixed(2)} / (${sigA.toFixed(2)} × ${sigB.toFixed(2)}) = ${rho.toFixed(3)}`]
+      };
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 15,
+    color: color
+  }), " \u6B63\u898F\u5206\u5E03\uFF08\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "\u5E73\u5747\u30EA\u30BF\u30FC\u30F3 \u03BC: ", meanVal, "%"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "-10",
+    max: "20",
+    value: meanVal,
+    onChange: e => setMeanVal(Number(e.target.value)),
+    style: {
+      width: "100%"
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "\u6A19\u6E96\u504F\u5DEE \u03C3: ", sigmaVal, "%"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "1",
+    max: "40",
+    value: sigmaVal,
+    onChange: e => setSigmaVal(Number(e.target.value)),
+    style: {
+      width: "100%"
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 8,
+      flexWrap: "wrap"
+    }
+  }, [{
+    label: `±1σ ≈ 68%`,
+    lo: meanVal - sigmaVal,
+    hi: meanVal + sigmaVal
+  }, {
+    label: `±2σ ≈ 95%`,
+    lo: meanVal - 2 * sigmaVal,
+    hi: meanVal + 2 * sigmaVal
+  }].map(band => /*#__PURE__*/React.createElement("span", {
+    key: band.label,
+    style: STYLES.badge(color)
+  }, band.label, "\uFF08", band.lo.toFixed(1), "\u301C", band.hi.toFixed(1), "%\uFF09"))), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 160
+  }, /*#__PURE__*/React.createElement(AreaChart, {
+    data: normalData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -24,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "x",
+    tick: {
+      fontSize: 9
+    },
+    unit: "%"
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => v.toFixed(4),
+    labelFormatter: l => `${l}%`
+  }), /*#__PURE__*/React.createElement(Area, {
+    type: "monotone",
+    dataKey: "y",
+    stroke: color,
+    fill: color + "30",
+    dot: false
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: meanVal,
+    stroke: COLORS.primary,
+    strokeWidth: 2,
+    label: {
+      value: "μ",
+      position: "insideTopRight",
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: meanVal + sigmaVal,
+    stroke: COLORS.danger,
+    strokeDasharray: "3 3"
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: meanVal - sigmaVal,
+    stroke: COLORS.danger,
+    strokeDasharray: "3 3"
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: meanVal + 2 * sigmaVal,
+    stroke: COLORS.accent,
+    strokeDasharray: "2 2"
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: meanVal - 2 * sigmaVal,
+    stroke: COLORS.accent,
+    strokeDasharray: "2 2"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      marginTop: 4,
+      textAlign: "center"
+    }
+  }, "\u8D64\u7DDA: \xB11\u03C3\uFF0868%\uFF09\u3000\u6A59\u7DDA: \xB12\u03C3\uFF0895%\uFF09\u3000VaR95% = \u03BC \u2212 1.645\u03C3 = ", (meanVal - 1.645 * sigmaVal).toFixed(1), "%")), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク", "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）", "相関係数ρ=-1：リスクをゼロにできる（理論上）", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "シャープレシオ高い＝必ず良い投資ではない（比較対象による）"]
+  }));
 }
 
 // --- ②基礎タブ（前半）本体 ---
@@ -3793,90 +3625,79 @@ function BasicsFrontTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.accent;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E",
+    subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u5B66",
+    color: color,
+    icon: BookOpen
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: BASICS_SECTIONS_AB,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "basics",
+    sections: BASICS_SECTIONS_AB,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), section === "A" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(ReturnCalculatorSection, {
+    color: color
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(state.progress.basics?.A ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: state.progress.basics?.A ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
     },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E",
-      subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u5B66",
-      color: color,
-      icon: BookOpen
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: BASICS_SECTIONS_AB,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "basics",
-      sections: BASICS_SECTIONS_AB,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), section === "A" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx(ReturnCalculatorSection, {
-        color: color
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...(state.progress.basics?.A ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%",
-          marginTop: 4,
-          marginBottom: 12,
-          background: state.progress.basics?.A ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-        },
-        onClick: () => setState(s => ({
-          ...s,
-          _quizOpenBasicsA: !s._quizOpenBasicsA
-        })),
-        children: state.progress.basics?.A ? /*#__PURE__*/_jsxs(_Fragment, {
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14,
-            style: {
-              marginRight: 5
-            }
-          }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-        }) : "理解度テストを受ける（8問）"
-      }), state._quizOpenBasicsA && /*#__PURE__*/_jsx(QuizComponent, {
-        quizzes: BASICS_QUIZZES.A,
-        tabId: "basics",
-        sectionId: "A",
-        accentColor: color,
-        state: state,
-        setState: setState
-      })]
-    }), section === "B" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx(RiskCalculatorSection, {
-        color: color
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...(state.progress.basics?.B ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%",
-          marginTop: 4,
-          marginBottom: 12,
-          background: state.progress.basics?.B ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-        },
-        onClick: () => setState(s => ({
-          ...s,
-          _quizOpenBasicsB: !s._quizOpenBasicsB
-        })),
-        children: state.progress.basics?.B ? /*#__PURE__*/_jsxs(_Fragment, {
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14,
-            style: {
-              marginRight: 5
-            }
-          }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-        }) : "理解度テストを受ける（8問）"
-      }), state._quizOpenBasicsB && /*#__PURE__*/_jsx(QuizComponent, {
-        quizzes: BASICS_QUIZZES.B,
-        tabId: "basics",
-        sectionId: "B",
-        accentColor: color,
-        state: state,
-        setState: setState
-      })]
-    })]
-  });
+    onClick: () => setState(s => ({
+      ...s,
+      _quizOpenBasicsA: !s._quizOpenBasicsA
+    }))
+  }, state.progress.basics?.A ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizOpenBasicsA && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: BASICS_QUIZZES.A,
+    tabId: "basics",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState
+  })), section === "B" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(RiskCalculatorSection, {
+    color: color
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(state.progress.basics?.B ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: state.progress.basics?.B ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizOpenBasicsB: !s._quizOpenBasicsB
+    }))
+  }, state.progress.basics?.B ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizOpenBasicsB && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: BASICS_QUIZZES.B,
+    tabId: "basics",
+    sectionId: "B",
+    accentColor: color,
+    state: state,
+    setState: setState
+  })));
 }
 
 // ============================================================
@@ -3909,23 +3730,23 @@ function BasicsTab({
   const renderSection = () => {
     switch (section) {
       case "A":
-        return /*#__PURE__*/_jsx(ReturnCalculatorSection, {
+        return /*#__PURE__*/React.createElement(ReturnCalculatorSection, {
           color: color
         });
       case "B":
-        return /*#__PURE__*/_jsx(RiskCalculatorSection, {
+        return /*#__PURE__*/React.createElement(RiskCalculatorSection, {
           color: color
         });
       case "C":
-        return /*#__PURE__*/_jsx(PVSection, {
+        return /*#__PURE__*/React.createElement(PVSection, {
           color: color
         });
       case "D":
-        return /*#__PURE__*/_jsx(StatsSection, {
+        return /*#__PURE__*/React.createElement(StatsSection, {
           color: color
         });
       case "E":
-        return /*#__PURE__*/_jsx(AssetAllocationSection, {
+        return /*#__PURE__*/React.createElement(AssetAllocationSection, {
           color: color
         });
       default:
@@ -3941,452 +3762,429 @@ function BasicsTab({
   };
   const quizKey = `_quizOpenBasics${section}`;
   const done = state.progress.basics?.[section];
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E",
+    subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u8CC7\u7523\u914D\u5206",
+    color: color,
+    icon: BookOpen
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: ALL_BASICS_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "basics",
+    sections: ALL_BASICS_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), renderSection(), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
     },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E",
-      subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u8CC7\u7523\u914D\u5206",
-      color: color,
-      icon: BookOpen
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: ALL_BASICS_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "basics",
-      sections: ALL_BASICS_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), renderSection(), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginTop: 4,
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        [quizKey]: !s[quizKey]
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`
-    }), state[quizKey] && quizMap[section] && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: quizMap[section],
-      tabId: "basics",
-      sectionId: section,
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+    onClick: () => setState(s => ({
+      ...s,
+      [quizKey]: !s[quizKey]
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`), state[quizKey] && quizMap[section] && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: quizMap[section],
+    tabId: "basics",
+    sectionId: section,
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションC: 現在価値と割引率 ---
 function PVSection({
   color
 }) {
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u73FE\u5728\u4FA1\u5024\uFF08PV\uFF09\u306E\u8003\u3048\u65B9",
-      color: color,
-      children: ["\u300C\u4ECA\u306E1\u4E07\u5186\u306F\u5C06\u6765\u306E1\u4E07\u5186\u3088\u308A\u4FA1\u5024\u304C\u9AD8\u3044\u300D\uFF1D\u6642\u9593\u4FA1\u5024\u306E\u6982\u5FF5\u3002", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "PV = FV / (1 + r)^n"
-      }), "\u3000\u5272\u5F15\u7387\u304C\u9AD8\u3044\u30FB\u671F\u9593\u304C\u9577\u3044\u307B\u3069PV\u306F\u5C0F\u3055\u304F\u306A\u308B\u3002", /*#__PURE__*/_jsx("br", {}), "NPV\uFF08\u6B63\u5473\u73FE\u5728\u4FA1\u5024\uFF09= \u5C06\u6765CF\u306E\u73FE\u5728\u4FA1\u5024\u5408\u8A08 \u2212 \u521D\u671F\u6295\u8CC7"]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.pv,
-      color: color
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u73FE\u5728\u4FA1\u5024\u30FB\u5C06\u6765\u4FA1\u5024\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "将来価値 FV",
-        key: "fv",
-        unit: "万円",
-        defaultValue: "100"
-      }, {
-        label: "割引率 r",
-        key: "r",
-        unit: "%",
-        defaultValue: "3"
-      }, {
-        label: "期間 n",
-        key: "n",
-        unit: "年",
-        defaultValue: "10"
-      }],
-      calculate: ({
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u73FE\u5728\u4FA1\u5024\uFF08PV\uFF09\u306E\u8003\u3048\u65B9",
+    color: color
+  }, "\u300C\u4ECA\u306E1\u4E07\u5186\u306F\u5C06\u6765\u306E1\u4E07\u5186\u3088\u308A\u4FA1\u5024\u304C\u9AD8\u3044\u300D\uFF1D\u6642\u9593\u4FA1\u5024\u306E\u6982\u5FF5\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "PV = FV / (1 + r)^n"), "\u3000\u5272\u5F15\u7387\u304C\u9AD8\u3044\u30FB\u671F\u9593\u304C\u9577\u3044\u307B\u3069PV\u306F\u5C0F\u3055\u304F\u306A\u308B\u3002", /*#__PURE__*/React.createElement("br", null), "NPV\uFF08\u6B63\u5473\u73FE\u5728\u4FA1\u5024\uFF09= \u5C06\u6765CF\u306E\u73FE\u5728\u4FA1\u5024\u5408\u8A08 \u2212 \u521D\u671F\u6295\u8CC7"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.pv, {
+    color: color
+  })), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u73FE\u5728\u4FA1\u5024\u30FB\u5C06\u6765\u4FA1\u5024\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "将来価値 FV",
+      key: "fv",
+      unit: "万円",
+      defaultValue: "100"
+    }, {
+      label: "割引率 r",
+      key: "r",
+      unit: "%",
+      defaultValue: "3"
+    }, {
+      label: "期間 n",
+      key: "n",
+      unit: "年",
+      defaultValue: "10"
+    }],
+    calculate: ({
+      fv,
+      r,
+      n
+    }) => {
+      const rate = r / 100;
+      const pv = fv / Math.pow(1 + rate, n);
+      const fv2 = fv * Math.pow(1 + rate, n);
+      return {
+        results: [{
+          label: "現在価値（PV）",
+          value: pv.toFixed(2),
+          unit: "万円",
+          color
+        }, {
+          label: "複利後（FV→）",
+          value: fv2.toFixed(2),
+          unit: "万円",
+          color: COLORS.secondary
+        }],
+        steps: [`PV = ${fv} / (1 + ${rate})^${n}`, `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`, `PV = ${fv} / ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`, `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
         fv,
-        r,
         n
-      }) => {
-        const rate = r / 100;
-        const pv = fv / Math.pow(1 + rate, n);
-        const fv2 = fv * Math.pow(1 + rate, n);
-        return {
-          results: [{
-            label: "現在価値（PV）",
-            value: pv.toFixed(2),
-            unit: "万円",
-            color
-          }, {
-            label: "複利後（FV→）",
-            value: fv2.toFixed(2),
-            unit: "万円",
-            color: COLORS.secondary
-          }],
-          steps: [`PV = ${fv} / (1 + ${rate})^${n}`, `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`, `PV = ${fv} / ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`, `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`]
+      } = vals;
+      const rates = [1, 2, 3, 5, 7, 10];
+      const data = Array.from({
+        length: Math.min(n, 30) + 1
+      }, (_, t) => {
+        const entry = {
+          year: t
         };
-      },
-      chartBuilder: vals => {
-        const {
-          fv,
-          n
-        } = vals;
-        const rates = [1, 2, 3, 5, 7, 10];
-        const data = Array.from({
-          length: Math.min(n, 30) + 1
-        }, (_, t) => {
-          const entry = {
-            year: t
-          };
-          rates.forEach(rp => {
-            entry[`${rp}%`] = parseFloat((fv / Math.pow(1 + rp / 100, t)).toFixed(2));
-          });
-          return entry;
+        rates.forEach(rp => {
+          entry[`${rp}%`] = parseFloat((fv / Math.pow(1 + rp / 100, t)).toFixed(2));
         });
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u5272\u5F15\u7387\u5225\u30FB\u73FE\u5728\u4FA1\u5024\u306E\u63A8\u79FB",
-          color: color,
-          height: 200,
-          children: /*#__PURE__*/_jsxs(LineChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -10,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "year",
-              tick: {
-                fontSize: 9
-              },
-              label: {
-                value: "年",
-                position: "insideRight",
-                offset: -2,
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              },
-              unit: "\u4E07"
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}万円`,
-              labelFormatter: l => `${l}年後`
-            }), /*#__PURE__*/_jsx(Legend, {
-              iconSize: 10,
-              wrapperStyle: {
-                fontSize: 10
-              }
-            }), rates.map((rp, i) => /*#__PURE__*/_jsx(Line, {
-              type: "monotone",
-              dataKey: `${rp}%`,
-              name: `r=${rp}%`,
-              stroke: [COLORS.primary, COLORS.secondary, color, COLORS.highlight, COLORS.accent, COLORS.danger][i],
-              strokeWidth: 1.5,
-              dot: false
-            }, rp))]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC",
-      accentColor: COLORS.secondary,
-      inputs: [{
-        label: "元本",
-        key: "pv0",
-        unit: "万円",
-        defaultValue: "100"
-      }, {
-        label: "年率リターン",
-        key: "r",
-        unit: "%",
-        defaultValue: "5"
-      }, {
-        label: "積立（月）",
-        key: "mo",
-        unit: "万円",
-        defaultValue: "3"
-      }, {
-        label: "期間",
-        key: "n",
-        unit: "年",
-        defaultValue: "20"
-      }],
-      calculate: ({
+        return entry;
+      });
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u5272\u5F15\u7387\u5225\u30FB\u73FE\u5728\u4FA1\u5024\u306E\u63A8\u79FB",
+        color: color,
+        height: 200
+      }, /*#__PURE__*/React.createElement(LineChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -10,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "year",
+        tick: {
+          fontSize: 9
+        },
+        label: {
+          value: "年",
+          position: "insideRight",
+          offset: -2,
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        },
+        unit: "\u4E07"
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => `${v}万円`,
+        labelFormatter: l => `${l}年後`
+      }), /*#__PURE__*/React.createElement(Legend, {
+        iconSize: 10,
+        wrapperStyle: {
+          fontSize: 10
+        }
+      }), rates.map((rp, i) => /*#__PURE__*/React.createElement(Line, {
+        key: rp,
+        type: "monotone",
+        dataKey: `${rp}%`,
+        name: `r=${rp}%`,
+        stroke: [COLORS.primary, COLORS.secondary, color, COLORS.highlight, COLORS.accent, COLORS.danger][i],
+        strokeWidth: 1.5,
+        dot: false
+      }))));
+    }
+  }), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC",
+    accentColor: COLORS.secondary,
+    inputs: [{
+      label: "元本",
+      key: "pv0",
+      unit: "万円",
+      defaultValue: "100"
+    }, {
+      label: "年率リターン",
+      key: "r",
+      unit: "%",
+      defaultValue: "5"
+    }, {
+      label: "積立（月）",
+      key: "mo",
+      unit: "万円",
+      defaultValue: "3"
+    }, {
+      label: "期間",
+      key: "n",
+      unit: "年",
+      defaultValue: "20"
+    }],
+    calculate: ({
+      pv0,
+      r,
+      mo,
+      n
+    }) => {
+      const rate = r / 100;
+      const mRate = rate / 12;
+      const months = n * 12;
+      // 元本一括の複利
+      const lump = pv0 * Math.pow(1 + rate, n);
+      // 積立分の将来価値（月複利）
+      const accum = mo * (Math.pow(1 + mRate, months) - 1) / mRate;
+      const total = lump + accum;
+      const invest = pv0 + mo * months;
+      return {
+        results: [{
+          label: "最終資産",
+          value: total.toFixed(0),
+          unit: "万円",
+          color: COLORS.secondary
+        }, {
+          label: "投資総額",
+          value: invest.toFixed(0),
+          unit: "万円",
+          color: COLORS.textLight
+        }, {
+          label: "運用益",
+          value: (total - invest).toFixed(0),
+          unit: "万円",
+          color: COLORS.accent
+        }],
+        steps: [`一括投資分: ${pv0}万円 × (1+${rate})^${n} = ${lump.toFixed(1)}万円`, `積立分: ${mo}万円 × [(1+${mRate.toFixed(5)})^${months} − 1] / ${mRate.toFixed(5)} = ${accum.toFixed(1)}万円`, `合計 = ${lump.toFixed(1)} + ${accum.toFixed(1)} = ${total.toFixed(0)}万円`, `投資総額 = ${pv0} + ${mo}×${months}ヶ月 = ${invest.toFixed(0)}万円`, `運用益 = ${(total - invest).toFixed(0)}万円（${((total / invest - 1) * 100).toFixed(1)}%増）`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
         pv0,
         r,
         mo,
         n
-      }) => {
-        const rate = r / 100;
-        const mRate = rate / 12;
-        const months = n * 12;
-        // 元本一括の複利
-        const lump = pv0 * Math.pow(1 + rate, n);
-        // 積立分の将来価値（月複利）
-        const accum = mo * (Math.pow(1 + mRate, months) - 1) / mRate;
-        const total = lump + accum;
-        const invest = pv0 + mo * months;
+      } = vals;
+      const rate = r / 100,
+        mRate = rate / 12;
+      const data = Array.from({
+        length: n + 1
+      }, (_, yr) => {
+        const lump = pv0 * Math.pow(1 + rate, yr);
+        const accum = mo * (Math.pow(1 + mRate, yr * 12) - 1) / mRate;
+        const inv = pv0 + mo * yr * 12;
         return {
-          results: [{
-            label: "最終資産",
-            value: total.toFixed(0),
-            unit: "万円",
-            color: COLORS.secondary
-          }, {
-            label: "投資総額",
-            value: invest.toFixed(0),
-            unit: "万円",
-            color: COLORS.textLight
-          }, {
-            label: "運用益",
-            value: (total - invest).toFixed(0),
-            unit: "万円",
-            color: COLORS.accent
-          }],
-          steps: [`一括投資分: ${pv0}万円 × (1+${rate})^${n} = ${lump.toFixed(1)}万円`, `積立分: ${mo}万円 × [(1+${mRate.toFixed(5)})^${months} − 1] / ${mRate.toFixed(5)} = ${accum.toFixed(1)}万円`, `合計 = ${lump.toFixed(1)} + ${accum.toFixed(1)} = ${total.toFixed(0)}万円`, `投資総額 = ${pv0} + ${mo}×${months}ヶ月 = ${invest.toFixed(0)}万円`, `運用益 = ${(total - invest).toFixed(0)}万円（${((total / invest - 1) * 100).toFixed(1)}%増）`]
+          year: yr,
+          資産: parseFloat((lump + accum).toFixed(0)),
+          投資額: parseFloat(inv.toFixed(0))
         };
-      },
-      chartBuilder: vals => {
-        const {
-          pv0,
-          r,
-          mo,
-          n
-        } = vals;
-        const rate = r / 100,
-          mRate = rate / 12;
-        const data = Array.from({
-          length: n + 1
-        }, (_, yr) => {
-          const lump = pv0 * Math.pow(1 + rate, yr);
-          const accum = mo * (Math.pow(1 + mRate, yr * 12) - 1) / mRate;
-          const inv = pv0 + mo * yr * 12;
-          return {
-            year: yr,
-            資産: parseFloat((lump + accum).toFixed(0)),
-            投資額: parseFloat(inv.toFixed(0))
-          };
-        });
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3",
-          color: COLORS.secondary,
-          height: 200,
-          children: /*#__PURE__*/_jsxs(AreaChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -10,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "year",
-              tick: {
-                fontSize: 9
-              },
-              unit: "\u5E74"
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              },
-              unit: "\u4E07"
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}万円`,
-              labelFormatter: l => `${l}年後`
-            }), /*#__PURE__*/_jsx(Legend, {
-              iconSize: 10,
-              wrapperStyle: {
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(Area, {
-              type: "monotone",
-              dataKey: "\u8CC7\u7523",
-              stroke: COLORS.secondary,
-              fill: COLORS.secondary + "33",
-              strokeWidth: 2
-            }), /*#__PURE__*/_jsx(Area, {
-              type: "monotone",
-              dataKey: "\u6295\u8CC7\u984D",
-              stroke: COLORS.primary,
-              fill: COLORS.primary + "18",
-              strokeWidth: 1.5
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["割引率が上昇 → 現在価値は低下（逆相関）。債券価格と金利の関係と同原理", "NPV > 0 → 投資価値あり（将来CF現在価値 > 初期投資）", "複利の力：年5%で20年間運用すると元本は約2.65倍", "ドルコスト平均法：定期定額購入で平均取得単価を算術平均より低く抑える"]
-    })]
-  });
+      });
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3",
+        color: COLORS.secondary,
+        height: 200
+      }, /*#__PURE__*/React.createElement(AreaChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -10,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "year",
+        tick: {
+          fontSize: 9
+        },
+        unit: "\u5E74"
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        },
+        unit: "\u4E07"
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => `${v}万円`,
+        labelFormatter: l => `${l}年後`
+      }), /*#__PURE__*/React.createElement(Legend, {
+        iconSize: 10,
+        wrapperStyle: {
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(Area, {
+        type: "monotone",
+        dataKey: "\u8CC7\u7523",
+        stroke: COLORS.secondary,
+        fill: COLORS.secondary + "33",
+        strokeWidth: 2
+      }), /*#__PURE__*/React.createElement(Area, {
+        type: "monotone",
+        dataKey: "\u6295\u8CC7\u984D",
+        stroke: COLORS.primary,
+        fill: COLORS.primary + "18",
+        strokeWidth: 1.5
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["割引率が上昇 → 現在価値は低下（逆相関）。債券価格と金利の関係と同原理", "NPV > 0 → 投資価値あり（将来CF現在価値 > 初期投資）", "複利の力：年5%で20年間運用すると元本は約2.65倍", "ドルコスト平均法：定期定額購入で平均取得単価を算術平均より低く抑える"]
+  }));
 }
 
 // --- セクションD: 統計学の基礎（VaR・シャープレシオ） ---
 function StatsSection({
   color
 }) {
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "VaR\uFF08\u30D0\u30EA\u30E5\u30FC\u30FB\u30A2\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\uFF09",
-      color: color,
-      children: ["\u4E00\u5B9A\u306E\u4FE1\u983C\u6C34\u6E96\u3067\u4E00\u5B9A\u671F\u9593\u5185\u306B\u767A\u751F\u3057\u3046\u308B\u6700\u5927\u640D\u5931\u984D\u3002", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "95%VaR = \u03BC \u2212 1.645\u03C3"
-      }), "\u3000\uFF08z\u5024\uFF1A90%\u21921.28\u300199%\u21922.326\uFF09", /*#__PURE__*/_jsx("br", {}), "\u4F8B: \u03BC=5%, \u03C3=15%\u306E\u3068\u304D 95%VaR = 5 \u2212 1.645\xD715 = ", /*#__PURE__*/_jsx("strong", {
-        children: "\u221219.7%"
-      })]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.sharpe,
-      color: color
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "ポートフォリオR Rp",
-        key: "rp",
-        unit: "%",
-        defaultValue: "12"
-      }, {
-        label: "リスクフリーR Rf",
-        key: "rf",
-        unit: "%",
-        defaultValue: "2"
-      }, {
-        label: "標準偏差 σp",
-        key: "sp",
-        unit: "%",
-        defaultValue: "15"
-      }],
-      calculate: ({
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "VaR\uFF08\u30D0\u30EA\u30E5\u30FC\u30FB\u30A2\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\uFF09",
+    color: color
+  }, "\u4E00\u5B9A\u306E\u4FE1\u983C\u6C34\u6E96\u3067\u4E00\u5B9A\u671F\u9593\u5185\u306B\u767A\u751F\u3057\u3046\u308B\u6700\u5927\u640D\u5931\u984D\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "95%VaR = \u03BC \u2212 1.645\u03C3"), "\u3000\uFF08z\u5024\uFF1A90%\u21921.28\u300199%\u21922.326\uFF09", /*#__PURE__*/React.createElement("br", null), "\u4F8B: \u03BC=5%, \u03C3=15%\u306E\u3068\u304D 95%VaR = 5 \u2212 1.645\xD715 = ", /*#__PURE__*/React.createElement("strong", null, "\u221219.7%")), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.sharpe, {
+    color: color
+  })), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "ポートフォリオR Rp",
+      key: "rp",
+      unit: "%",
+      defaultValue: "12"
+    }, {
+      label: "リスクフリーR Rf",
+      key: "rf",
+      unit: "%",
+      defaultValue: "2"
+    }, {
+      label: "標準偏差 σp",
+      key: "sp",
+      unit: "%",
+      defaultValue: "15"
+    }],
+    calculate: ({
+      rp,
+      rf,
+      sp
+    }) => {
+      const sr = (rp - rf) / sp;
+      const var95 = rp - 1.645 * sp;
+      const var99 = rp - 2.326 * sp;
+      return {
+        results: [{
+          label: "シャープレシオ",
+          value: sr.toFixed(3),
+          unit: "",
+          color
+        }, {
+          label: "VaR 95%",
+          value: var95.toFixed(2),
+          unit: "%",
+          color: COLORS.danger
+        }, {
+          label: "VaR 99%",
+          value: var99.toFixed(2),
+          unit: "%",
+          color: COLORS.danger
+        }],
+        steps: [`SR = (${rp}% − ${rf}%) / ${sp}% = ${((rp - rf) / sp).toFixed(3)}`, `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`, `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`, `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
         rp,
         rf,
         sp
-      }) => {
-        const sr = (rp - rf) / sp;
-        const var95 = rp - 1.645 * sp;
-        const var99 = rp - 2.326 * sp;
-        return {
-          results: [{
-            label: "シャープレシオ",
-            value: sr.toFixed(3),
-            unit: "",
-            color
-          }, {
-            label: "VaR 95%",
-            value: var95.toFixed(2),
-            unit: "%",
-            color: COLORS.danger
-          }, {
-            label: "VaR 99%",
-            value: var99.toFixed(2),
-            unit: "%",
-            color: COLORS.danger
-          }],
-          steps: [`SR = (${rp}% − ${rf}%) / ${sp}% = ${((rp - rf) / sp).toFixed(3)}`, `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`, `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`, `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`]
-        };
-      },
-      chartBuilder: vals => {
-        const {
-          rp,
-          rf,
-          sp
-        } = vals;
-        const data = generateNormalDist(rp, sp, 60);
-        const var95 = rp - 1.645 * sp;
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u30EA\u30BF\u30FC\u30F3\u5206\u5E03\u3068VaR",
-          color: color,
-          height: 160,
-          children: /*#__PURE__*/_jsxs(AreaChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -24,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "x",
-              tick: {
-                fontSize: 9
-              },
-              unit: "%"
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              }
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => v.toFixed(5),
-              labelFormatter: l => `${l}%`
-            }), /*#__PURE__*/_jsx(Area, {
-              type: "monotone",
-              dataKey: "y",
-              stroke: color,
-              fill: color + "30",
-              dot: false
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              x: var95,
-              stroke: COLORS.danger,
-              strokeWidth: 2,
-              strokeDasharray: "4 2",
-              label: {
-                value: `VaR95%:${var95.toFixed(1)}%`,
-                position: "insideTopLeft",
-                fontSize: 9,
-                fill: COLORS.danger
-              }
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              x: rp,
-              stroke: COLORS.primary,
-              strokeWidth: 1.5,
-              label: {
-                value: "μ",
-                position: "insideTopRight",
-                fontSize: 10,
-                fill: COLORS.primary
-              }
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["95%VaR：100日中5日はこの損失を超える（5%の確率で超過）", "シャープレシオ：リスク1単位あたりの超過リターン", "シャープレシオ高い＝必ず優れた投資ではない（比較対象・用途による）", "VaRは最悪シナリオ（テールリスク）を示さない点に注意", "zスコア：±1σ=68%、±1.645σ=90%、±1.96σ=95%（両側）"]
-    })]
-  });
+      } = vals;
+      const data = generateNormalDist(rp, sp, 60);
+      const var95 = rp - 1.645 * sp;
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u30EA\u30BF\u30FC\u30F3\u5206\u5E03\u3068VaR",
+        color: color,
+        height: 160
+      }, /*#__PURE__*/React.createElement(AreaChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -24,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "x",
+        tick: {
+          fontSize: 9
+        },
+        unit: "%"
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        }
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => v.toFixed(5),
+        labelFormatter: l => `${l}%`
+      }), /*#__PURE__*/React.createElement(Area, {
+        type: "monotone",
+        dataKey: "y",
+        stroke: color,
+        fill: color + "30",
+        dot: false
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        x: var95,
+        stroke: COLORS.danger,
+        strokeWidth: 2,
+        strokeDasharray: "4 2",
+        label: {
+          value: `VaR95%:${var95.toFixed(1)}%`,
+          position: "insideTopLeft",
+          fontSize: 9,
+          fill: COLORS.danger
+        }
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        x: rp,
+        stroke: COLORS.primary,
+        strokeWidth: 1.5,
+        label: {
+          value: "μ",
+          position: "insideTopRight",
+          fontSize: 10,
+          fill: COLORS.primary
+        }
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["95%VaR：100日中5日はこの損失を超える（5%の確率で超過）", "シャープレシオ：リスク1単位あたりの超過リターン", "シャープレシオ高い＝必ず優れた投資ではない（比較対象・用途による）", "VaRは最悪シナリオ（テールリスク）を示さない点に注意", "zスコア：±1σ=68%、±1.645σ=90%、±1.96σ=95%（両側）"]
+  }));
 }
 
 // --- セクションE: アセットアロケーション ---
@@ -4416,274 +4214,240 @@ function AssetAllocationSection({
     name: a.name,
     fill: a.color
   }));
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3\u306E\u91CD\u8981\u6027",
-      color: color,
-      children: ["Brinson et al. \u306E\u7814\u7A76\uFF1A\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30EA\u30BF\u30FC\u30F3\u306E\u5909\u52D5\u306E\u7D0490%\u306F\u8CC7\u7523\u914D\u5206\u3067\u6C7A\u307E\u308B\u3002", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"
-      }), "\uFF1A\u4F55\u306B\u4F55%\u914D\u5206\u3059\u308B\u304B\uFF08\u8CC7\u7523\u30AF\u30E9\u30B9\u306E\u6BD4\u7387\u6C7A\u5B9A\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30A2\u30BB\u30C3\u30C8\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"
-      }), "\uFF1A\u3069\u306E\u53E3\u5EA7\uFF08NISA/iDeCo/\u8AB2\u7A0E\uFF09\u306B\u7F6E\u304F\u304B\uFF08\u7A0E\u52B9\u7387\u5316\uFF09"]
-    }), /*#__PURE__*/_jsx(ChartCard, {
-      title: "\u8CC7\u7523\u30AF\u30E9\u30B9\u5225 \u30EA\u30B9\u30AF\u30FB\u30EA\u30BF\u30FC\u30F3\u7279\u6027",
-      color: color,
-      height: 220,
-      children: /*#__PURE__*/_jsxs(ScatterChart, {
-        margin: {
-          top: 10,
-          right: 20,
-          left: -10,
-          bottom: 0
-        },
-        children: [/*#__PURE__*/_jsx(CartesianGrid, {
-          strokeDasharray: "3 3",
-          stroke: COLORS.border
-        }), /*#__PURE__*/_jsx(XAxis, {
-          type: "number",
-          dataKey: "x",
-          name: "\u30EA\u30B9\u30AF",
-          unit: "%",
-          tick: {
-            fontSize: 10
-          },
-          label: {
-            value: "リスク(%)",
-            position: "insideBottom",
-            offset: -2,
-            fontSize: 11
-          }
-        }), /*#__PURE__*/_jsx(YAxis, {
-          type: "number",
-          dataKey: "y",
-          name: "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3",
-          unit: "%",
-          tick: {
-            fontSize: 10
-          },
-          label: {
-            value: "期待R(%)",
-            angle: -90,
-            position: "insideLeft",
-            fontSize: 11
-          }
-        }), /*#__PURE__*/_jsx(Tooltip, {
-          cursor: {
-            strokeDasharray: "3 3"
-          },
-          content: ({
-            payload
-          }) => {
-            if (!payload?.length) return null;
-            const d = payload[0].payload;
-            return /*#__PURE__*/_jsxs("div", {
-              style: {
-                background: "#fff",
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12
-              },
-              children: [/*#__PURE__*/_jsx("div", {
-                style: {
-                  fontWeight: 700,
-                  color: d.fill
-                },
-                children: d.name
-              }), /*#__PURE__*/_jsxs("div", {
-                children: ["\u30EA\u30B9\u30AF: ", d.x, "%\u3000\u30EA\u30BF\u30FC\u30F3: ", d.y, "%"]
-              })]
-            });
-          }
-        }), scatterData.map(d => /*#__PURE__*/_jsx(Scatter, {
-          name: d.name,
-          data: [d],
-          fill: d.fill
-        }, d.name)), /*#__PURE__*/_jsx(Scatter, {
-          name: "PF\uFF08\u73FE\u5728\uFF09",
-          data: [{
-            x: parseFloat((pfRisk * 100).toFixed(1)),
-            y: parseFloat((pfRet * 100).toFixed(1))
-          }],
-          fill: COLORS.primary,
-          shape: "star"
-        })]
-      })
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 6,
-        marginBottom: 12
-      },
-      children: [ASSET_CLASS_DATA.map(a => /*#__PURE__*/_jsx("span", {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3\u306E\u91CD\u8981\u6027",
+    color: color
+  }, "Brinson et al. \u306E\u7814\u7A76\uFF1A\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30EA\u30BF\u30FC\u30F3\u306E\u5909\u52D5\u306E\u7D0490%\u306F\u8CC7\u7523\u914D\u5206\u3067\u6C7A\u307E\u308B\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u4F55\u306B\u4F55%\u914D\u5206\u3059\u308B\u304B\uFF08\u8CC7\u7523\u30AF\u30E9\u30B9\u306E\u6BD4\u7387\u6C7A\u5B9A\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30BB\u30C3\u30C8\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u3069\u306E\u53E3\u5EA7\uFF08NISA/iDeCo/\u8AB2\u7A0E\uFF09\u306B\u7F6E\u304F\u304B\uFF08\u7A0E\u52B9\u7387\u5316\uFF09"), /*#__PURE__*/React.createElement(ChartCard, {
+    title: "\u8CC7\u7523\u30AF\u30E9\u30B9\u5225 \u30EA\u30B9\u30AF\u30FB\u30EA\u30BF\u30FC\u30F3\u7279\u6027",
+    color: color,
+    height: 220
+  }, /*#__PURE__*/React.createElement(ScatterChart, {
+    margin: {
+      top: 10,
+      right: 20,
+      left: -10,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    type: "number",
+    dataKey: "x",
+    name: "\u30EA\u30B9\u30AF",
+    unit: "%",
+    tick: {
+      fontSize: 10
+    },
+    label: {
+      value: "リスク(%)",
+      position: "insideBottom",
+      offset: -2,
+      fontSize: 11
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    type: "number",
+    dataKey: "y",
+    name: "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3",
+    unit: "%",
+    tick: {
+      fontSize: 10
+    },
+    label: {
+      value: "期待R(%)",
+      angle: -90,
+      position: "insideLeft",
+      fontSize: 11
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    cursor: {
+      strokeDasharray: "3 3"
+    },
+    content: ({
+      payload
+    }) => {
+      if (!payload?.length) return null;
+      const d = payload[0].payload;
+      return /*#__PURE__*/React.createElement("div", {
         style: {
-          ...STYLES.badge(a.color),
-          fontSize: 11
-        },
-        children: a.name
-      }, a.name)), /*#__PURE__*/_jsx("span", {
+          background: "#fff",
+          border: `1px solid ${COLORS.border}`,
+          borderRadius: 8,
+          padding: "6px 10px",
+          fontSize: 12
+        }
+      }, /*#__PURE__*/React.createElement("div", {
         style: {
-          ...STYLES.badge(COLORS.primary),
-          fontSize: 11
-        },
-        children: "\u2605 PF\uFF08\u73FE\u5728\uFF09"
-      })]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(PieChart, {
-          size: 15,
-          color: color
-        }), " \u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC"]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 11,
-          color: COLORS.danger,
-          marginBottom: 8
-        },
-        children: ["\u26A0 \u5408\u8A08\u304C100%\u306B\u306A\u308B\u3088\u3046\u8ABF\u6574\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u73FE\u5728: ", totalW, "%\uFF09"]
-      }), ASSET_CLASS_DATA.map(a => /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 12,
-            marginBottom: 3
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              fontWeight: 700,
-              color: a.color
-            },
-            children: a.name
-          }), /*#__PURE__*/_jsxs("span", {
-            style: {
-              fontWeight: 800
-            },
-            children: [weights[a.name], "%"]
-          })]
-        }), /*#__PURE__*/_jsx("input", {
-          type: "range",
-          min: "0",
-          max: "100",
-          step: "5",
-          value: weights[a.name],
-          onChange: e => setWeights(w => ({
-            ...w,
-            [a.name]: Number(e.target.value)
-          })),
-          style: {
-            width: "100%",
-            accentColor: a.color
-          }
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            fontSize: 10,
-            color: COLORS.textLight
-          },
-          children: ["\u671F\u5F85R: ", (a.expectedReturn * 100).toFixed(1), "%\u3000\u30EA\u30B9\u30AF: ", (a.risk * 100).toFixed(0), "%"]
-        })]
-      }, a.name)), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          marginTop: 12,
-          flexWrap: "wrap"
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.cardLg,
-            flex: 1,
-            textAlign: "center",
-            padding: "10px 12px",
-            minWidth: 80
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: STYLES.label,
-            children: "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3"
-          }), /*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 20,
-              fontWeight: 900,
-              color: COLORS.secondary
-            },
-            children: [(pfRet * 100).toFixed(2), /*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 11
-              },
-              children: "%"
-            })]
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.cardLg,
-            flex: 1,
-            textAlign: "center",
-            padding: "10px 12px",
-            minWidth: 80
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: STYLES.label,
-            children: "\u30EA\u30B9\u30AF\uFF08\u8FD1\u4F3C\uFF09"
-          }), /*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 20,
-              fontWeight: 900,
-              color: COLORS.danger
-            },
-            children: [(pfRisk * 100).toFixed(2), /*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 11
-              },
-              children: "%"
-            })]
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.cardLg,
-            flex: 1,
-            textAlign: "center",
-            padding: "10px 12px",
-            minWidth: 80
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: STYLES.label,
-            children: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 20,
-              fontWeight: 900,
-              color: color
-            },
-            children: pfSR.toFixed(2)
-          })]
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 10,
-          color: COLORS.textLight,
-          marginTop: 6,
-          textAlign: "center"
-        },
-        children: "\u203B\u30EA\u30B9\u30AF\u306F\u8CC7\u7523\u9593\u306E\u76F8\u95A2\u3092\u8003\u616E\u3057\u306A\u3044\u7C21\u6613\u8FD1\u4F3C\u5024\u3067\u3059"
-      })]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["アセットアロケーションがリターンの約90%を決定する（Brinson研究）", "アセットロケーション≠アセットアロケーション（口座の使い分け）", "NISA・iDeCoには税効率の低い資産（高分配・REIT等）を優先配置", "年齢とともにリスク資産比率を下げるライフサイクル投資も有効"]
-    })]
-  });
+          fontWeight: 700,
+          color: d.fill
+        }
+      }, d.name), /*#__PURE__*/React.createElement("div", null, "\u30EA\u30B9\u30AF: ", d.x, "%\u3000\u30EA\u30BF\u30FC\u30F3: ", d.y, "%"));
+    }
+  }), scatterData.map(d => /*#__PURE__*/React.createElement(Scatter, {
+    key: d.name,
+    name: d.name,
+    data: [d],
+    fill: d.fill
+  })), /*#__PURE__*/React.createElement(Scatter, {
+    name: "PF\uFF08\u73FE\u5728\uFF09",
+    data: [{
+      x: parseFloat((pfRisk * 100).toFixed(1)),
+      y: parseFloat((pfRet * 100).toFixed(1))
+    }],
+    fill: COLORS.primary,
+    shape: "star"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6,
+      marginBottom: 12
+    }
+  }, ASSET_CLASS_DATA.map(a => /*#__PURE__*/React.createElement("span", {
+    key: a.name,
+    style: {
+      ...STYLES.badge(a.color),
+      fontSize: 11
+    }
+  }, a.name)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(COLORS.primary),
+      fontSize: 11
+    }
+  }, "\u2605 PF\uFF08\u73FE\u5728\uFF09")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(PieChart, {
+    size: 15,
+    color: color
+  }), " \u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.danger,
+      marginBottom: 8
+    }
+  }, "\u26A0 \u5408\u8A08\u304C100%\u306B\u306A\u308B\u3088\u3046\u8ABF\u6574\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u73FE\u5728: ", totalW, "%\uFF09"), ASSET_CLASS_DATA.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.name,
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 12,
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: a.color
+    }
+  }, a.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800
+    }
+  }, weights[a.name], "%")), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0",
+    max: "100",
+    step: "5",
+    value: weights[a.name],
+    onChange: e => setWeights(w => ({
+      ...w,
+      [a.name]: Number(e.target.value)
+    })),
+    style: {
+      width: "100%",
+      accentColor: a.color
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "\u671F\u5F85R: ", (a.expectedReturn * 100).toFixed(1), "%\u3000\u30EA\u30B9\u30AF: ", (a.risk * 100).toFixed(0), "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 12,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 12px",
+      minWidth: 80
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 900,
+      color: COLORS.secondary
+    }
+  }, (pfRet * 100).toFixed(2), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11
+    }
+  }, "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 12px",
+      minWidth: 80
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u30EA\u30B9\u30AF\uFF08\u8FD1\u4F3C\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 900,
+      color: COLORS.danger
+    }
+  }, (pfRisk * 100).toFixed(2), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11
+    }
+  }, "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 12px",
+      minWidth: 80
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 900,
+      color: color
+    }
+  }, pfSR.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight,
+      marginTop: 6,
+      textAlign: "center"
+    }
+  }, "\u203B\u30EA\u30B9\u30AF\u306F\u8CC7\u7523\u9593\u306E\u76F8\u95A2\u3092\u8003\u616E\u3057\u306A\u3044\u7C21\u6613\u8FD1\u4F3C\u5024\u3067\u3059")), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["アセットアロケーションがリターンの約90%を決定する（Brinson研究）", "アセットロケーション≠アセットアロケーション（口座の使い分け）", "NISA・iDeCoには税効率の低い資産（高分配・REIT等）を優先配置", "年齢とともにリスク資産比率を下げるライフサイクル投資も有効"]
+  }));
 }
 
 // --- ②基礎タブ（後半）拡張 ---
@@ -4703,127 +4467,108 @@ function BasicsBackTab({
 }) {
   const [section, setSection] = useState("C");
   const color = COLORS.accent;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E\uFF08\u5F8C\u534A\uFF09",
+    subtitle: "\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3",
+    color: color,
+    icon: BookOpen
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: BASICS_SECTIONS_CDE,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "basics",
+    sections: [...BASICS_SECTIONS_CDE],
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), section === "C" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PVSection, {
+    color: color
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(state.progress.basics?.C ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: state.progress.basics?.C ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
     },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E\uFF08\u5F8C\u534A\uFF09",
-      subtitle: "\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3",
-      color: color,
-      icon: BookOpen
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: BASICS_SECTIONS_CDE,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "basics",
-      sections: [...BASICS_SECTIONS_CDE],
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), section === "C" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx(PVSection, {
-        color: color
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...(state.progress.basics?.C ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%",
-          marginTop: 4,
-          marginBottom: 12,
-          background: state.progress.basics?.C ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-        },
-        onClick: () => setState(s => ({
-          ...s,
-          _quizOpenBasicsC: !s._quizOpenBasicsC
-        })),
-        children: state.progress.basics?.C ? /*#__PURE__*/_jsxs(_Fragment, {
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14,
-            style: {
-              marginRight: 5
-            }
-          }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-        }) : "理解度テストを受ける（8問）"
-      }), state._quizOpenBasicsC && /*#__PURE__*/_jsx(QuizComponent, {
-        quizzes: BASICS_QUIZZES.C,
-        tabId: "basics",
-        sectionId: "C",
-        accentColor: color,
-        state: state,
-        setState: setState
-      })]
-    }), section === "D" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx(StatsSection, {
-        color: color
-      }), /*#__PURE__*/_jsxs(InfoBox, {
-        title: "\u6B63\u898F\u5206\u5E03\u306E3\u30B7\u30B0\u30DE\u30EB\u30FC\u30EB\uFF08\u5FC5\u9808\u6697\u8A18\uFF09",
-        color: COLORS.highlight,
-        children: [/*#__PURE__*/_jsx("strong", {
-          children: "\xB11\u03C3 \u2248 68%"
-        }), "\u3000\xB12\u03C3 \u2248 95%\u3000\xB13\u03C3 \u2248 99.7%", /*#__PURE__*/_jsx("br", {}), "VaR\u8A08\u7B97\u306Ez\u30B9\u30B3\u30A2\uFF1A90%\u21921.28\u300095%\u21921.645\u300099%\u21922.326"]
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...(state.progress.basics?.D ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%",
-          marginTop: 4,
-          marginBottom: 12,
-          background: state.progress.basics?.D ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-        },
-        onClick: () => setState(s => ({
-          ...s,
-          _quizOpenBasicsD: !s._quizOpenBasicsD
-        })),
-        children: state.progress.basics?.D ? /*#__PURE__*/_jsxs(_Fragment, {
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14,
-            style: {
-              marginRight: 5
-            }
-          }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-        }) : "理解度テストを受ける（8問）"
-      }), state._quizOpenBasicsD && /*#__PURE__*/_jsx(QuizComponent, {
-        quizzes: BASICS_QUIZZES.C,
-        tabId: "basics",
-        sectionId: "D",
-        accentColor: color,
-        state: state,
-        setState: setState
-      })]
-    }), section === "E" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsx(AssetAllocationSection, {
-        color: color
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...(state.progress.basics?.E ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%",
-          marginTop: 4,
-          marginBottom: 12,
-          background: state.progress.basics?.E ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
-        },
-        onClick: () => setState(s => ({
-          ...s,
-          _quizOpenBasicsE: !s._quizOpenBasicsE
-        })),
-        children: state.progress.basics?.E ? /*#__PURE__*/_jsxs(_Fragment, {
-          children: [/*#__PURE__*/_jsx(Check, {
-            size: 14,
-            style: {
-              marginRight: 5
-            }
-          }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-        }) : "理解度テストを受ける（8問）"
-      }), state._quizOpenBasicsE && /*#__PURE__*/_jsx(QuizComponent, {
-        quizzes: BASICS_QUIZZES.C,
-        tabId: "basics",
-        sectionId: "E",
-        accentColor: color,
-        state: state,
-        setState: setState
-      })]
-    })]
-  });
+    onClick: () => setState(s => ({
+      ...s,
+      _quizOpenBasicsC: !s._quizOpenBasicsC
+    }))
+  }, state.progress.basics?.C ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizOpenBasicsC && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: BASICS_QUIZZES.C,
+    tabId: "basics",
+    sectionId: "C",
+    accentColor: color,
+    state: state,
+    setState: setState
+  })), section === "D" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(StatsSection, {
+    color: color
+  }), /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u6B63\u898F\u5206\u5E03\u306E3\u30B7\u30B0\u30DE\u30EB\u30FC\u30EB\uFF08\u5FC5\u9808\u6697\u8A18\uFF09",
+    color: COLORS.highlight
+  }, /*#__PURE__*/React.createElement("strong", null, "\xB11\u03C3 \u2248 68%"), "\u3000\xB12\u03C3 \u2248 95%\u3000\xB13\u03C3 \u2248 99.7%", /*#__PURE__*/React.createElement("br", null), "VaR\u8A08\u7B97\u306Ez\u30B9\u30B3\u30A2\uFF1A90%\u21921.28\u300095%\u21921.645\u300099%\u21922.326"), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(state.progress.basics?.D ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: state.progress.basics?.D ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizOpenBasicsD: !s._quizOpenBasicsD
+    }))
+  }, state.progress.basics?.D ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizOpenBasicsD && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: BASICS_QUIZZES.C,
+    tabId: "basics",
+    sectionId: "D",
+    accentColor: color,
+    state: state,
+    setState: setState
+  })), section === "E" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(AssetAllocationSection, {
+    color: color
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(state.progress.basics?.E ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: 4,
+      marginBottom: 12,
+      background: state.progress.basics?.E ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizOpenBasicsE: !s._quizOpenBasicsE
+    }))
+  }, state.progress.basics?.E ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizOpenBasicsE && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: BASICS_QUIZZES.C,
+    tabId: "basics",
+    sectionId: "E",
+    accentColor: color,
+    state: state,
+    setState: setState
+  })));
 }
 
 // ============================================================
@@ -4869,246 +4614,224 @@ function PortfolioSectionA({
     return rows;
   })();
   const done = state.progress.portfolio?.A;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "2\u8CC7\u7523\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u306E\u30EA\u30B9\u30AF\u516C\u5F0F",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u03C3P\xB2 = wA\xB2\u03C3A\xB2 + wB\xB2\u03C3B\xB2 + 2\xB7wA\xB7wB\xB7\u03C1\xB7\u03C3A\xB7\u03C3B"
-      }), /*#__PURE__*/_jsx("br", {}), "\u03C1 = +1\uFF1A\u5206\u6563\u52B9\u679C\u306A\u3057\uFF08\u30EA\u30B9\u30AF\u306F\u52A0\u91CD\u5E73\u5747\uFF09", /*#__PURE__*/_jsx("br", {}), "\u03C1 =  0\uFF1A\u90E8\u5206\u7684\u306A\u5206\u6563\u52B9\u679C", /*#__PURE__*/_jsx("br", {}), "\u03C1 = \u22121\uFF1A\u9069\u5207\u306A\u6BD4\u7387\u3067\u30EA\u30B9\u30AF\u3092\u30BC\u30ED\u306B\u3067\u304D\u308B\uFF08\u7406\u8AD6\u4E0A\uFF09"]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.portfolioRisk,
-      color: color
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(TrendingUp, {
-          size: 15,
-          color: color
-        }), " \u76F8\u95A2\u4FC2\u6570\u5225\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30EA\u30B9\u30AF\uFF08\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6\uFF09"]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
-          marginBottom: 12
-        },
-        children: [{
-          label: `σA: ${sigA}%`,
-          val: sigA,
-          set: setSigA,
-          min: 1,
-          max: 40
-        }, {
-          label: `σB: ${sigB}%`,
-          val: sigB,
-          set: setSigB,
-          min: 1,
-          max: 40
-        }, {
-          label: `E(rA): ${rA}%`,
-          val: rA,
-          set: setRA,
-          min: -5,
-          max: 20
-        }, {
-          label: `E(rB): ${rB}%`,
-          val: rB,
-          set: setRB,
-          min: -5,
-          max: 20
-        }].map(s => /*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsx("label", {
-            style: STYLES.label,
-            children: s.label
-          }), /*#__PURE__*/_jsx("input", {
-            type: "range",
-            min: s.min,
-            max: s.max,
-            value: s.val,
-            onChange: e => s.set(Number(e.target.value)),
-            style: {
-              width: "100%",
-              accentColor: color
-            }
-          })]
-        }, s.label))
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 180,
-        children: /*#__PURE__*/_jsxs(LineChart, {
-          data: frontierData,
-          margin: {
-            top: 4,
-            right: 8,
-            left: -20,
-            bottom: 0
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "wA",
-            tick: {
-              fontSize: 9
-            },
-            label: {
-              value: "資産A比率(%)",
-              position: "insideBottom",
-              offset: -2,
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(YAxis, {
-            tick: {
-              fontSize: 9
-            },
-            unit: "%",
-            label: {
-              value: "PFリスク%",
-              angle: -90,
-              position: "insideLeft",
-              fontSize: 9
-            }
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`,
-            labelFormatter: l => `資産A比率: ${l}%`
-          }), /*#__PURE__*/_jsx(Legend, {
-            iconSize: 10,
-            wrapperStyle: {
-              fontSize: 10
-            }
-          }), [["ρ=-1", COLORS.secondary], ["ρ=-0.5", "#2ECC71"], ["ρ=0", COLORS.primary], ["ρ=0.5", COLORS.accent], ["ρ=1", COLORS.danger]].map(([key, clr]) => /*#__PURE__*/_jsx(Line, {
-            type: "monotone",
-            dataKey: key,
-            name: key,
-            stroke: clr,
-            strokeWidth: 1.8,
-            dot: false
-          }, key))]
-        })
-      })]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(Calculator, {
-          size: 14,
-          color: color
-        }), " \u73FE\u5728\u306E\u8A2D\u5B9A\u3067\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u3092\u8A08\u7B97"]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("label", {
-          style: STYLES.label,
-          children: ["\u76F8\u95A2\u4FC2\u6570 \u03C1: ", rho.toFixed(2)]
-        }), /*#__PURE__*/_jsx("input", {
-          type: "range",
-          min: -100,
-          max: 100,
-          value: rhoSlider,
-          onChange: e => setRhoSlider(Number(e.target.value)),
-          style: {
-            width: "100%",
-            accentColor: color
-          }
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("label", {
-          style: STYLES.label,
-          children: ["\u8CC7\u7523A\u6BD4\u7387: ", wASlider, "%\uFF08\u8CC7\u7523B: ", 100 - wASlider, "%\uFF09"]
-        }), /*#__PURE__*/_jsx("input", {
-          type: "range",
-          min: 0,
-          max: 100,
-          step: 5,
-          value: wASlider,
-          onChange: e => setWASlider(Number(e.target.value)),
-          style: {
-            width: "100%",
-            accentColor: color
-          }
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8
-        },
-        children: [/*#__PURE__*/_jsx(ResultCard, {
-          label: "PF\u30EA\u30BF\u30FC\u30F3",
-          value: pfRet.toFixed(2),
-          unit: "%",
-          color: COLORS.secondary
-        }), /*#__PURE__*/_jsx(ResultCard, {
-          label: "PF\u30EA\u30B9\u30AF",
-          value: pfRisk.toFixed(2),
-          unit: "%",
-          color: COLORS.danger,
-          large: true
-        }), /*#__PURE__*/_jsx(ResultCard, {
-          label: "\u03C1",
-          value: rho.toFixed(2),
-          unit: "",
-          color: color
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          marginTop: 8,
-          fontSize: 12,
-          color: COLORS.textLight,
-          textAlign: "center"
-        },
-        children: rho <= -0.8 && pfRisk < 1 ? "⚡ ほぼリスクゼロ！完全逆相関に近い状態です" : rho === 1 ? "⚠ ρ=1：分散効果なし" : `ρ=${rho.toFixed(2)}：単純加重平均リスク${(wA * sigA + wB * sigB).toFixed(2)}% → PF${pfRisk.toFixed(2)}%（${(wA * sigA + wB * sigB - pfRisk).toFixed(2)}%削減）`
-      })]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["ρ=−1で特定比率（wA=σB/(σA+σB)）にするとリスクがゼロ", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "20〜30銘柄で非システマティックリスクの大部分を消去可能", "残るのはシステマティックリスク（市場リスク・βで計測）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPFA: !s._quizPFA
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（8問）"
-    }), state._quizPFA && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PORTFOLIO_QUIZZES.A,
-      tabId: "portfolio",
-      sectionId: "A",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "2\u8CC7\u7523\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u306E\u30EA\u30B9\u30AF\u516C\u5F0F",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u03C3P\xB2 = wA\xB2\u03C3A\xB2 + wB\xB2\u03C3B\xB2 + 2\xB7wA\xB7wB\xB7\u03C1\xB7\u03C3A\xB7\u03C3B"), /*#__PURE__*/React.createElement("br", null), "\u03C1 = +1\uFF1A\u5206\u6563\u52B9\u679C\u306A\u3057\uFF08\u30EA\u30B9\u30AF\u306F\u52A0\u91CD\u5E73\u5747\uFF09", /*#__PURE__*/React.createElement("br", null), "\u03C1 =  0\uFF1A\u90E8\u5206\u7684\u306A\u5206\u6563\u52B9\u679C", /*#__PURE__*/React.createElement("br", null), "\u03C1 = \u22121\uFF1A\u9069\u5207\u306A\u6BD4\u7387\u3067\u30EA\u30B9\u30AF\u3092\u30BC\u30ED\u306B\u3067\u304D\u308B\uFF08\u7406\u8AD6\u4E0A\uFF09"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.portfolioRisk, {
+    color: color
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(TrendingUp, {
+    size: 15,
+    color: color
+  }), " \u76F8\u95A2\u4FC2\u6570\u5225\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30EA\u30B9\u30AF\uFF08\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, [{
+    label: `σA: ${sigA}%`,
+    val: sigA,
+    set: setSigA,
+    min: 1,
+    max: 40
+  }, {
+    label: `σB: ${sigB}%`,
+    val: sigB,
+    set: setSigB,
+    min: 1,
+    max: 40
+  }, {
+    label: `E(rA): ${rA}%`,
+    val: rA,
+    set: setRA,
+    min: -5,
+    max: 20
+  }, {
+    label: `E(rB): ${rB}%`,
+    val: rB,
+    set: setRB,
+    min: -5,
+    max: 20
+  }].map(s => /*#__PURE__*/React.createElement("div", {
+    key: s.label
+  }, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, s.label), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: s.min,
+    max: s.max,
+    value: s.val,
+    onChange: e => s.set(Number(e.target.value)),
+    style: {
+      width: "100%",
+      accentColor: color
+    }
+  })))), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 180
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    data: frontierData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -20,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "wA",
+    tick: {
+      fontSize: 9
+    },
+    label: {
+      value: "資産A比率(%)",
+      position: "insideBottom",
+      offset: -2,
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    },
+    unit: "%",
+    label: {
+      value: "PFリスク%",
+      angle: -90,
+      position: "insideLeft",
+      fontSize: 9
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`,
+    labelFormatter: l => `資産A比率: ${l}%`
+  }), /*#__PURE__*/React.createElement(Legend, {
+    iconSize: 10,
+    wrapperStyle: {
+      fontSize: 10
+    }
+  }), [["ρ=-1", COLORS.secondary], ["ρ=-0.5", "#2ECC71"], ["ρ=0", COLORS.primary], ["ρ=0.5", COLORS.accent], ["ρ=1", COLORS.danger]].map(([key, clr]) => /*#__PURE__*/React.createElement(Line, {
+    key: key,
+    type: "monotone",
+    dataKey: key,
+    name: key,
+    stroke: clr,
+    strokeWidth: 1.8,
+    dot: false
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(Calculator, {
+    size: 14,
+    color: color
+  }), " \u73FE\u5728\u306E\u8A2D\u5B9A\u3067\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u3092\u8A08\u7B97"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "\u76F8\u95A2\u4FC2\u6570 \u03C1: ", rho.toFixed(2)), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: -100,
+    max: 100,
+    value: rhoSlider,
+    onChange: e => setRhoSlider(Number(e.target.value)),
+    style: {
+      width: "100%",
+      accentColor: color
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "\u8CC7\u7523A\u6BD4\u7387: ", wASlider, "%\uFF08\u8CC7\u7523B: ", 100 - wASlider, "%\uFF09"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: 0,
+    max: 100,
+    step: 5,
+    value: wASlider,
+    onChange: e => setWASlider(Number(e.target.value)),
+    style: {
+      width: "100%",
+      accentColor: color
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(ResultCard, {
+    label: "PF\u30EA\u30BF\u30FC\u30F3",
+    value: pfRet.toFixed(2),
+    unit: "%",
+    color: COLORS.secondary
+  }), /*#__PURE__*/React.createElement(ResultCard, {
+    label: "PF\u30EA\u30B9\u30AF",
+    value: pfRisk.toFixed(2),
+    unit: "%",
+    color: COLORS.danger,
+    large: true
+  }), /*#__PURE__*/React.createElement(ResultCard, {
+    label: "\u03C1",
+    value: rho.toFixed(2),
+    unit: "",
+    color: color
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontSize: 12,
+      color: COLORS.textLight,
+      textAlign: "center"
+    }
+  }, rho <= -0.8 && pfRisk < 1 ? "⚡ ほぼリスクゼロ！完全逆相関に近い状態です" : rho === 1 ? "⚠ ρ=1：分散効果なし" : `ρ=${rho.toFixed(2)}：単純加重平均リスク${(wA * sigA + wB * sigB).toFixed(2)}% → PF${pfRisk.toFixed(2)}%（${(wA * sigA + wB * sigB - pfRisk).toFixed(2)}%削減）`)), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["ρ=−1で特定比率（wA=σB/(σA+σB)）にするとリスクがゼロ", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "20〜30銘柄で非システマティックリスクの大部分を消去可能", "残るのはシステマティックリスク（市場リスク・βで計測）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPFA: !s._quizPFA
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizPFA && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PORTFOLIO_QUIZZES.A,
+    tabId: "portfolio",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションB: 効率的フロンティア ---
@@ -5140,175 +4863,153 @@ function PortfolioSectionB({
     ret: rf * 100 + (maxSR.ret - rf * 100) * 1.8
   }];
   const done = state.progress.portfolio?.B;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u3068CML",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2"
-      }), "\uFF1A\u540C\u3058\u30EA\u30B9\u30AF\u3067\u6700\u5927\u30EA\u30BF\u30FC\u30F3\u306E\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u96C6\u5408", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u6700\u5C0F\u5206\u6563\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"
-      }), "\uFF1A\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u4E0A\u3067\u30EA\u30B9\u30AF\u6700\u5C0F\u306E\u70B9", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u63A5\u70B9\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"
-      }), "\uFF1ACML\u3068\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u306E\u63A5\u70B9 = \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u6700\u5927", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "CML\uFF08\u8CC7\u672C\u5E02\u5834\u7DDA\uFF09"
-      }), "\uFF1A\u30EA\u30B9\u30AF\u30D5\u30EA\u30FC\u8CC7\u7523\u3068\u63A5\u70B9PF\u3092\u7D50\u3076\u76F4\u7DDA"]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(TrendingUp, {
-          size: 15,
-          color: color
-        }), " \u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2 + CML"]
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 240,
-        children: /*#__PURE__*/_jsxs(LineChart, {
-          margin: {
-            top: 10,
-            right: 20,
-            left: -10,
-            bottom: 10
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            type: "number",
-            dataKey: "sig",
-            name: "\u30EA\u30B9\u30AF",
-            unit: "%",
-            tick: {
-              fontSize: 9
-            },
-            domain: [0, 25],
-            label: {
-              value: "リスク(%)",
-              position: "insideBottom",
-              offset: -4,
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(YAxis, {
-            type: "number",
-            dataKey: "ret",
-            name: "\u30EA\u30BF\u30FC\u30F3",
-            unit: "%",
-            tick: {
-              fontSize: 9
-            },
-            domain: [1, 10],
-            label: {
-              value: "期待R(%)",
-              angle: -90,
-              position: "insideLeft",
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`
-          }), /*#__PURE__*/_jsx(Legend, {
-            iconSize: 10,
-            wrapperStyle: {
-              fontSize: 11
-            },
-            verticalAlign: "top"
-          }), /*#__PURE__*/_jsx(Line, {
-            data: efData,
-            type: "monotone",
-            dataKey: "ret",
-            name: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2",
-            stroke: color,
-            strokeWidth: 2.5,
-            dot: false
-          }), /*#__PURE__*/_jsx(Line, {
-            data: cmlData,
-            type: "linear",
-            dataKey: "ret",
-            name: "CML\uFF08\u8CC7\u672C\u5E02\u5834\u7DDA\uFF09",
-            stroke: COLORS.secondary,
-            strokeWidth: 2,
-            strokeDasharray: "6 3",
-            dot: false
-          }), /*#__PURE__*/_jsx(Line, {
-            data: [minVar],
-            type: "linear",
-            dataKey: "ret",
-            name: `最小分散点(σ=${minVar.sig}%)`,
-            stroke: COLORS.primary,
-            strokeWidth: 0,
-            dot: {
-              r: 7,
-              fill: COLORS.primary
-            }
-          }), /*#__PURE__*/_jsx(Line, {
-            data: [maxSR],
-            type: "linear",
-            dataKey: "ret",
-            name: `接点PF(SR=${maxSR.sr})`,
-            stroke: COLORS.accent,
-            strokeWidth: 0,
-            dot: {
-              r: 7,
-              fill: COLORS.accent
-            }
-          })]
-        })
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          marginTop: 8,
-          flexWrap: "wrap"
-        },
-        children: [/*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(COLORS.primary),
-          children: ["\u25CF \u6700\u5C0F\u5206\u6563: \u03C3=", minVar.sig, "%, R=", minVar.ret, "%"]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(COLORS.accent),
-          children: ["\u25CF \u63A5\u70B9PF: SR=", maxSR.sr, ", R=", maxSR.ret, "%"]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(COLORS.secondary),
-          children: ["--- CML\uFF08Rf=", rf * 100, "%\uFF09"]
-        })]
-      })]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["CMLの傾き = 市場PFのシャープレシオ（最大値）", "接点PFより右のCML上の点 = リスクフリー資産借入+接点PF投資（レバレッジ）", "SML（証券市場線）はCAPMで個別資産のβとリターンを表す別の直線", "効率的フロンティアは凹型（上方に凸）の曲線"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPFB: !s._quizPFB
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（4問）"
-    }), state._quizPFB && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PORTFOLIO_QUIZZES.B,
-      tabId: "portfolio",
-      sectionId: "B",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u3068CML",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2"), "\uFF1A\u540C\u3058\u30EA\u30B9\u30AF\u3067\u6700\u5927\u30EA\u30BF\u30FC\u30F3\u306E\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u96C6\u5408", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6700\u5C0F\u5206\u6563\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"), "\uFF1A\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u4E0A\u3067\u30EA\u30B9\u30AF\u6700\u5C0F\u306E\u70B9", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u63A5\u70B9\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"), "\uFF1ACML\u3068\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u306E\u63A5\u70B9 = \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u6700\u5927", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "CML\uFF08\u8CC7\u672C\u5E02\u5834\u7DDA\uFF09"), "\uFF1A\u30EA\u30B9\u30AF\u30D5\u30EA\u30FC\u8CC7\u7523\u3068\u63A5\u70B9PF\u3092\u7D50\u3076\u76F4\u7DDA"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(TrendingUp, {
+    size: 15,
+    color: color
+  }), " \u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2 + CML"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 240
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    margin: {
+      top: 10,
+      right: 20,
+      left: -10,
+      bottom: 10
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    type: "number",
+    dataKey: "sig",
+    name: "\u30EA\u30B9\u30AF",
+    unit: "%",
+    tick: {
+      fontSize: 9
+    },
+    domain: [0, 25],
+    label: {
+      value: "リスク(%)",
+      position: "insideBottom",
+      offset: -4,
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    type: "number",
+    dataKey: "ret",
+    name: "\u30EA\u30BF\u30FC\u30F3",
+    unit: "%",
+    tick: {
+      fontSize: 9
+    },
+    domain: [1, 10],
+    label: {
+      value: "期待R(%)",
+      angle: -90,
+      position: "insideLeft",
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Legend, {
+    iconSize: 10,
+    wrapperStyle: {
+      fontSize: 11
+    },
+    verticalAlign: "top"
+  }), /*#__PURE__*/React.createElement(Line, {
+    data: efData,
+    type: "monotone",
+    dataKey: "ret",
+    name: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2",
+    stroke: color,
+    strokeWidth: 2.5,
+    dot: false
+  }), /*#__PURE__*/React.createElement(Line, {
+    data: cmlData,
+    type: "linear",
+    dataKey: "ret",
+    name: "CML\uFF08\u8CC7\u672C\u5E02\u5834\u7DDA\uFF09",
+    stroke: COLORS.secondary,
+    strokeWidth: 2,
+    strokeDasharray: "6 3",
+    dot: false
+  }), /*#__PURE__*/React.createElement(Line, {
+    data: [minVar],
+    type: "linear",
+    dataKey: "ret",
+    name: `最小分散点(σ=${minVar.sig}%)`,
+    stroke: COLORS.primary,
+    strokeWidth: 0,
+    dot: {
+      r: 7,
+      fill: COLORS.primary
+    }
+  }), /*#__PURE__*/React.createElement(Line, {
+    data: [maxSR],
+    type: "linear",
+    dataKey: "ret",
+    name: `接点PF(SR=${maxSR.sr})`,
+    stroke: COLORS.accent,
+    strokeWidth: 0,
+    dot: {
+      r: 7,
+      fill: COLORS.accent
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 8,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.primary)
+  }, "\u25CF \u6700\u5C0F\u5206\u6563: \u03C3=", minVar.sig, "%, R=", minVar.ret, "%"), /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.accent)
+  }, "\u25CF \u63A5\u70B9PF: SR=", maxSR.sr, ", R=", maxSR.ret, "%"), /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.secondary)
+  }, "--- CML\uFF08Rf=", rf * 100, "%\uFF09"))), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["CMLの傾き = 市場PFのシャープレシオ（最大値）", "接点PFより右のCML上の点 = リスクフリー資産借入+接点PF投資（レバレッジ）", "SML（証券市場線）はCAPMで個別資産のβとリターンを表す別の直線", "効率的フロンティアは凹型（上方に凸）の曲線"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPFB: !s._quizPFB
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（4問）"), state._quizPFB && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PORTFOLIO_QUIZZES.B,
+    tabId: "portfolio",
+    sectionId: "B",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションC: CAPM ---
@@ -5321,220 +5022,196 @@ function PortfolioSectionC({
   const [rmSlider, setRmSlider] = useState(8);
   const smlData = generateSML(rfSlider / 100, rmSlider / 100);
   const done = state.progress.portfolio?.C;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "CAPM\uFF08\u8CC7\u672C\u8CC7\u7523\u8A55\u4FA1\u30E2\u30C7\u30EB\uFF09",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "E(Ri) = Rf + \u03B2i \xD7 [E(Rm) \u2212 Rf]"
-      }), /*#__PURE__*/_jsx("br", {}), "[E(Rm)\u2212Rf]\uFF1A\u30DE\u30FC\u30B1\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\u30D7\u30EC\u30DF\u30A2\u30E0", /*#__PURE__*/_jsx("br", {}), "\u03B2\uFF1E1\uFF1A\u5E02\u5834\u3088\u308A\u5909\u52D5\u5927\u3000\u03B2=1\uFF1A\u5E02\u5834\u3068\u540C\u3058\u3000\u03B2\uFF1C1\uFF1A\u5909\u52D5\u5C0F\u3000\u03B2=0\uFF1ARf\u3068\u540C\u3058", /*#__PURE__*/_jsx("br", {}), "\u975E\u30B7\u30B9\u30C6\u30DE\u30C6\u30A3\u30C3\u30AF\u30EA\u30B9\u30AF\u306F\u5206\u6563\u6295\u8CC7\u3067\u6D88\u53BB\u3067\u304D\u308B\u305F\u3081\u3001CAPM\u306F\u03B2\u306E\u307F\u3067\u5831\u916C\u3092\u6C7A\u5B9A"]
-    }), /*#__PURE__*/_jsx(FormulaCard, {
-      ...FORMULA_DATA.capm,
-      color: color
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "CAPM\uFF08\u8CC7\u672C\u8CC7\u7523\u8A55\u4FA1\u30E2\u30C7\u30EB\uFF09",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "E(Ri) = Rf + \u03B2i \xD7 [E(Rm) \u2212 Rf]"), /*#__PURE__*/React.createElement("br", null), "[E(Rm)\u2212Rf]\uFF1A\u30DE\u30FC\u30B1\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\u30D7\u30EC\u30DF\u30A2\u30E0", /*#__PURE__*/React.createElement("br", null), "\u03B2\uFF1E1\uFF1A\u5E02\u5834\u3088\u308A\u5909\u52D5\u5927\u3000\u03B2=1\uFF1A\u5E02\u5834\u3068\u540C\u3058\u3000\u03B2\uFF1C1\uFF1A\u5909\u52D5\u5C0F\u3000\u03B2=0\uFF1ARf\u3068\u540C\u3058", /*#__PURE__*/React.createElement("br", null), "\u975E\u30B7\u30B9\u30C6\u30DE\u30C6\u30A3\u30C3\u30AF\u30EA\u30B9\u30AF\u306F\u5206\u6563\u6295\u8CC7\u3067\u6D88\u53BB\u3067\u304D\u308B\u305F\u3081\u3001CAPM\u306F\u03B2\u306E\u307F\u3067\u5831\u916C\u3092\u6C7A\u5B9A"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.capm, {
+    color: color
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(TrendingUp, {
+    size: 15,
+    color: color
+  }), " SML\uFF08\u8A3C\u5238\u5E02\u5834\u7DDA\uFF09\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "Rf\uFF08\u30EA\u30B9\u30AF\u30D5\u30EA\u30FC\uFF09: ", rfSlider, "%"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: 0,
+    max: 5,
+    step: 0.5,
+    value: rfSlider,
+    onChange: e => setRfSlider(Number(e.target.value)),
+    style: {
+      width: "100%",
+      accentColor: color
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: STYLES.label
+  }, "E(Rm)\uFF08\u5E02\u5834\u30EA\u30BF\u30FC\u30F3\uFF09: ", rmSlider, "%"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: 4,
+    max: 15,
+    step: 0.5,
+    value: rmSlider,
+    onChange: e => setRmSlider(Number(e.target.value)),
+    style: {
+      width: "100%",
+      accentColor: color
+    }
+  }))), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 200
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    data: smlData,
+    margin: {
+      top: 4,
+      right: 20,
+      left: -10,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "beta",
+    tick: {
+      fontSize: 9
+    },
+    label: {
+      value: "β（ベータ）",
+      position: "insideBottom",
+      offset: -4,
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    },
+    unit: "%",
+    label: {
+      value: "期待R(%)",
+      angle: -90,
+      position: "insideLeft",
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`,
+    labelFormatter: l => `β=${l}`
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: 0,
+    stroke: COLORS.textMuted
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    x: 1,
+    stroke: COLORS.primary,
+    strokeDasharray: "4 2",
+    label: {
+      value: "β=1 市場",
+      position: "insideTopRight",
+      fontSize: 9
+    }
+  }), /*#__PURE__*/React.createElement(Line, {
+    type: "linear",
+    dataKey: "er",
+    name: "SML",
+    stroke: color,
+    strokeWidth: 2.5,
+    dot: false
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      marginTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(color)
+  }, "Rf=", rfSlider, "%"), /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.primary)
+  }, "\u5E02\u5834\u30D7\u30EC\u30DF\u30A2\u30E0=", rmSlider - rfSlider, "%"), /*#__PURE__*/React.createElement("span", {
+    style: STYLES.badge(COLORS.secondary)
+  }, "\u03B2=1.5 \u2192 E(R)=", (rfSlider + 1.5 * (rmSlider - rfSlider)).toFixed(1), "%"))), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "CAPM\u671F\u5F85\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "Rf（無リスク利子率）",
+      key: "rf",
+      unit: "%",
+      defaultValue: "2"
+    }, {
+      label: "β（ベータ）",
+      key: "beta",
+      defaultValue: "1.2"
+    }, {
+      label: "E(Rm)（市場リターン）",
+      key: "rm",
+      unit: "%",
+      defaultValue: "8"
+    }],
+    calculate: ({
+      rf,
+      beta,
+      rm
+    }) => {
+      const er = rf + beta * (rm - rf);
+      const mrp = rm - rf;
+      return {
+        results: [{
+          label: "期待リターン E(Ri)",
+          value: er.toFixed(2),
+          unit: "%",
           color
-        },
-        children: [/*#__PURE__*/_jsx(TrendingUp, {
-          size: 15,
-          color: color
-        }), " SML\uFF08\u8A3C\u5238\u5E02\u5834\u7DDA\uFF09\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6"]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsxs("label", {
-            style: STYLES.label,
-            children: ["Rf\uFF08\u30EA\u30B9\u30AF\u30D5\u30EA\u30FC\uFF09: ", rfSlider, "%"]
-          }), /*#__PURE__*/_jsx("input", {
-            type: "range",
-            min: 0,
-            max: 5,
-            step: 0.5,
-            value: rfSlider,
-            onChange: e => setRfSlider(Number(e.target.value)),
-            style: {
-              width: "100%",
-              accentColor: color
-            }
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          children: [/*#__PURE__*/_jsxs("label", {
-            style: STYLES.label,
-            children: ["E(Rm)\uFF08\u5E02\u5834\u30EA\u30BF\u30FC\u30F3\uFF09: ", rmSlider, "%"]
-          }), /*#__PURE__*/_jsx("input", {
-            type: "range",
-            min: 4,
-            max: 15,
-            step: 0.5,
-            value: rmSlider,
-            onChange: e => setRmSlider(Number(e.target.value)),
-            style: {
-              width: "100%",
-              accentColor: color
-            }
-          })]
-        })]
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 200,
-        children: /*#__PURE__*/_jsxs(LineChart, {
-          data: smlData,
-          margin: {
-            top: 4,
-            right: 20,
-            left: -10,
-            bottom: 0
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "beta",
-            tick: {
-              fontSize: 9
-            },
-            label: {
-              value: "β（ベータ）",
-              position: "insideBottom",
-              offset: -4,
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(YAxis, {
-            tick: {
-              fontSize: 9
-            },
-            unit: "%",
-            label: {
-              value: "期待R(%)",
-              angle: -90,
-              position: "insideLeft",
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`,
-            labelFormatter: l => `β=${l}`
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: 0,
-            stroke: COLORS.textMuted
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            x: 1,
-            stroke: COLORS.primary,
-            strokeDasharray: "4 2",
-            label: {
-              value: "β=1 市場",
-              position: "insideTopRight",
-              fontSize: 9
-            }
-          }), /*#__PURE__*/_jsx(Line, {
-            type: "linear",
-            dataKey: "er",
-            name: "SML",
-            stroke: color,
-            strokeWidth: 2.5,
-            dot: false
-          })]
-        })
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap",
-          marginTop: 8
-        },
-        children: [/*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(color),
-          children: ["Rf=", rfSlider, "%"]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(COLORS.primary),
-          children: ["\u5E02\u5834\u30D7\u30EC\u30DF\u30A2\u30E0=", rmSlider - rfSlider, "%"]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: STYLES.badge(COLORS.secondary),
-          children: ["\u03B2=1.5 \u2192 E(R)=", (rfSlider + 1.5 * (rmSlider - rfSlider)).toFixed(1), "%"]
-        })]
-      })]
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "CAPM\u671F\u5F85\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "Rf（無リスク利子率）",
-        key: "rf",
-        unit: "%",
-        defaultValue: "2"
-      }, {
-        label: "β（ベータ）",
-        key: "beta",
-        defaultValue: "1.2"
-      }, {
-        label: "E(Rm)（市場リターン）",
-        key: "rm",
-        unit: "%",
-        defaultValue: "8"
-      }],
-      calculate: ({
-        rf,
-        beta,
-        rm
-      }) => {
-        const er = rf + beta * (rm - rf);
-        const mrp = rm - rf;
-        return {
-          results: [{
-            label: "期待リターン E(Ri)",
-            value: er.toFixed(2),
-            unit: "%",
-            color
-          }, {
-            label: "市場プレミアム",
-            value: mrp.toFixed(2),
-            unit: "%",
-            color: COLORS.secondary
-          }],
-          steps: [`E(Ri) = Rf + β × [E(Rm) − Rf]`, `= ${rf}% + ${beta} × (${rm}% − ${rf}%)`, `= ${rf}% + ${beta} × ${mrp.toFixed(2)}%`, `= ${rf}% + ${(beta * mrp).toFixed(2)}% = ${er.toFixed(2)}%`]
-        };
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["β=0：リスクフリーレートと同じ期待リターン（市場リスクなし）", "β<0：市場と逆方向（ゴールドなど）・希少", "非システマティックリスクはβに含まれないため、CAPMは補償しない", "SMLは個別資産（β）、CMLは分散済みPF（σ）の効率性を示す", "αがプラス → CAPMの予測リターンを超えた超過リターン（腕前の証拠）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPFC: !s._quizPFC
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（8問）"
-    }), state._quizPFC && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PORTFOLIO_QUIZZES.C,
-      tabId: "portfolio",
-      sectionId: "C",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+        }, {
+          label: "市場プレミアム",
+          value: mrp.toFixed(2),
+          unit: "%",
+          color: COLORS.secondary
+        }],
+        steps: [`E(Ri) = Rf + β × [E(Rm) − Rf]`, `= ${rf}% + ${beta} × (${rm}% − ${rf}%)`, `= ${rf}% + ${beta} × ${mrp.toFixed(2)}%`, `= ${rf}% + ${(beta * mrp).toFixed(2)}% = ${er.toFixed(2)}%`]
+      };
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["β=0：リスクフリーレートと同じ期待リターン（市場リスクなし）", "β<0：市場と逆方向（ゴールドなど）・希少", "非システマティックリスクはβに含まれないため、CAPMは補償しない", "SMLは個別資産（β）、CMLは分散済みPF（σ）の効率性を示す", "αがプラス → CAPMの予測リターンを超えた超過リターン（腕前の証拠）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPFC: !s._quizPFC
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizPFC && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PORTFOLIO_QUIZZES.C,
+    tabId: "portfolio",
+    sectionId: "C",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションD: パフォーマンス評価指標 ---
@@ -5544,58 +5221,87 @@ function PortfolioSectionD({
   setState
 }) {
   const done = state.progress.portfolio?.D;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "4\u3064\u306E\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u8A55\u4FA1\u6307\u6A19",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"
-      }), "\uFF1A(Rp\u2212Rf)/\u03C3p\u3000\u5168\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA"
-      }), "\uFF1A(Rp\u2212Rf)/\u03B2\u3000\u5E02\u5834\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30B8\u30A7\u30F3\u30BB\u30F3\u306E\u03B1"
-      }), "\uFF1ARp\u2212[Rf+\u03B2(Rm\u2212Rf)]\u3000CAPM\u3092\u8D85\u3048\u305F\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u60C5\u5831\u30EC\u30B7\u30AA(IR)"
-      }), "\uFF1A(Rp\u2212Rb)/TE\u3000\u30D9\u30F3\u30C1\u30DE\u30FC\u30AF\u8D85\u904E\u30EA\u30BF\u30FC\u30F3\xF7\u8FFD\u8DE1\u8AA4\u5DEE"]
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u6307\u6A19 \u4E00\u62EC\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "ポートフォリオR Rp",
-        key: "rp",
-        unit: "%",
-        defaultValue: "14"
-      }, {
-        label: "リスクフリーR Rf",
-        key: "rf",
-        unit: "%",
-        defaultValue: "2"
-      }, {
-        label: "市場リターン Rm",
-        key: "rm",
-        unit: "%",
-        defaultValue: "10"
-      }, {
-        label: "ベータ β",
-        key: "beta",
-        defaultValue: "1.3"
-      }, {
-        label: "標準偏差 σp",
-        key: "sigma",
-        unit: "%",
-        defaultValue: "18"
-      }, {
-        label: "ベンチマークR Rb",
-        key: "rb",
-        unit: "%",
-        defaultValue: "11"
-      }, {
-        label: "追跡誤差 TE",
-        key: "te",
-        unit: "%",
-        defaultValue: "4"
-      }],
-      calculate: ({
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "4\u3064\u306E\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u8A55\u4FA1\u6307\u6A19",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"), "\uFF1A(Rp\u2212Rf)/\u03C3p\u3000\u5168\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA"), "\uFF1A(Rp\u2212Rf)/\u03B2\u3000\u5E02\u5834\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30B8\u30A7\u30F3\u30BB\u30F3\u306E\u03B1"), "\uFF1ARp\u2212[Rf+\u03B2(Rm\u2212Rf)]\u3000CAPM\u3092\u8D85\u3048\u305F\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u60C5\u5831\u30EC\u30B7\u30AA(IR)"), "\uFF1A(Rp\u2212Rb)/TE\u3000\u30D9\u30F3\u30C1\u30DE\u30FC\u30AF\u8D85\u904E\u30EA\u30BF\u30FC\u30F3\xF7\u8FFD\u8DE1\u8AA4\u5DEE"), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u6307\u6A19 \u4E00\u62EC\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "ポートフォリオR Rp",
+      key: "rp",
+      unit: "%",
+      defaultValue: "14"
+    }, {
+      label: "リスクフリーR Rf",
+      key: "rf",
+      unit: "%",
+      defaultValue: "2"
+    }, {
+      label: "市場リターン Rm",
+      key: "rm",
+      unit: "%",
+      defaultValue: "10"
+    }, {
+      label: "ベータ β",
+      key: "beta",
+      defaultValue: "1.3"
+    }, {
+      label: "標準偏差 σp",
+      key: "sigma",
+      unit: "%",
+      defaultValue: "18"
+    }, {
+      label: "ベンチマークR Rb",
+      key: "rb",
+      unit: "%",
+      defaultValue: "11"
+    }, {
+      label: "追跡誤差 TE",
+      key: "te",
+      unit: "%",
+      defaultValue: "4"
+    }],
+    calculate: ({
+      rp,
+      rf,
+      rm,
+      beta,
+      sigma,
+      rb,
+      te
+    }) => {
+      const sr = (rp - rf) / sigma;
+      const tr = (rp - rf) / beta;
+      const alpha = rp - (rf + beta * (rm - rf));
+      const ir = (rp - rb) / te;
+      return {
+        results: [{
+          label: "シャープレシオ",
+          value: sr.toFixed(3),
+          unit: "",
+          color: COLORS.primary
+        }, {
+          label: "トレイナーレシオ",
+          value: tr.toFixed(3),
+          unit: "",
+          color
+        }, {
+          label: "ジェンセンのα",
+          value: alpha.toFixed(2),
+          unit: "%",
+          color: alpha >= 0 ? COLORS.secondary : COLORS.danger
+        }, {
+          label: "情報レシオ(IR)",
+          value: ir.toFixed(3),
+          unit: "",
+          color: COLORS.accent
+        }],
+        steps: [`シャープ = (${rp}−${rf}) / ${sigma} = ${sr.toFixed(3)}`, `トレイナー = (${rp}−${rf}) / ${beta} = ${tr.toFixed(3)}`, `CAPM期待R = ${rf}+${beta}×(${rm}−${rf}) = ${(rf + beta * (rm - rf)).toFixed(2)}%`, `ジェンセンα = ${rp} − ${(rf + beta * (rm - rf)).toFixed(2)} = ${alpha.toFixed(2)}%`, `IR = (${rp}−${rb}) / ${te} = ${ir.toFixed(3)}`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
         rp,
         rf,
         rm,
@@ -5603,134 +5309,84 @@ function PortfolioSectionD({
         sigma,
         rb,
         te
-      }) => {
-        const sr = (rp - rf) / sigma;
-        const tr = (rp - rf) / beta;
-        const alpha = rp - (rf + beta * (rm - rf));
-        const ir = (rp - rb) / te;
-        return {
-          results: [{
-            label: "シャープレシオ",
-            value: sr.toFixed(3),
-            unit: "",
-            color: COLORS.primary
-          }, {
-            label: "トレイナーレシオ",
-            value: tr.toFixed(3),
-            unit: "",
-            color
-          }, {
-            label: "ジェンセンのα",
-            value: alpha.toFixed(2),
-            unit: "%",
-            color: alpha >= 0 ? COLORS.secondary : COLORS.danger
-          }, {
-            label: "情報レシオ(IR)",
-            value: ir.toFixed(3),
-            unit: "",
-            color: COLORS.accent
-          }],
-          steps: [`シャープ = (${rp}−${rf}) / ${sigma} = ${sr.toFixed(3)}`, `トレイナー = (${rp}−${rf}) / ${beta} = ${tr.toFixed(3)}`, `CAPM期待R = ${rf}+${beta}×(${rm}−${rf}) = ${(rf + beta * (rm - rf)).toFixed(2)}%`, `ジェンセンα = ${rp} − ${(rf + beta * (rm - rf)).toFixed(2)} = ${alpha.toFixed(2)}%`, `IR = (${rp}−${rb}) / ${te} = ${ir.toFixed(3)}`]
-        };
-      },
-      chartBuilder: vals => {
-        const {
-          rp,
-          rf,
-          rm,
-          beta,
-          sigma,
-          rb,
-          te
-        } = vals;
-        const metrics = [{
-          name: "シャープ",
-          value: parseFloat(((rp - rf) / sigma).toFixed(3))
-        }, {
-          name: "トレイナー",
-          value: parseFloat(((rp - rf) / beta).toFixed(3))
-        }, {
-          name: "α(%)",
-          value: parseFloat((rp - (rf + beta * (rm - rf))).toFixed(2))
-        }, {
-          name: "IR",
-          value: parseFloat(((rp - rb) / te).toFixed(3))
-        }];
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u6307\u6A19\u6BD4\u8F03",
-          color: color,
-          height: 160,
-          children: /*#__PURE__*/_jsxs(BarChart, {
-            data: metrics,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -10,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "name",
-              tick: {
-                fontSize: 11
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(Tooltip, {}), /*#__PURE__*/_jsx(ReferenceLine, {
-              y: 0,
-              stroke: COLORS.danger
-            }), /*#__PURE__*/_jsx(Bar, {
-              dataKey: "value",
-              name: "\u5024",
-              radius: [4, 4, 0, 0],
-              fill: color
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u30B7\u30E3\u30FC\u30D7 vs \u30C8\u30EC\u30A4\u30CA\u30FC \u2014 \u4F7F\u3044\u5206\u3051",
-      color: COLORS.primary,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"
-      }), "\uFF1A\u5206\u6563\u3055\u308C\u3066\u3044\u306A\u3044PF\u306E\u8A55\u4FA1\u306B\u9069\u5207\uFF08\u03C3=\u5168\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA"
-      }), "\uFF1A\u5B8C\u5168\u306B\u5206\u6563\u6E08\u307FPF\u306E\u8A55\u4FA1\u306B\u9069\u5207\uFF08\u03B2=\u5E02\u5834\u30EA\u30B9\u30AF\u306E\u307F\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2192 \u500B\u5225\u6295\u8CC7\u5BB6\u306EPF\u5168\u4F53\u8A55\u4FA1\u306F\u30B7\u30E3\u30FC\u30D7\u3001\u6295\u8CC7\u4FE1\u8A17\u306A\u3069\u90E8\u5206\u7684\u306B\u4FDD\u6709\u3059\u308B\u5834\u5408\u306F\u30C8\u30EC\u30A4\u30CA\u30FC"]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["ジェンセンのα > 0 → CAPM予測を上回った（運用が優秀）", "情報レシオ > 0.5 → アクティブ運用として優秀", "シャープ: 分母はσ（全リスク）, トレイナー: 分母はβ（市場リスク）", "IR: ベンチマーク超過リターン÷トラッキングエラー"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPFD: !s._quizPFD
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（8問）"
-    }), state._quizPFD && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: [...PORTFOLIO_QUIZZES.C.slice(4), ...PORTFOLIO_QUIZZES.D],
-      tabId: "portfolio",
-      sectionId: "D",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+      } = vals;
+      const metrics = [{
+        name: "シャープ",
+        value: parseFloat(((rp - rf) / sigma).toFixed(3))
+      }, {
+        name: "トレイナー",
+        value: parseFloat(((rp - rf) / beta).toFixed(3))
+      }, {
+        name: "α(%)",
+        value: parseFloat((rp - (rf + beta * (rm - rf))).toFixed(2))
+      }, {
+        name: "IR",
+        value: parseFloat(((rp - rb) / te).toFixed(3))
+      }];
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u6307\u6A19\u6BD4\u8F03",
+        color: color,
+        height: 160
+      }, /*#__PURE__*/React.createElement(BarChart, {
+        data: metrics,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -10,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "name",
+        tick: {
+          fontSize: 11
+        }
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(Tooltip, null), /*#__PURE__*/React.createElement(ReferenceLine, {
+        y: 0,
+        stroke: COLORS.danger
+      }), /*#__PURE__*/React.createElement(Bar, {
+        dataKey: "value",
+        name: "\u5024",
+        radius: [4, 4, 0, 0],
+        fill: color
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30B7\u30E3\u30FC\u30D7 vs \u30C8\u30EC\u30A4\u30CA\u30FC \u2014 \u4F7F\u3044\u5206\u3051",
+    color: COLORS.primary
+  }, /*#__PURE__*/React.createElement("strong", null, "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"), "\uFF1A\u5206\u6563\u3055\u308C\u3066\u3044\u306A\u3044PF\u306E\u8A55\u4FA1\u306B\u9069\u5207\uFF08\u03C3=\u5168\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA"), "\uFF1A\u5B8C\u5168\u306B\u5206\u6563\u6E08\u307FPF\u306E\u8A55\u4FA1\u306B\u9069\u5207\uFF08\u03B2=\u5E02\u5834\u30EA\u30B9\u30AF\u306E\u307F\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2192 \u500B\u5225\u6295\u8CC7\u5BB6\u306EPF\u5168\u4F53\u8A55\u4FA1\u306F\u30B7\u30E3\u30FC\u30D7\u3001\u6295\u8CC7\u4FE1\u8A17\u306A\u3069\u90E8\u5206\u7684\u306B\u4FDD\u6709\u3059\u308B\u5834\u5408\u306F\u30C8\u30EC\u30A4\u30CA\u30FC"), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["ジェンセンのα > 0 → CAPM予測を上回った（運用が優秀）", "情報レシオ > 0.5 → アクティブ運用として優秀", "シャープ: 分母はσ（全リスク）, トレイナー: 分母はβ（市場リスク）", "IR: ベンチマーク超過リターン÷トラッキングエラー"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPFD: !s._quizPFD
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（8問）"), state._quizPFD && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: [...PORTFOLIO_QUIZZES.C.slice(4), ...PORTFOLIO_QUIZZES.D],
+    tabId: "portfolio",
+    sectionId: "D",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- ③ポートフォリオ理論タブ本体 ---
@@ -5756,25 +5412,25 @@ function PortfolioTab({
   const renderSection = () => {
     switch (section) {
       case "A":
-        return /*#__PURE__*/_jsx(PortfolioSectionA, {
+        return /*#__PURE__*/React.createElement(PortfolioSectionA, {
           color: color,
           state: state,
           setState: setState
         });
       case "B":
-        return /*#__PURE__*/_jsx(PortfolioSectionB, {
+        return /*#__PURE__*/React.createElement(PortfolioSectionB, {
           color: color,
           state: state,
           setState: setState
         });
       case "C":
-        return /*#__PURE__*/_jsx(PortfolioSectionC, {
+        return /*#__PURE__*/React.createElement(PortfolioSectionC, {
           color: color,
           state: state,
           setState: setState
         });
       case "D":
-        return /*#__PURE__*/_jsx(PortfolioSectionD, {
+        return /*#__PURE__*/React.createElement(PortfolioSectionD, {
           color: color,
           state: state,
           setState: setState
@@ -5783,28 +5439,27 @@ function PortfolioTab({
         return null;
     }
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u7406\u8AD6",
-      subtitle: "\u5206\u6563\u6295\u8CC7\u30FB\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u30FBCAPM\u30FB\u8A55\u4FA1\u6307\u6A19",
-      color: color,
-      icon: TrendingUp
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: PF_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "portfolio",
-      sections: PF_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), renderSection()]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u7406\u8AD6",
+    subtitle: "\u5206\u6563\u6295\u8CC7\u30FB\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u30FBCAPM\u30FB\u8A55\u4FA1\u6307\u6A19",
+    color: color,
+    icon: TrendingUp
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: PF_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "portfolio",
+    sections: PF_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), renderSection());
 }
 
 // ============================================================
@@ -5818,186 +5473,170 @@ function ProductsSectionA({
   setState
 }) {
   const done = state.progress.products?.A;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u682A\u5F0F\u306E\u4E3B\u8981\u8A55\u4FA1\u6307\u6A19",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "PER"
-      }), " = \u682A\u4FA1 / EPS\u3000\uFF08\u4F4E\u3044\u307B\u3069\u5272\u5B89\u30FB\u696D\u7A2E\u6BD4\u8F03\u304C\u91CD\u8981\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "PBR"
-      }), " = \u682A\u4FA1 / BPS\u3000\uFF081\u500D\u5272\u308C = \u89E3\u6563\u4FA1\u5024\u4EE5\u4E0B\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "ROE"
-      }), " = \u7D14\u5229\u76CA / \u81EA\u5DF1\u8CC7\u672C\u3000\uFF08\u30C7\u30E5\u30DD\u30F3: \u7D14\u5229\u76CA\u7387\xD7\u7DCF\u8CC7\u7523\u56DE\u8EE2\u7387\xD7\u8CA1\u52D9\u30EC\u30D0\u30EC\u30C3\u30B8\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "DDM\u5B9A\u7387\u6210\u9577"
-      }), "\uFF1AP = D1 / (r \u2212 g)"]
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "PER\u30FBPBR\u30FB\u914D\u5F53\u5229\u56DE\u308A\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "株価",
-        key: "price",
-        unit: "円",
-        defaultValue: "2000"
-      }, {
-        label: "EPS（1株利益）",
-        key: "eps",
-        unit: "円",
-        defaultValue: "150"
-      }, {
-        label: "BPS（1株純資産）",
-        key: "bps",
-        unit: "円",
-        defaultValue: "1200"
-      }, {
-        label: "1株配当",
-        key: "div",
-        unit: "円",
-        defaultValue: "40"
-      }],
-      calculate: ({
-        price,
-        eps,
-        bps,
-        div
-      }) => {
-        const per = eps > 0 ? price / eps : null;
-        const pbr = bps > 0 ? price / bps : null;
-        const dy = price > 0 ? div / price * 100 : null;
-        return {
-          results: [{
-            label: "PER",
-            value: per?.toFixed(1) ?? "−",
-            unit: "倍",
-            color
-          }, {
-            label: "PBR",
-            value: pbr?.toFixed(2) ?? "−",
-            unit: "倍",
-            color: COLORS.secondary
-          }, {
-            label: "配当利回り",
-            value: dy?.toFixed(2) ?? "−",
-            unit: "%",
-            color: COLORS.accent
-          }],
-          steps: [`PER = ${price} / ${eps} = ${per?.toFixed(1)}倍`, `PBR = ${price} / ${bps} = ${pbr?.toFixed(2)}倍 ${pbr < 1 ? "（解散価値以下）" : ""}`, `配当利回り = ${div} / ${price} × 100 = ${dy?.toFixed(2)}%`]
-        };
-      }
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "DDM\uFF08\u914D\u5F53\u5272\u5F15\u30E2\u30C7\u30EB\uFF09\u7406\u8AD6\u682A\u4FA1",
-      accentColor: COLORS.secondary,
-      inputs: [{
-        label: "来期配当 D1",
-        key: "d1",
-        unit: "円",
-        defaultValue: "100"
-      }, {
-        label: "割引率 r",
-        key: "r",
-        unit: "%",
-        defaultValue: "8"
-      }, {
-        label: "成長率 g",
-        key: "g",
-        unit: "%",
-        defaultValue: "3"
-      }],
-      calculate: ({
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u682A\u5F0F\u306E\u4E3B\u8981\u8A55\u4FA1\u6307\u6A19",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "PER"), " = \u682A\u4FA1 / EPS\u3000\uFF08\u4F4E\u3044\u307B\u3069\u5272\u5B89\u30FB\u696D\u7A2E\u6BD4\u8F03\u304C\u91CD\u8981\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "PBR"), " = \u682A\u4FA1 / BPS\u3000\uFF081\u500D\u5272\u308C = \u89E3\u6563\u4FA1\u5024\u4EE5\u4E0B\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "ROE"), " = \u7D14\u5229\u76CA / \u81EA\u5DF1\u8CC7\u672C\u3000\uFF08\u30C7\u30E5\u30DD\u30F3: \u7D14\u5229\u76CA\u7387\xD7\u7DCF\u8CC7\u7523\u56DE\u8EE2\u7387\xD7\u8CA1\u52D9\u30EC\u30D0\u30EC\u30C3\u30B8\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "DDM\u5B9A\u7387\u6210\u9577"), "\uFF1AP = D1 / (r \u2212 g)"), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "PER\u30FBPBR\u30FB\u914D\u5F53\u5229\u56DE\u308A\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "株価",
+      key: "price",
+      unit: "円",
+      defaultValue: "2000"
+    }, {
+      label: "EPS（1株利益）",
+      key: "eps",
+      unit: "円",
+      defaultValue: "150"
+    }, {
+      label: "BPS（1株純資産）",
+      key: "bps",
+      unit: "円",
+      defaultValue: "1200"
+    }, {
+      label: "1株配当",
+      key: "div",
+      unit: "円",
+      defaultValue: "40"
+    }],
+    calculate: ({
+      price,
+      eps,
+      bps,
+      div
+    }) => {
+      const per = eps > 0 ? price / eps : null;
+      const pbr = bps > 0 ? price / bps : null;
+      const dy = price > 0 ? div / price * 100 : null;
+      return {
+        results: [{
+          label: "PER",
+          value: per?.toFixed(1) ?? "−",
+          unit: "倍",
+          color
+        }, {
+          label: "PBR",
+          value: pbr?.toFixed(2) ?? "−",
+          unit: "倍",
+          color: COLORS.secondary
+        }, {
+          label: "配当利回り",
+          value: dy?.toFixed(2) ?? "−",
+          unit: "%",
+          color: COLORS.accent
+        }],
+        steps: [`PER = ${price} / ${eps} = ${per?.toFixed(1)}倍`, `PBR = ${price} / ${bps} = ${pbr?.toFixed(2)}倍 ${pbr < 1 ? "（解散価値以下）" : ""}`, `配当利回り = ${div} / ${price} × 100 = ${dy?.toFixed(2)}%`]
+      };
+    }
+  }), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "DDM\uFF08\u914D\u5F53\u5272\u5F15\u30E2\u30C7\u30EB\uFF09\u7406\u8AD6\u682A\u4FA1",
+    accentColor: COLORS.secondary,
+    inputs: [{
+      label: "来期配当 D1",
+      key: "d1",
+      unit: "円",
+      defaultValue: "100"
+    }, {
+      label: "割引率 r",
+      key: "r",
+      unit: "%",
+      defaultValue: "8"
+    }, {
+      label: "成長率 g",
+      key: "g",
+      unit: "%",
+      defaultValue: "3"
+    }],
+    calculate: ({
+      d1,
+      r,
+      g
+    }) => {
+      if (r <= g) return {
+        error: "r > g が必要です（割引率 > 成長率）"
+      };
+      const p = d1 / ((r - g) / 100);
+      return {
+        results: [{
+          label: "理論株価",
+          value: p.toFixed(0),
+          unit: "円",
+          color: COLORS.secondary
+        }],
+        steps: [`P = D1 / (r − g) = ${d1} / (${r}% − ${g}%)`, `= ${d1} / ${((r - g) / 100).toFixed(2)} = ${p.toFixed(0)}円`, `r−g が小さいほど（成長率が割引率に近いほど）株価は高くなる`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
         d1,
-        r,
-        g
-      }) => {
-        if (r <= g) return {
-          error: "r > g が必要です（割引率 > 成長率）"
-        };
-        const p = d1 / ((r - g) / 100);
-        return {
-          results: [{
-            label: "理論株価",
-            value: p.toFixed(0),
-            unit: "円",
-            color: COLORS.secondary
-          }],
-          steps: [`P = D1 / (r − g) = ${d1} / (${r}% − ${g}%)`, `= ${d1} / ${((r - g) / 100).toFixed(2)} = ${p.toFixed(0)}円`, `r−g が小さいほど（成長率が割引率に近いほど）株価は高くなる`]
-        };
-      },
-      chartBuilder: vals => {
-        const {
-          d1,
-          r
-        } = vals;
-        const data = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(g => ({
-          g: `${g}%`,
-          price: r > g ? Math.round(d1 / ((r - g) / 100)) : null
-        })).filter(d => d.price !== null && d.price < 20000);
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u6210\u9577\u7387 g \u306E\u5909\u5316\u3068\u7406\u8AD6\u682A\u4FA1",
-          color: COLORS.secondary,
-          height: 160,
-          children: /*#__PURE__*/_jsxs(BarChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -10,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "g",
-              tick: {
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              },
-              unit: "\u5186"
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}円`
-            }), /*#__PURE__*/_jsx(Bar, {
-              dataKey: "price",
-              name: "\u7406\u8AD6\u682A\u4FA1",
-              fill: COLORS.secondary,
-              radius: [4, 4, 0, 0]
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["PBR < 1：解散価値以下だが、構造的問題がある場合も", "ROEデュポン分解：純利益率×総資産回転率×財務レバレッジ", "DDM：r > g が必須条件。gがrに近づくほど理論株価は急騰", "グロース株（高PER・高成長期待）vs バリュー株（低PER・割安）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPRA: !s._quizPRA
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（6問）"
-    }), state._quizPRA && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PRODUCTS_QUIZZES.A,
-      tabId: "products",
-      sectionId: "A",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+        r
+      } = vals;
+      const data = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(g => ({
+        g: `${g}%`,
+        price: r > g ? Math.round(d1 / ((r - g) / 100)) : null
+      })).filter(d => d.price !== null && d.price < 20000);
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u6210\u9577\u7387 g \u306E\u5909\u5316\u3068\u7406\u8AD6\u682A\u4FA1",
+        color: COLORS.secondary,
+        height: 160
+      }, /*#__PURE__*/React.createElement(BarChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -10,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "g",
+        tick: {
+          fontSize: 10
+        }
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        },
+        unit: "\u5186"
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => `${v}円`
+      }), /*#__PURE__*/React.createElement(Bar, {
+        dataKey: "price",
+        name: "\u7406\u8AD6\u682A\u4FA1",
+        fill: COLORS.secondary,
+        radius: [4, 4, 0, 0]
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["PBR < 1：解散価値以下だが、構造的問題がある場合も", "ROEデュポン分解：純利益率×総資産回転率×財務レバレッジ", "DDM：r > g が必須条件。gがrに近づくほど理論株価は急騰", "グロース株（高PER・高成長期待）vs バリュー株（低PER・割安）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPRA: !s._quizPRA
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（6問）"), state._quizPRA && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PRODUCTS_QUIZZES.A,
+    tabId: "products",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションB: 債券投資 ---
@@ -6022,146 +5661,130 @@ function ProductsSectionB({
       };
     });
   })();
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u50B5\u5238\u306E\u57FA\u672C\u3068\u91D1\u5229\u306E\u9006\u76F8\u95A2",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u50B5\u5238\u4FA1\u683C"
-      }), " = \u03A3 \u30AF\u30FC\u30DD\u30F3/(1+r)^t + \u984D\u9762/(1+r)^n", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u91D1\u5229\u2191 \u2192 \u50B5\u5238\u4FA1\u683C\u2193"
-      }), "\uFF08\u9006\u76F8\u95A2\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"
-      }), "\uFF1A\u30AD\u30E3\u30C3\u30B7\u30E5\u30D5\u30ED\u30FC\u306E\u52A0\u91CD\u5E73\u5747\u6B8B\u5B58\u671F\u9593\uFF08\u2260\u6B8B\u5B58\u671F\u9593\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u4FEE\u6B63\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"
-      }), "\uFF1A\u0394P/P \u2248 \u2212\u4FEE\u6B63D \xD7 \u0394r"]
-    }), /*#__PURE__*/_jsx(ChartCard, {
-      title: "\u91D1\u5229\u5909\u5316\u3068\u50B5\u5238\u4FA1\u683C\u306E\u95A2\u4FC2\uFF08\u30AF\u30FC\u30DD\u30F33%\u30FB10\u5E74\u30FB\u984D\u9762100\u5186\uFF09",
-      color: color,
-      height: 180,
-      children: /*#__PURE__*/_jsxs(LineChart, {
-        data: bondPriceData,
-        margin: {
-          top: 4,
-          right: 20,
-          left: -10,
-          bottom: 0
-        },
-        children: [/*#__PURE__*/_jsx(CartesianGrid, {
-          strokeDasharray: "3 3",
-          stroke: COLORS.border
-        }), /*#__PURE__*/_jsx(XAxis, {
-          dataKey: "rate",
-          tick: {
-            fontSize: 10
-          },
-          label: {
-            value: "市場金利",
-            position: "insideBottom",
-            offset: -2,
-            fontSize: 10
-          }
-        }), /*#__PURE__*/_jsx(YAxis, {
-          tick: {
-            fontSize: 9
-          },
-          unit: "\u5186",
-          domain: [60, 130]
-        }), /*#__PURE__*/_jsx(Tooltip, {
-          formatter: v => `${v}円`
-        }), /*#__PURE__*/_jsx(ReferenceLine, {
-          y: 100,
-          stroke: COLORS.textMuted,
-          strokeDasharray: "3 3",
-          label: {
-            value: "額面100円",
-            position: "insideRight",
-            fontSize: 9
-          }
-        }), /*#__PURE__*/_jsx(Line, {
-          type: "monotone",
-          dataKey: "price",
-          name: "\u50B5\u5238\u4FA1\u683C",
-          stroke: color,
-          strokeWidth: 2.5,
-          dot: {
-            r: 4,
-            fill: color
-          }
-        })]
-      })
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u4FEE\u6B63\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3 \u4FA1\u683C\u5909\u52D5\u8A08\u7B97",
-      accentColor: color,
-      inputs: [{
-        label: "修正デュレーション",
-        key: "dur",
-        unit: "年",
-        defaultValue: "7"
-      }, {
-        label: "金利変化 Δr",
-        key: "dr",
-        unit: "%",
-        defaultValue: "0.5"
-      }, {
-        label: "債券価格（現在）",
-        key: "p0",
-        unit: "円",
-        defaultValue: "105"
-      }],
-      calculate: ({
-        dur,
-        dr,
-        p0
-      }) => {
-        const changeRate = -dur * (dr / 100);
-        const newPrice = p0 * (1 + changeRate);
-        return {
-          results: [{
-            label: "価格変化率",
-            value: (changeRate * 100).toFixed(3),
-            unit: "%",
-            color
-          }, {
-            label: "変化後価格",
-            value: newPrice.toFixed(2),
-            unit: "円",
-            color: COLORS.secondary
-          }],
-          steps: [`ΔP/P ≈ −修正D × Δr = −${dur} × ${dr / 100} = ${(changeRate * 100).toFixed(3)}%`, `価格変化 = ${p0} × ${(changeRate * 100).toFixed(3)}% = ${(p0 * changeRate).toFixed(2)}円`, `変化後価格 = ${p0} + ${(p0 * changeRate).toFixed(2)} = ${newPrice.toFixed(2)}円`, `デュレーションが長い → 金利変動の影響が大きい`]
-        };
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["デュレーション ≠ 残存期間（キャッシュフローの加重平均残存期間）", "クーポン低い・残存期間長い → デュレーション長い → 金利感応度大", "修正デュレーション × 金利変化 = 価格変化率（マイナス符号に注意）", "YTM（最終利回り）はクーポン収入＋償還差益/損を含む年率利回り"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPRB: !s._quizPRB
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（4問）"
-    }), state._quizPRB && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PRODUCTS_QUIZZES.B,
-      tabId: "products",
-      sectionId: "B",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u50B5\u5238\u306E\u57FA\u672C\u3068\u91D1\u5229\u306E\u9006\u76F8\u95A2",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u50B5\u5238\u4FA1\u683C"), " = \u03A3 \u30AF\u30FC\u30DD\u30F3/(1+r)^t + \u984D\u9762/(1+r)^n", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u91D1\u5229\u2191 \u2192 \u50B5\u5238\u4FA1\u683C\u2193"), "\uFF08\u9006\u76F8\u95A2\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u30AD\u30E3\u30C3\u30B7\u30E5\u30D5\u30ED\u30FC\u306E\u52A0\u91CD\u5E73\u5747\u6B8B\u5B58\u671F\u9593\uFF08\u2260\u6B8B\u5B58\u671F\u9593\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FEE\u6B63\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u0394P/P \u2248 \u2212\u4FEE\u6B63D \xD7 \u0394r"), /*#__PURE__*/React.createElement(ChartCard, {
+    title: "\u91D1\u5229\u5909\u5316\u3068\u50B5\u5238\u4FA1\u683C\u306E\u95A2\u4FC2\uFF08\u30AF\u30FC\u30DD\u30F33%\u30FB10\u5E74\u30FB\u984D\u9762100\u5186\uFF09",
+    color: color,
+    height: 180
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    data: bondPriceData,
+    margin: {
+      top: 4,
+      right: 20,
+      left: -10,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "rate",
+    tick: {
+      fontSize: 10
+    },
+    label: {
+      value: "市場金利",
+      position: "insideBottom",
+      offset: -2,
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    },
+    unit: "\u5186",
+    domain: [60, 130]
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}円`
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    y: 100,
+    stroke: COLORS.textMuted,
+    strokeDasharray: "3 3",
+    label: {
+      value: "額面100円",
+      position: "insideRight",
+      fontSize: 9
+    }
+  }), /*#__PURE__*/React.createElement(Line, {
+    type: "monotone",
+    dataKey: "price",
+    name: "\u50B5\u5238\u4FA1\u683C",
+    stroke: color,
+    strokeWidth: 2.5,
+    dot: {
+      r: 4,
+      fill: color
+    }
+  }))), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u4FEE\u6B63\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3 \u4FA1\u683C\u5909\u52D5\u8A08\u7B97",
+    accentColor: color,
+    inputs: [{
+      label: "修正デュレーション",
+      key: "dur",
+      unit: "年",
+      defaultValue: "7"
+    }, {
+      label: "金利変化 Δr",
+      key: "dr",
+      unit: "%",
+      defaultValue: "0.5"
+    }, {
+      label: "債券価格（現在）",
+      key: "p0",
+      unit: "円",
+      defaultValue: "105"
+    }],
+    calculate: ({
+      dur,
+      dr,
+      p0
+    }) => {
+      const changeRate = -dur * (dr / 100);
+      const newPrice = p0 * (1 + changeRate);
+      return {
+        results: [{
+          label: "価格変化率",
+          value: (changeRate * 100).toFixed(3),
+          unit: "%",
+          color
+        }, {
+          label: "変化後価格",
+          value: newPrice.toFixed(2),
+          unit: "円",
+          color: COLORS.secondary
+        }],
+        steps: [`ΔP/P ≈ −修正D × Δr = −${dur} × ${dr / 100} = ${(changeRate * 100).toFixed(3)}%`, `価格変化 = ${p0} × ${(changeRate * 100).toFixed(3)}% = ${(p0 * changeRate).toFixed(2)}円`, `変化後価格 = ${p0} + ${(p0 * changeRate).toFixed(2)} = ${newPrice.toFixed(2)}円`, `デュレーションが長い → 金利変動の影響が大きい`]
+      };
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["デュレーション ≠ 残存期間（キャッシュフローの加重平均残存期間）", "クーポン低い・残存期間長い → デュレーション長い → 金利感応度大", "修正デュレーション × 金利変化 = 価格変化率（マイナス符号に注意）", "YTM（最終利回り）はクーポン収入＋償還差益/損を含む年率利回り"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPRB: !s._quizPRB
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（4問）"), state._quizPRB && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PRODUCTS_QUIZZES.B,
+    tabId: "products",
+    sectionId: "B",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションC: 外国証券・為替 ---
@@ -6171,130 +5794,116 @@ function ProductsSectionC({
   setState
 }) {
   const done = state.progress.products?.C;
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u5916\u56FD\u8A3C\u5238\u6295\u8CC7\u3068\u70BA\u66FF\u30EA\u30B9\u30AF",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3"
-      }), "\uFF1AR\u5186 = (1+R\u5916\u8CA8)(1+R\u70BA\u66FF) \u2212 1 \u2248 R\u5916\u8CA8 + R\u70BA\u66FF", /*#__PURE__*/_jsx("br", {}), "\u5186\u9AD8\uFF08R\u70BA\u66FF < 0\uFF09\u2192 \u5916\u8CA8\u5EFA\u3066\u8CC7\u7523\u306E\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u3092\u62BC\u3057\u4E0B\u3052\u308B", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30AB\u30D0\u30FC\u4ED8\u304DIRP"
-      }), "\uFF1AF/S = (1+r\u56FD\u5185)/(1+r\u5916\u56FD)\u3000\u2192 \u30D8\u30C3\u30B8\u30B3\u30B9\u30C8\u2252\u91D1\u5229\u5DEE", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u30A2\u30F3\u30AB\u30D0\u30FC\u30C9IRP"
-      }), "\uFF1A\u9AD8\u91D1\u5229\u901A\u8CA8\u306F\u5C06\u6765\u7684\u306B\u4E0B\u843D\u3059\u308B\u50BE\u5411"]
-    }), /*#__PURE__*/_jsx(CalcComponent, {
-      formulaName: "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
-      accentColor: color,
-      inputs: [{
-        label: "外貨建てリターン",
-        key: "rf",
-        unit: "%",
-        defaultValue: "8"
-      }, {
-        label: "為替変動率",
-        key: "rex",
-        unit: "%",
-        defaultValue: "-3"
-      }],
-      calculate: ({
-        rf,
-        rex
-      }) => {
-        const exact = ((1 + rf / 100) * (1 + rex / 100) - 1) * 100;
-        const approx = rf + rex;
-        return {
-          results: [{
-            label: "円換算R（正確）",
-            value: exact.toFixed(3),
-            unit: "%",
-            color
-          }, {
-            label: "近似値",
-            value: approx.toFixed(2),
-            unit: "%",
-            color: COLORS.secondary
-          }],
-          steps: [`正確：(1 + ${rf / 100})(1 + ${rex / 100}) − 1 = ${exact.toFixed(3)}%`, `近似：${rf}% + (${rex}%) = ${approx.toFixed(2)}%`, `誤差：${(exact - approx).toFixed(3)}%（交差項 R外貨×R為替）`, rex < 0 ? `円高のため外貨建てリターンが目減りしています` : `円安のため外貨建てリターンが上乗せされています`]
-        };
-      },
-      chartBuilder: vals => {
-        const {
-          rf
-        } = vals;
-        const data = [-15, -10, -5, 0, 5, 10, 15].map(rex => ({
-          rex: `${rex}%`,
-          exact: parseFloat(((1 + rf / 100) * (1 + rex / 100) - 1) * 100).toFixed(2)
-        }));
-        return /*#__PURE__*/_jsx(ChartCard, {
-          title: "\u70BA\u66FF\u5909\u52D5\u3068\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3",
-          color: color,
-          height: 150,
-          children: /*#__PURE__*/_jsxs(BarChart, {
-            data: data,
-            margin: {
-              top: 4,
-              right: 8,
-              left: -10,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(CartesianGrid, {
-              strokeDasharray: "3 3",
-              stroke: COLORS.border
-            }), /*#__PURE__*/_jsx(XAxis, {
-              dataKey: "rex",
-              tick: {
-                fontSize: 9
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              tick: {
-                fontSize: 9
-              },
-              unit: "%"
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}%`
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              y: 0,
-              stroke: COLORS.danger
-            }), /*#__PURE__*/_jsx(Bar, {
-              dataKey: "exact",
-              name: "\u5186\u63DB\u7B97R",
-              radius: [4, 4, 0, 0],
-              fill: color
-            })]
-          })
-        });
-      }
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["円高（為替マイナス）→ 外貨建て資産の円換算リターン低下", "ヘッジコスト ≒ 国内金利 − 外国金利（カバー付き金利平価）", "高金利通貨は将来下落する傾向（アンカバードIRP）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPRC: !s._quizPRC
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（2問）"
-    }), state._quizPRC && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PRODUCTS_QUIZZES.C,
-      tabId: "products",
-      sectionId: "C",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u5916\u56FD\u8A3C\u5238\u6295\u8CC7\u3068\u70BA\u66FF\u30EA\u30B9\u30AF",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3"), "\uFF1AR\u5186 = (1+R\u5916\u8CA8)(1+R\u70BA\u66FF) \u2212 1 \u2248 R\u5916\u8CA8 + R\u70BA\u66FF", /*#__PURE__*/React.createElement("br", null), "\u5186\u9AD8\uFF08R\u70BA\u66FF < 0\uFF09\u2192 \u5916\u8CA8\u5EFA\u3066\u8CC7\u7523\u306E\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u3092\u62BC\u3057\u4E0B\u3052\u308B", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30AB\u30D0\u30FC\u4ED8\u304DIRP"), "\uFF1AF/S = (1+r\u56FD\u5185)/(1+r\u5916\u56FD)\u3000\u2192 \u30D8\u30C3\u30B8\u30B3\u30B9\u30C8\u2252\u91D1\u5229\u5DEE", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30F3\u30AB\u30D0\u30FC\u30C9IRP"), "\uFF1A\u9AD8\u91D1\u5229\u901A\u8CA8\u306F\u5C06\u6765\u7684\u306B\u4E0B\u843D\u3059\u308B\u50BE\u5411"), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
+    accentColor: color,
+    inputs: [{
+      label: "外貨建てリターン",
+      key: "rf",
+      unit: "%",
+      defaultValue: "8"
+    }, {
+      label: "為替変動率",
+      key: "rex",
+      unit: "%",
+      defaultValue: "-3"
+    }],
+    calculate: ({
+      rf,
+      rex
+    }) => {
+      const exact = ((1 + rf / 100) * (1 + rex / 100) - 1) * 100;
+      const approx = rf + rex;
+      return {
+        results: [{
+          label: "円換算R（正確）",
+          value: exact.toFixed(3),
+          unit: "%",
+          color
+        }, {
+          label: "近似値",
+          value: approx.toFixed(2),
+          unit: "%",
+          color: COLORS.secondary
+        }],
+        steps: [`正確：(1 + ${rf / 100})(1 + ${rex / 100}) − 1 = ${exact.toFixed(3)}%`, `近似：${rf}% + (${rex}%) = ${approx.toFixed(2)}%`, `誤差：${(exact - approx).toFixed(3)}%（交差項 R外貨×R為替）`, rex < 0 ? `円高のため外貨建てリターンが目減りしています` : `円安のため外貨建てリターンが上乗せされています`]
+      };
+    },
+    chartBuilder: vals => {
+      const {
+        rf
+      } = vals;
+      const data = [-15, -10, -5, 0, 5, 10, 15].map(rex => ({
+        rex: `${rex}%`,
+        exact: parseFloat(((1 + rf / 100) * (1 + rex / 100) - 1) * 100).toFixed(2)
+      }));
+      return /*#__PURE__*/React.createElement(ChartCard, {
+        title: "\u70BA\u66FF\u5909\u52D5\u3068\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3",
+        color: color,
+        height: 150
+      }, /*#__PURE__*/React.createElement(BarChart, {
+        data: data,
+        margin: {
+          top: 4,
+          right: 8,
+          left: -10,
+          bottom: 0
+        }
+      }, /*#__PURE__*/React.createElement(CartesianGrid, {
+        strokeDasharray: "3 3",
+        stroke: COLORS.border
+      }), /*#__PURE__*/React.createElement(XAxis, {
+        dataKey: "rex",
+        tick: {
+          fontSize: 9
+        }
+      }), /*#__PURE__*/React.createElement(YAxis, {
+        tick: {
+          fontSize: 9
+        },
+        unit: "%"
+      }), /*#__PURE__*/React.createElement(Tooltip, {
+        formatter: v => `${v}%`
+      }), /*#__PURE__*/React.createElement(ReferenceLine, {
+        y: 0,
+        stroke: COLORS.danger
+      }), /*#__PURE__*/React.createElement(Bar, {
+        dataKey: "exact",
+        name: "\u5186\u63DB\u7B97R",
+        radius: [4, 4, 0, 0],
+        fill: color
+      })));
+    }
+  }), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["円高（為替マイナス）→ 外貨建て資産の円換算リターン低下", "ヘッジコスト ≒ 国内金利 − 外国金利（カバー付き金利平価）", "高金利通貨は将来下落する傾向（アンカバードIRP）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPRC: !s._quizPRC
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（2問）"), state._quizPRC && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PRODUCTS_QUIZZES.C,
+    tabId: "products",
+    sectionId: "C",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションD: 投資信託 ---
@@ -6320,144 +5929,126 @@ function ProductsSectionD({
     信託報酬: 1.5,
     留保額: 0.3
   }];
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs(InfoBox, {
-      title: "\u6295\u8CC7\u4FE1\u8A17\u306E\u30B3\u30B9\u30C8\u69CB\u9020",
-      color: color,
-      children: [/*#__PURE__*/_jsx("strong", {
-        children: "\u57FA\u6E96\u4FA1\u984D"
-      }), " = \u7D14\u8CC7\u7523\u7DCF\u984D / \u53D7\u76CA\u6A29\u7DCF\u53E3\u6570", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u8CFC\u5165\u6642\u624B\u6570\u6599"
-      }), "\uFF1A0\u301C3%\u7A0B\u5EA6\uFF08\u30CE\u30FC\u30ED\u30FC\u30C9\u3082\u5897\u52A0\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u4FE1\u8A17\u5831\u916C"
-      }), "\uFF1A\u5E740.1\u301C2%\u7A0B\u5EA6\uFF08\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u304C\u6709\u5229\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-        children: "\u4FE1\u8A17\u8CA1\u7523\u7559\u4FDD\u984D"
-      }), "\uFF1A\u89E3\u7D04\u6642\u30B3\u30B9\u30C8\uFF08\u6B8B\u5B58\u6295\u8CC7\u5BB6\u3092\u4FDD\u8B77\uFF09"]
-    }), /*#__PURE__*/_jsx(ChartCard, {
-      title: "\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9 vs \u30A2\u30AF\u30C6\u30A3\u30D6 \u30B3\u30B9\u30C8\u6BD4\u8F03\uFF08\u5E74\u7387%\uFF09",
-      color: color,
-      height: 180,
-      children: /*#__PURE__*/_jsxs(BarChart, {
-        data: costData,
-        margin: {
-          top: 4,
-          right: 8,
-          left: -10,
-          bottom: 40
-        },
-        children: [/*#__PURE__*/_jsx(CartesianGrid, {
-          strokeDasharray: "3 3",
-          stroke: COLORS.border
-        }), /*#__PURE__*/_jsx(XAxis, {
-          dataKey: "name",
-          tick: {
-            fontSize: 9
-          },
-          angle: -12,
-          textAnchor: "end"
-        }), /*#__PURE__*/_jsx(YAxis, {
-          tick: {
-            fontSize: 9
-          },
-          unit: "%"
-        }), /*#__PURE__*/_jsx(Tooltip, {
-          formatter: v => `${v}%`
-        }), /*#__PURE__*/_jsx(Legend, {
-          iconSize: 10,
-          wrapperStyle: {
-            fontSize: 10
-          },
-          verticalAlign: "top"
-        }), /*#__PURE__*/_jsx(Bar, {
-          dataKey: "\u8CFC\u5165\u6642",
-          stackId: "a",
-          fill: COLORS.primary,
-          radius: [0, 0, 0, 0]
-        }), /*#__PURE__*/_jsx(Bar, {
-          dataKey: "\u4FE1\u8A17\u5831\u916C",
-          stackId: "a",
-          fill: color,
-          radius: [0, 0, 0, 0]
-        }), /*#__PURE__*/_jsx(Bar, {
-          dataKey: "\u7559\u4FDD\u984D",
-          stackId: "a",
-          fill: COLORS.accent,
-          radius: [4, 4, 0, 0]
-        })]
-      })
-    }), [{
-      title: "インデックスファンド",
-      color: COLORS.secondary,
-      items: ["低コスト（信託報酬0.05〜0.5%）", "市場平均（ベンチマーク）を追跡", "長期的に市場を「超える」ことは目指さない", "効率的市場仮説：市場価格は情報を織り込み済み"]
-    }, {
-      title: "アクティブファンド",
-      color: COLORS.highlight,
-      items: ["高コスト（信託報酬1〜2%超）", "市場平均以上のリターンを目指す", "長期では過半数が市場平均に負ける（コスト差が主因）", "運用者の腕前とコストの両方に注目"]
-    }, {
-      title: "ETF（上場投信）",
-      color: COLORS.primary,
-      items: ["取引所でリアルタイム売買", "信託報酬が低い傾向（指数連動が多い）", "1日1回基準価額ではなく市場価格で取引", "分配金の取り扱いは商品によって異なる"]
-    }].map(item => /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        borderLeft: `4px solid ${item.color}`,
-        marginBottom: 10
-      },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 13,
-          fontWeight: 800,
-          color: item.color,
-          marginBottom: 6
-        },
-        children: item.title
-      }), item.items.map(it => /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 12,
-          color: COLORS.text,
-          marginBottom: 3,
-          display: "flex",
-          gap: 6
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            color: item.color,
-            fontWeight: 700
-          },
-          children: "\u2022"
-        }), it]
-      }, it))]
-    }, item.title)), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["インデックスファンドは市場平均を「超える」ことは目指さない（頻出ひっかけ）", "長期では過半のアクティブが市場平均以下（コスト差が複利で拡大）", "ETF：1日1回基準価額ではなくリアルタイム市場価格で売買", "信託財産留保額は解約時にかかるコスト（残存投資家保護）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPRD: !s._quizPRD
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（2問）"
-    }), state._quizPRD && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PRODUCTS_QUIZZES.D,
-      tabId: "products",
-      sectionId: "D",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u6295\u8CC7\u4FE1\u8A17\u306E\u30B3\u30B9\u30C8\u69CB\u9020",
+    color: color
+  }, /*#__PURE__*/React.createElement("strong", null, "\u57FA\u6E96\u4FA1\u984D"), " = \u7D14\u8CC7\u7523\u7DCF\u984D / \u53D7\u76CA\u6A29\u7DCF\u53E3\u6570", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u8CFC\u5165\u6642\u624B\u6570\u6599"), "\uFF1A0\u301C3%\u7A0B\u5EA6\uFF08\u30CE\u30FC\u30ED\u30FC\u30C9\u3082\u5897\u52A0\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FE1\u8A17\u5831\u916C"), "\uFF1A\u5E740.1\u301C2%\u7A0B\u5EA6\uFF08\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u304C\u6709\u5229\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FE1\u8A17\u8CA1\u7523\u7559\u4FDD\u984D"), "\uFF1A\u89E3\u7D04\u6642\u30B3\u30B9\u30C8\uFF08\u6B8B\u5B58\u6295\u8CC7\u5BB6\u3092\u4FDD\u8B77\uFF09"), /*#__PURE__*/React.createElement(ChartCard, {
+    title: "\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9 vs \u30A2\u30AF\u30C6\u30A3\u30D6 \u30B3\u30B9\u30C8\u6BD4\u8F03\uFF08\u5E74\u7387%\uFF09",
+    color: color,
+    height: 180
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: costData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -10,
+      bottom: 40
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "name",
+    tick: {
+      fontSize: 9
+    },
+    angle: -12,
+    textAnchor: "end"
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    },
+    unit: "%"
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Legend, {
+    iconSize: 10,
+    wrapperStyle: {
+      fontSize: 10
+    },
+    verticalAlign: "top"
+  }), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "\u8CFC\u5165\u6642",
+    stackId: "a",
+    fill: COLORS.primary,
+    radius: [0, 0, 0, 0]
+  }), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "\u4FE1\u8A17\u5831\u916C",
+    stackId: "a",
+    fill: color,
+    radius: [0, 0, 0, 0]
+  }), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "\u7559\u4FDD\u984D",
+    stackId: "a",
+    fill: COLORS.accent,
+    radius: [4, 4, 0, 0]
+  }))), [{
+    title: "インデックスファンド",
+    color: COLORS.secondary,
+    items: ["低コスト（信託報酬0.05〜0.5%）", "市場平均（ベンチマーク）を追跡", "長期的に市場を「超える」ことは目指さない", "効率的市場仮説：市場価格は情報を織り込み済み"]
+  }, {
+    title: "アクティブファンド",
+    color: COLORS.highlight,
+    items: ["高コスト（信託報酬1〜2%超）", "市場平均以上のリターンを目指す", "長期では過半数が市場平均に負ける（コスト差が主因）", "運用者の腕前とコストの両方に注目"]
+  }, {
+    title: "ETF（上場投信）",
+    color: COLORS.primary,
+    items: ["取引所でリアルタイム売買", "信託報酬が低い傾向（指数連動が多い）", "1日1回基準価額ではなく市場価格で取引", "分配金の取り扱いは商品によって異なる"]
+  }].map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.title,
+    style: {
+      ...STYLES.card,
+      borderLeft: `4px solid ${item.color}`,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 800,
+      color: item.color,
+      marginBottom: 6
+    }
+  }, item.title), item.items.map(it => /*#__PURE__*/React.createElement("div", {
+    key: it,
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      marginBottom: 3,
+      display: "flex",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: item.color,
+      fontWeight: 700
+    }
+  }, "\u2022"), it)))), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["インデックスファンドは市場平均を「超える」ことは目指さない（頻出ひっかけ）", "長期では過半のアクティブが市場平均以下（コスト差が複利で拡大）", "ETF：1日1回基準価額ではなくリアルタイム市場価格で売買", "信託財産留保額は解約時にかかるコスト（残存投資家保護）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPRD: !s._quizPRD
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（2問）"), state._quizPRD && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PRODUCTS_QUIZZES.D,
+    tabId: "products",
+    sectionId: "D",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- セクションE: オルタナティブ・ESG ---
@@ -6493,120 +6084,97 @@ function ProductsSectionE({
     ret: 4.5,
     risk: 10.0
   }];
-  return /*#__PURE__*/_jsxs("div", {
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.sectionTitle,
-          fontSize: 14,
-          color
-        },
-        children: [/*#__PURE__*/_jsx(DollarSign, {
-          size: 15,
-          color: color
-        }), " \u30AA\u30EB\u30BF\u30CA\u30C6\u30A3\u30D6\u6295\u8CC7\u306E\u7279\u6027"]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 12,
-          color: COLORS.textLight,
-          marginBottom: 10
-        },
-        children: "\u4F1D\u7D71\u7684\u8CC7\u7523\uFF08\u682A\u30FB\u50B5\u5238\uFF09\u3068\u306E\u76F8\u95A2\u4FC2\u6570\uFF08\u4F4E\u3044\u307B\u3069\u5206\u6563\u52B9\u679C\u5927\uFF09"
-      }), altData.map(a => /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 8
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 12,
-            fontWeight: 700,
-            minWidth: 70,
-            color: COLORS.text
-          },
-          children: a.name
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            flex: 1,
-            height: 8,
-            background: COLORS.border,
-            borderRadius: 6,
-            overflow: "hidden"
-          },
-          children: /*#__PURE__*/_jsx("div", {
-            style: {
-              height: "100%",
-              width: `${a.corr * 100}%`,
-              background: a.corr < 0.2 ? COLORS.secondary : a.corr < 0.4 ? COLORS.accent : COLORS.danger,
-              borderRadius: 6
-            }
-          })
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            fontSize: 11,
-            color: COLORS.textLight,
-            minWidth: 50
-          },
-          children: ["\u03C1\u2248", a.corr]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            ...STYLES.badge(color),
-            fontSize: 10
-          },
-          children: ["R:", a.ret, "%"]
-        })]
-      }, a.name))]
-    }), /*#__PURE__*/_jsxs(InfoBox, {
-      title: "ESG\u6295\u8CC7 5\u3064\u306E\u30A2\u30D7\u30ED\u30FC\u30C1",
-      color: COLORS.secondary,
-      children: ["\u2460", /*#__PURE__*/_jsx("strong", {
-        children: "\u30CD\u30AC\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0"
-      }), "\uFF1A\u554F\u984C\u4F01\u696D\u3092\u9664\u5916\uFF08\u30BF\u30D0\u30B3\u30FB\u6B66\u5668\u7B49\uFF09", /*#__PURE__*/_jsx("br", {}), "\u2461", /*#__PURE__*/_jsx("strong", {
-        children: "\u30DD\u30B8\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0"
-      }), "\uFF1AESG\u512A\u826F\u4F01\u696D\u3092\u7A4D\u6975\u9078\u629E", /*#__PURE__*/_jsx("br", {}), "\u2462", /*#__PURE__*/_jsx("strong", {
-        children: "ESG\u30A4\u30F3\u30C6\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3"
-      }), "\uFF1A\u8CA1\u52D9\u5206\u6790\u306B\u975E\u8CA1\u52D9\u60C5\u5831\u3092\u7D71\u5408", /*#__PURE__*/_jsx("br", {}), "\u2463", /*#__PURE__*/_jsx("strong", {
-        children: "\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8"
-      }), "\uFF1A\u4F01\u696D\u3068\u306E\u5BFE\u8A71\u3067\u6539\u5584\u3092\u4FC3\u9032", /*#__PURE__*/_jsx("br", {}), "\u2464", /*#__PURE__*/_jsx("strong", {
-        children: "\u30A4\u30F3\u30D1\u30AF\u30C8\u6295\u8CC7"
-      }), "\uFF1A\u8CA1\u52D9\u30EA\u30BF\u30FC\u30F3\uFF0B\u793E\u4F1A\u7684\u6210\u679C\u3092\u540C\u6642\u8FFD\u6C42"]
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["オルタナティブ：伝統資産との低相関 → 分散効果。流動性リスクが課題", "REIT：収益の90%超分配で法人課税実質免除・東証上場で売買容易", "ポジティブスクリーニング（優良選択）≠ ネガティブスクリーニング（問題除外）", "インパクト投資：リターン＋社会的インパクトの両立（ESGの最上位概念）"]
-    }), /*#__PURE__*/_jsx("button", {
-      style: {
-        ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-        width: "100%",
-        marginBottom: 12,
-        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
-      },
-      onClick: () => setState(s => ({
-        ...s,
-        _quizPRE: !s._quizPRE
-      })),
-      children: done ? /*#__PURE__*/_jsxs(_Fragment, {
-        children: [/*#__PURE__*/_jsx(Check, {
-          size: 14,
-          style: {
-            marginRight: 5
-          }
-        }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B"]
-      }) : "理解度テストを受ける（2問）"
-    }), state._quizPRE && /*#__PURE__*/_jsx(QuizComponent, {
-      quizzes: PRODUCTS_QUIZZES.E,
-      tabId: "products",
-      sectionId: "E",
-      accentColor: color,
-      state: state,
-      setState: setState
-    })]
-  });
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color
+    }
+  }, /*#__PURE__*/React.createElement(DollarSign, {
+    size: 15,
+    color: color
+  }), " \u30AA\u30EB\u30BF\u30CA\u30C6\u30A3\u30D6\u6295\u8CC7\u306E\u7279\u6027"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      marginBottom: 10
+    }
+  }, "\u4F1D\u7D71\u7684\u8CC7\u7523\uFF08\u682A\u30FB\u50B5\u5238\uFF09\u3068\u306E\u76F8\u95A2\u4FC2\u6570\uFF08\u4F4E\u3044\u307B\u3069\u5206\u6563\u52B9\u679C\u5927\uFF09"), altData.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.name,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      minWidth: 70,
+      color: COLORS.text
+    }
+  }, a.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 8,
+      background: COLORS.border,
+      borderRadius: 6,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${a.corr * 100}%`,
+      background: a.corr < 0.2 ? COLORS.secondary : a.corr < 0.4 ? COLORS.accent : COLORS.danger,
+      borderRadius: 6
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      minWidth: 50
+    }
+  }, "\u03C1\u2248", a.corr), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(color),
+      fontSize: 10
+    }
+  }, "R:", a.ret, "%")))), /*#__PURE__*/React.createElement(InfoBox, {
+    title: "ESG\u6295\u8CC7 5\u3064\u306E\u30A2\u30D7\u30ED\u30FC\u30C1",
+    color: COLORS.secondary
+  }, "\u2460", /*#__PURE__*/React.createElement("strong", null, "\u30CD\u30AC\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0"), "\uFF1A\u554F\u984C\u4F01\u696D\u3092\u9664\u5916\uFF08\u30BF\u30D0\u30B3\u30FB\u6B66\u5668\u7B49\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2461", /*#__PURE__*/React.createElement("strong", null, "\u30DD\u30B8\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0"), "\uFF1AESG\u512A\u826F\u4F01\u696D\u3092\u7A4D\u6975\u9078\u629E", /*#__PURE__*/React.createElement("br", null), "\u2462", /*#__PURE__*/React.createElement("strong", null, "ESG\u30A4\u30F3\u30C6\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u8CA1\u52D9\u5206\u6790\u306B\u975E\u8CA1\u52D9\u60C5\u5831\u3092\u7D71\u5408", /*#__PURE__*/React.createElement("br", null), "\u2463", /*#__PURE__*/React.createElement("strong", null, "\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8"), "\uFF1A\u4F01\u696D\u3068\u306E\u5BFE\u8A71\u3067\u6539\u5584\u3092\u4FC3\u9032", /*#__PURE__*/React.createElement("br", null), "\u2464", /*#__PURE__*/React.createElement("strong", null, "\u30A4\u30F3\u30D1\u30AF\u30C8\u6295\u8CC7"), "\uFF1A\u8CA1\u52D9\u30EA\u30BF\u30FC\u30F3\uFF0B\u793E\u4F1A\u7684\u6210\u679C\u3092\u540C\u6642\u8FFD\u6C42"), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["オルタナティブ：伝統資産との低相関 → 分散効果。流動性リスクが課題", "REIT：収益の90%超分配で法人課税実質免除・東証上場で売買容易", "ポジティブスクリーニング（優良選択）≠ ネガティブスクリーニング（問題除外）", "インパクト投資：リターン＋社会的インパクトの両立（ESGの最上位概念）"]
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)`
+    },
+    onClick: () => setState(s => ({
+      ...s,
+      _quizPRE: !s._quizPRE
+    }))
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "理解度テストを受ける（2問）"), state._quizPRE && /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: PRODUCTS_QUIZZES.E,
+    tabId: "products",
+    sectionId: "E",
+    accentColor: color,
+    state: state,
+    setState: setState
+  }));
 }
 
 // --- ④金融商品タブ本体 ---
@@ -6635,31 +6203,31 @@ function ProductsTab({
   const renderSection = () => {
     switch (section) {
       case "A":
-        return /*#__PURE__*/_jsx(ProductsSectionA, {
+        return /*#__PURE__*/React.createElement(ProductsSectionA, {
           color: color,
           state: state,
           setState: setState
         });
       case "B":
-        return /*#__PURE__*/_jsx(ProductsSectionB, {
+        return /*#__PURE__*/React.createElement(ProductsSectionB, {
           color: color,
           state: state,
           setState: setState
         });
       case "C":
-        return /*#__PURE__*/_jsx(ProductsSectionC, {
+        return /*#__PURE__*/React.createElement(ProductsSectionC, {
           color: color,
           state: state,
           setState: setState
         });
       case "D":
-        return /*#__PURE__*/_jsx(ProductsSectionD, {
+        return /*#__PURE__*/React.createElement(ProductsSectionD, {
           color: color,
           state: state,
           setState: setState
         });
       case "E":
-        return /*#__PURE__*/_jsx(ProductsSectionE, {
+        return /*#__PURE__*/React.createElement(ProductsSectionE, {
           color: color,
           state: state,
           setState: setState
@@ -6668,28 +6236,27 @@ function ProductsTab({
         return null;
     }
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u91D1\u878D\u5546\u54C1",
-      subtitle: "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u5916\u56FD\u8A3C\u5238\u30FB\u6295\u8CC7\u4FE1\u8A17\u30FB\u30AA\u30EB\u30BF\u30CA\u30C6\u30A3\u30D6",
-      color: color,
-      icon: DollarSign
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: PRODUCTS_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "products",
-      sections: PRODUCTS_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), renderSection()]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u91D1\u878D\u5546\u54C1",
+    subtitle: "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u5916\u56FD\u8A3C\u5238\u30FB\u6295\u8CC7\u4FE1\u8A17\u30FB\u30AA\u30EB\u30BF\u30CA\u30C6\u30A3\u30D6",
+    color: color,
+    icon: DollarSign
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: PRODUCTS_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "products",
+    sections: PRODUCTS_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), renderSection());
 }
 
 // ============================================================
@@ -6753,193 +6320,174 @@ function CaseQuizBlock({
   if (done) {
     const pct = Math.round(score / total * 100);
     const passed = pct >= 60;
-    return /*#__PURE__*/_jsxs("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         ...STYLES.card,
         textAlign: "center",
         marginTop: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 36,
+        marginBottom: 6
+      }
+    }, passed ? "🎉" : "📚"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        fontWeight: 900,
+        color: passed ? COLORS.secondary : COLORS.accent
+      }
+    }, score, "/", total, " \u6B63\u89E3 \u2014 ", pct, "\u70B9"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent),
+        fontSize: 13,
+        margin: "8px auto"
+      }
+    }, passed ? "ケースクリア！" : "再挑戦してみましょう"), /*#__PURE__*/React.createElement("button", {
+      style: {
+        ...STYLES.btnOutline,
+        marginTop: 10
       },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 36,
-          marginBottom: 6
-        },
-        children: passed ? "🎉" : "📚"
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 22,
-          fontWeight: 900,
-          color: passed ? COLORS.secondary : COLORS.accent
-        },
-        children: [score, "/", total, " \u6B63\u89E3 \u2014 ", pct, "\u70B9"]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent),
-          fontSize: 13,
-          margin: "8px auto"
-        },
-        children: passed ? "ケースクリア！" : "再挑戦してみましょう"
-      }), /*#__PURE__*/_jsx("button", {
-        style: {
-          ...STYLES.btnOutline,
-          marginTop: 10
-        },
-        onClick: handleRetry,
-        children: "\u3082\u3046\u4E00\u5EA6"
-      })]
-    });
+      onClick: handleRetry
+    }, "\u3082\u3046\u4E00\u5EA6"));
   }
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginTop: 12
-    },
-    children: [/*#__PURE__*/_jsxs("div", {
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 12,
+      color: COLORS.textLight,
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: cs.color
+    }
+  }, "\u554F ", qIdx + 1, " / ", total), /*#__PURE__*/React.createElement("span", null, "\u6B63\u89E3 ", score, "\u554F")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 4,
+      background: COLORS.border,
+      borderRadius: 4,
+      marginBottom: 12,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${qIdx / total * 100}%`,
+      background: cs.color,
+      borderRadius: 4
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: COLORS.text,
+      lineHeight: 1.8,
+      marginBottom: 12,
+      padding: "10px 12px",
+      background: cs.color + "0A",
+      borderRadius: 10,
+      border: `1px solid ${cs.color}22`
+    }
+  }, q.q), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 7
+    }
+  }, q.choices.map((choice, i) => {
+    let bg = "#fff",
+      border = `1.5px solid ${COLORS.border}`,
+      col = COLORS.text;
+    if (answered) {
+      if (i === q.answer) {
+        bg = COLORS.secondary + "18";
+        border = `2px solid ${COLORS.secondary}`;
+        col = COLORS.secondary;
+      } else if (i === selected) {
+        bg = COLORS.danger + "12";
+        border = `2px solid ${COLORS.danger}`;
+        col = COLORS.danger;
+      }
+    }
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => handleSelect(i),
       style: {
+        background: bg,
+        border,
+        borderRadius: 12,
+        padding: "10px 14px",
+        textAlign: "left",
+        cursor: answered ? "default" : "pointer",
         display: "flex",
-        justifyContent: "space-between",
-        fontSize: 12,
-        color: COLORS.textLight,
-        marginBottom: 6
-      },
-      children: [/*#__PURE__*/_jsxs("span", {
-        style: {
-          fontWeight: 700,
-          color: cs.color
-        },
-        children: ["\u554F ", qIdx + 1, " / ", total]
-      }), /*#__PURE__*/_jsxs("span", {
-        children: ["\u6B63\u89E3 ", score, "\u554F"]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
+        gap: 10,
+        alignItems: "flex-start",
+        fontFamily: "'Noto Sans JP', sans-serif"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
-        height: 4,
-        background: COLORS.border,
-        borderRadius: 4,
-        marginBottom: 12,
-        overflow: "hidden"
-      },
-      children: /*#__PURE__*/_jsx("div", {
-        style: {
-          height: "100%",
-          width: `${qIdx / total * 100}%`,
-          background: cs.color,
-          borderRadius: 4
-        }
-      })
-    }), /*#__PURE__*/_jsx("div", {
+        minWidth: 22,
+        height: 22,
+        borderRadius: "50%",
+        background: answered && i === q.answer ? COLORS.secondary : answered && i === selected ? COLORS.danger : cs.color + "33",
+        color: answered && (i === q.answer || i === selected) ? "#fff" : cs.color,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 11,
+        fontWeight: 800,
+        flexShrink: 0
+      }
+    }, answered && i === q.answer ? "○" : answered && i === selected ? "✗" : ["①", "②", "③", "④"][i]), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 13,
-        fontWeight: 700,
-        color: COLORS.text,
-        lineHeight: 1.8,
-        marginBottom: 12,
-        padding: "10px 12px",
-        background: cs.color + "0A",
-        borderRadius: 10,
-        border: `1px solid ${cs.color}22`
-      },
-      children: q.q
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 7
-      },
-      children: q.choices.map((choice, i) => {
-        let bg = "#fff",
-          border = `1.5px solid ${COLORS.border}`,
-          col = COLORS.text;
-        if (answered) {
-          if (i === q.answer) {
-            bg = COLORS.secondary + "18";
-            border = `2px solid ${COLORS.secondary}`;
-            col = COLORS.secondary;
-          } else if (i === selected) {
-            bg = COLORS.danger + "12";
-            border = `2px solid ${COLORS.danger}`;
-            col = COLORS.danger;
-          }
-        }
-        return /*#__PURE__*/_jsxs("button", {
-          onClick: () => handleSelect(i),
-          style: {
-            background: bg,
-            border,
-            borderRadius: 12,
-            padding: "10px 14px",
-            textAlign: "left",
-            cursor: answered ? "default" : "pointer",
-            display: "flex",
-            gap: 10,
-            alignItems: "flex-start",
-            fontFamily: "'Noto Sans JP', sans-serif"
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              minWidth: 22,
-              height: 22,
-              borderRadius: "50%",
-              background: answered && i === q.answer ? COLORS.secondary : answered && i === selected ? COLORS.danger : cs.color + "33",
-              color: answered && (i === q.answer || i === selected) ? "#fff" : cs.color,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 11,
-              fontWeight: 800,
-              flexShrink: 0
-            },
-            children: answered && i === q.answer ? "○" : answered && i === selected ? "✗" : ["①", "②", "③", "④"][i]
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 13,
-              color: col,
-              lineHeight: 1.6
-            },
-            children: choice
-          })]
-        }, i);
-      })
-    }), answered && /*#__PURE__*/_jsxs("div", {
-      style: {
-        marginTop: 12,
-        padding: "10px 12px",
-        background: (selected === q.answer ? COLORS.secondary : COLORS.danger) + "10",
-        border: `1px solid ${selected === q.answer ? COLORS.secondary : COLORS.danger}33`,
-        borderRadius: 10
-      },
-      children: [/*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 12,
-          fontWeight: 800,
-          color: selected === q.answer ? COLORS.secondary : COLORS.danger,
-          marginBottom: 4
-        },
-        children: selected === q.answer ? "✓ 正解！" : "✗ 不正解"
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 13,
-          color: COLORS.text,
-          lineHeight: 1.7
-        },
-        children: q.explanation
-      })]
-    }), answered && /*#__PURE__*/_jsxs("button", {
-      style: {
-        ...STYLES.btnPrimary,
-        width: "100%",
-        marginTop: 10,
-        background: `linear-gradient(135deg,${cs.color},${cs.color}BB)`
-      },
-      onClick: handleNext,
-      children: [qIdx + 1 >= total ? "結果を見る" : "次の問題", " ", /*#__PURE__*/_jsx(ChevronRight, {
-        size: 14,
-        style: {
-          marginLeft: 4
-        }
-      })]
-    })]
-  });
+        color: col,
+        lineHeight: 1.6
+      }
+    }, choice));
+  })), answered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: "10px 12px",
+      background: (selected === q.answer ? COLORS.secondary : COLORS.danger) + "10",
+      border: `1px solid ${selected === q.answer ? COLORS.secondary : COLORS.danger}33`,
+      borderRadius: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
+      color: selected === q.answer ? COLORS.secondary : COLORS.danger,
+      marginBottom: 4
+    }
+  }, selected === q.answer ? "✓ 正解！" : "✗ 不正解"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, q.explanation)), answered && /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnPrimary,
+      width: "100%",
+      marginTop: 10,
+      background: `linear-gradient(135deg,${cs.color},${cs.color}BB)`
+    },
+    onClick: handleNext
+  }, qIdx + 1 >= total ? "結果を見る" : "次の問題", " ", /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 14,
+    style: {
+      marginLeft: 4
+    }
+  })));
 }
 
 // --- 資産配分シミュレーター（ケーススタディ内） ---
@@ -6997,230 +6545,208 @@ function CaseSimulator() {
     "楽観（+1σ）": Math.round(100 * Math.pow(1 + pfRet + pfRisk, yr)),
     "悲観（−1σ）": Math.round(100 * Math.pow(1 + Math.max(pfRet - pfRisk, -0.3), yr))
   }));
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.sectionTitle,
+      fontSize: 14,
+      color: "#16A085"
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 15,
+    color: "#16A085"
+  }), " \u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      marginBottom: 12,
+      flexWrap: "wrap"
+    }
+  }, profiles.map(p => /*#__PURE__*/React.createElement("button", {
+    key: p.id,
+    onClick: () => applyProfile(p.id),
+    style: {
+      flex: 1,
+      minWidth: 90,
+      background: selected === p.id ? "#16A085" : "transparent",
+      color: selected === p.id ? "#fff" : COLORS.textLight,
+      border: `1.5px solid ${selected === p.id ? "#16A085" : COLORS.border}`,
+      borderRadius: 10,
+      padding: "7px 4px",
+      cursor: "pointer",
+      fontSize: 11,
+      fontWeight: 700,
+      fontFamily: "'Noto Sans JP',sans-serif",
+      transition: "all 0.15s ease"
+    }
+  }, p.label))), ASSET_CLASS_DATA.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.name,
+    style: {
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 12,
+      marginBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: a.color
+    }
+  }, a.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800
+    }
+  }, weights[a.name], "%")), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: 0,
+    max: 80,
+    step: 5,
+    value: weights[a.name],
+    onChange: e => {
+      setSelected("");
+      setWeights(w => ({
+        ...w,
+        [a.name]: Number(e.target.value)
+      }));
     },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.sectionTitle,
-        fontSize: 14,
-        color: "#16A085"
-      },
-      children: [/*#__PURE__*/_jsx(Activity, {
-        size: 15,
-        color: "#16A085"
-      }), " \u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC"]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        display: "flex",
-        gap: 6,
-        marginBottom: 12,
-        flexWrap: "wrap"
-      },
-      children: profiles.map(p => /*#__PURE__*/_jsx("button", {
-        onClick: () => applyProfile(p.id),
-        style: {
-          flex: 1,
-          minWidth: 90,
-          background: selected === p.id ? "#16A085" : "transparent",
-          color: selected === p.id ? "#fff" : COLORS.textLight,
-          border: `1.5px solid ${selected === p.id ? "#16A085" : COLORS.border}`,
-          borderRadius: 10,
-          padding: "7px 4px",
-          cursor: "pointer",
-          fontSize: 11,
-          fontWeight: 700,
-          fontFamily: "'Noto Sans JP',sans-serif",
-          transition: "all 0.15s ease"
-        },
-        children: p.label
-      }, p.id))
-    }), ASSET_CLASS_DATA.map(a => /*#__PURE__*/_jsxs("div", {
-      style: {
-        marginBottom: 8
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 12,
-          marginBottom: 2
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            fontWeight: 700,
-            color: a.color
-          },
-          children: a.name
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            fontWeight: 800
-          },
-          children: [weights[a.name], "%"]
-        })]
-      }), /*#__PURE__*/_jsx("input", {
-        type: "range",
-        min: 0,
-        max: 80,
-        step: 5,
-        value: weights[a.name],
-        onChange: e => {
-          setSelected("");
-          setWeights(w => ({
-            ...w,
-            [a.name]: Number(e.target.value)
-          }));
-        },
-        style: {
-          width: "100%",
-          accentColor: a.color
-        }
-      })]
-    }, a.name)), /*#__PURE__*/_jsxs("div", {
-      style: {
-        fontSize: 11,
-        color: totalW === 100 ? COLORS.secondary : COLORS.danger,
-        fontWeight: 700,
-        textAlign: "center",
-        marginBottom: 10
-      },
-      children: ["\u5408\u8A08: ", totalW, "% ", totalW !== 100 && "← 100%に調整してください"]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 8,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.cardLg,
-          flex: 1,
-          textAlign: "center",
-          padding: "10px 6px"
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: STYLES.label,
-          children: "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3"
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            fontSize: 18,
-            fontWeight: 900,
-            color: COLORS.secondary
-          },
-          children: [(pfRet * 100).toFixed(2), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 10
-            },
-            children: "%"
-          })]
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.cardLg,
-          flex: 1,
-          textAlign: "center",
-          padding: "10px 6px"
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: STYLES.label,
-          children: "\u30EA\u30B9\u30AF"
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            fontSize: 18,
-            fontWeight: 900,
-            color: COLORS.danger
-          },
-          children: [(pfRisk * 100).toFixed(2), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 10
-            },
-            children: "%"
-          })]
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.cardLg,
-          flex: 1,
-          textAlign: "center",
-          padding: "10px 6px"
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: STYLES.label,
-          children: "\u30B7\u30E3\u30FC\u30D7"
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 18,
-            fontWeight: 900,
-            color: "#16A085"
-          },
-          children: pfSR.toFixed(2)
-        })]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: "#16A085",
-        marginBottom: 6
-      },
-      children: "100\u4E07\u5186 \u6295\u8CC7\u3057\u305F\u5834\u5408\u306E30\u5E74\u9593\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"
-    }), /*#__PURE__*/_jsx(ResponsiveContainer, {
+    style: {
       width: "100%",
-      height: 180,
-      children: /*#__PURE__*/_jsxs(AreaChart, {
-        data: simData,
-        margin: {
-          top: 4,
-          right: 8,
-          left: -10,
-          bottom: 0
-        },
-        children: [/*#__PURE__*/_jsx(CartesianGrid, {
-          strokeDasharray: "3 3",
-          stroke: COLORS.border
-        }), /*#__PURE__*/_jsx(XAxis, {
-          dataKey: "year",
-          tick: {
-            fontSize: 9
-          },
-          unit: "\u5E74"
-        }), /*#__PURE__*/_jsx(YAxis, {
-          tick: {
-            fontSize: 9
-          },
-          unit: "\u4E07"
-        }), /*#__PURE__*/_jsx(Tooltip, {
-          formatter: v => `${v}万円`,
-          labelFormatter: l => `${l}年後`
-        }), /*#__PURE__*/_jsx(Legend, {
-          iconSize: 10,
-          wrapperStyle: {
-            fontSize: 10
-          }
-        }), /*#__PURE__*/_jsx(Area, {
-          type: "monotone",
-          dataKey: "\u697D\u89B3\uFF08+1\u03C3\uFF09",
-          stroke: COLORS.secondary,
-          fill: COLORS.secondary + "18",
-          strokeWidth: 1.5
-        }), /*#__PURE__*/_jsx(Area, {
-          type: "monotone",
-          dataKey: "\u671F\u5F85\u5024",
-          stroke: "#16A085",
-          fill: "#16A085" + "25",
-          strokeWidth: 2
-        }), /*#__PURE__*/_jsx(Area, {
-          type: "monotone",
-          dataKey: "\u60B2\u89B3\uFF08\u22121\u03C3\uFF09",
-          stroke: COLORS.danger,
-          fill: COLORS.danger + "10",
-          strokeWidth: 1.5
-        })]
-      })
-    })]
-  });
+      accentColor: a.color
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: totalW === 100 ? COLORS.secondary : COLORS.danger,
+      fontWeight: 700,
+      textAlign: "center",
+      marginBottom: 10
+    }
+  }, "\u5408\u8A08: ", totalW, "% ", totalW !== 100 && "← 100%に調整してください"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 6px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 900,
+      color: COLORS.secondary
+    }
+  }, (pfRet * 100).toFixed(2), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10
+    }
+  }, "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 6px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u30EA\u30B9\u30AF"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 900,
+      color: COLORS.danger
+    }
+  }, (pfRisk * 100).toFixed(2), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10
+    }
+  }, "%"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 6px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: STYLES.label
+  }, "\u30B7\u30E3\u30FC\u30D7"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 900,
+      color: "#16A085"
+    }
+  }, pfSR.toFixed(2)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: "#16A085",
+      marginBottom: 6
+    }
+  }, "100\u4E07\u5186 \u6295\u8CC7\u3057\u305F\u5834\u5408\u306E30\u5E74\u9593\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 180
+  }, /*#__PURE__*/React.createElement(AreaChart, {
+    data: simData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -10,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "year",
+    tick: {
+      fontSize: 9
+    },
+    unit: "\u5E74"
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    tick: {
+      fontSize: 9
+    },
+    unit: "\u4E07"
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}万円`,
+    labelFormatter: l => `${l}年後`
+  }), /*#__PURE__*/React.createElement(Legend, {
+    iconSize: 10,
+    wrapperStyle: {
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(Area, {
+    type: "monotone",
+    dataKey: "\u697D\u89B3\uFF08+1\u03C3\uFF09",
+    stroke: COLORS.secondary,
+    fill: COLORS.secondary + "18",
+    strokeWidth: 1.5
+  }), /*#__PURE__*/React.createElement(Area, {
+    type: "monotone",
+    dataKey: "\u671F\u5F85\u5024",
+    stroke: "#16A085",
+    fill: "#16A085" + "25",
+    strokeWidth: 2
+  }), /*#__PURE__*/React.createElement(Area, {
+    type: "monotone",
+    dataKey: "\u60B2\u89B3\uFF08\u22121\u03C3\uFF09",
+    stroke: COLORS.danger,
+    fill: COLORS.danger + "10",
+    strokeWidth: 1.5
+  }))));
 }
 
 // --- ⑤ケーススタディタブ本体 ---
@@ -7240,107 +6766,75 @@ function CaseStudyTab({
 }) {
   const [section, setSection] = useState("A");
   const color = "#16A085";
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u30B1\u30FC\u30B9\u30B9\u30BF\u30C7\u30A3",
-      subtitle: "\u5B9F\u8DF5\u7684\u306A\u9867\u5BA2\u5BFE\u5FDC\u30FB\u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3",
-      color: color,
-      icon: Activity
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: CASE_STUDY_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "casestudy",
-      sections: CASE_STUDY_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), (section === "A" || section === "B") && (() => {
-      const cs = CASE_STUDIES[section === "A" ? 0 : 1];
-      return /*#__PURE__*/_jsxs("div", {
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.cardLg,
-            borderLeft: `4px solid ${cs.color}`,
-            marginBottom: 12
-          },
-          children: [/*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 15,
-              fontWeight: 900,
-              color: cs.color,
-              marginBottom: 8
-            },
-            children: ["\uD83D\uDCCB ", cs.title]
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 13,
-              color: COLORS.text,
-              lineHeight: 1.8,
-              marginBottom: 10
-            },
-            children: cs.scenario
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 6
-            },
-            children: cs.tags.map(tag => /*#__PURE__*/_jsx("span", {
-              style: STYLES.badge(cs.color),
-              children: tag
-            }, tag))
-          })]
-        }), section === "A" && /*#__PURE__*/_jsxs(InfoBox, {
-          title: "\u89E3\u7B54\u306E\u30DD\u30A4\u30F3\u30C8",
-          color: cs.color,
-          children: [/*#__PURE__*/_jsx("strong", {
-            children: "\u30EA\u30B9\u30AF\u8A31\u5BB9\u5EA6"
-          }), "\uFF1A30\u4EE3\u30FB\u9577\u671F\u6295\u8CC7\u53EF\u30FB\u5B89\u5B9A\u53CE\u5165 \u2192 \u3084\u3084\u9AD8\u3081\u8A2D\u5B9A\u53EF", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "NISA\u6D3B\u7528"
-          }), "\uFF1A\u65B0NISA\u3067\u6D41\u52D5\u6027\u78BA\u4FDD\uFF08\u6559\u80B2\u8CBB\u306B\u3082\u5BFE\u5FDC\uFF09", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "iDeCo\u6D3B\u7528"
-          }), "\uFF1A\u6240\u5F97\u63A7\u9664\u3067\u7BC0\u7A0E\u3057\u306A\u304C\u3089\u8001\u5F8C\u8CC7\u91D1\u3092\u7A4D\u7ACB", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u4F4F\u5B85\u30ED\u30FC\u30F3"
-          }), "\uFF1A\u91D1\u5229\u304C\u4F4E\u3044\u5834\u5408\u3001\u7E70\u4E0A\u8FD4\u6E08\u3088\u308A\u6295\u8CC7\u3092\u512A\u5148\u3059\u308B\u9078\u629E\u80A2\u3082", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u6559\u80B2\u8CBB"
-          }), "\uFF1A18\u5E74\u5F8C\u304B\u3089\u5FC5\u8981 \u2192 \u682A\u5F0F\u6BD4\u7387\u9AD8\u3081\u3067\u9577\u671F\u904B\u7528\u53EF"]
-        }), section === "B" && /*#__PURE__*/_jsxs(InfoBox, {
-          title: "\u89E3\u7B54\u306E\u30DD\u30A4\u30F3\u30C8",
-          color: cs.color,
-          children: [/*#__PURE__*/_jsx("strong", {
-            children: "\u53D6\u308A\u5D29\u3057\u30D5\u30A7\u30FC\u30BA"
-          }), "\uFF1A\u5E74\u91D1\u958B\u59CB\u307E\u30672\u301C3\u5E74\u5206\u306E\u751F\u6D3B\u8CBB\u3092\u6D41\u52D5\u8CC7\u7523\u3067\u78BA\u4FDD", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u4E0D\u8DB3\u984D"
-          }), "\uFF1A\u670810\u4E07\u5186\uFF0830\u4E07\u221220\u4E07\uFF09\xD7 12\u30F6\u6708 = \u5E74120\u4E07\u5186\u4E0D\u8DB3", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u9577\u5BFF\u30EA\u30B9\u30AF"
-          }), "\uFF1A90\u6B73\u307E\u306728\u5E74\u9593\u3001\u30A4\u30F3\u30D5\u30EC\u8003\u616E\u306A\u3057\u30673,360\u4E07\u5186\u5FC5\u8981", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u30A4\u30F3\u30D5\u30EC\u5BFE\u7B56"
-          }), "\uFF1A\u682A\u5F0F\u30FBREIT\u30FB\u7269\u4FA1\u9023\u52D5\u50B5\u3092\u4E00\u90E8\u7D44\u307F\u5165\u308C\u308B", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("strong", {
-            children: "\u5B9A\u7387\u53D6\u308A\u5D29\u3057"
-          }), "\uFF1A\u5B9A\u7387\uFF08\u8CC7\u7523\u306E\u4F55%\uFF09\u53D6\u308A\u5D29\u3057\u306F\u9577\u5BFF\u30EA\u30B9\u30AF\u306B\u5F37\u3044"]
-        }), /*#__PURE__*/_jsx(CaseQuizBlock, {
-          cs: cs,
-          state: state,
-          setState: setState
-        })]
-      });
-    })(), section === "C" && /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsxs(InfoBox, {
-        title: "\u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC\u306E\u4F7F\u3044\u65B9",
-        color: color,
-        children: ["\u5E74\u4EE3\u5225\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u9078\u629E\u3059\u308B\u304B\u3001\u30B9\u30E9\u30A4\u30C0\u30FC\u3067\u81EA\u7531\u306B\u8CC7\u7523\u914D\u5206\u3092\u8A2D\u5B9A\u3002", /*#__PURE__*/_jsx("br", {}), "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u3092\u30EA\u30A2\u30EB\u30BF\u30A4\u30E0\u3067\u78BA\u8A8D\u3057\u3001", /*#__PURE__*/_jsx("br", {}), "30\u5E74\u9593\u306E\u8CC7\u7523\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u3092\u30B0\u30E9\u30D5\u3067\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002"]
-      }), /*#__PURE__*/_jsx(CaseSimulator, {}), /*#__PURE__*/_jsx(ExamTipCard, {
-        color: COLORS.accent,
-        tips: ["退職後は「取り崩しフェーズ」：流動性確保 + 中リスク分散が基本", "定率取り崩し（毎年資産の4%等）は長寿リスクに対応しやすい", "ライフサイクル投資：年齢とともにリスク資産比率を下げる", "インフレリスク：現金・固定利率資産の実質価値低下に注意", "4%ルール：年間生活費の25倍の資産があれば30年取り崩し可（米国研究）"]
-      })]
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u30B1\u30FC\u30B9\u30B9\u30BF\u30C7\u30A3",
+    subtitle: "\u5B9F\u8DF5\u7684\u306A\u9867\u5BA2\u5BFE\u5FDC\u30FB\u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3",
+    color: color,
+    icon: Activity
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: CASE_STUDY_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "casestudy",
+    sections: CASE_STUDY_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), (section === "A" || section === "B") && (() => {
+    const cs = CASE_STUDIES[section === "A" ? 0 : 1];
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.cardLg,
+        borderLeft: `4px solid ${cs.color}`,
+        marginBottom: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 900,
+        color: cs.color,
+        marginBottom: 8
+      }
+    }, "\uD83D\uDCCB ", cs.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: COLORS.text,
+        lineHeight: 1.8,
+        marginBottom: 10
+      }
+    }, cs.scenario), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6
+      }
+    }, cs.tags.map(tag => /*#__PURE__*/React.createElement("span", {
+      key: tag,
+      style: STYLES.badge(cs.color)
+    }, tag)))), section === "A" && /*#__PURE__*/React.createElement(InfoBox, {
+      title: "\u89E3\u7B54\u306E\u30DD\u30A4\u30F3\u30C8",
+      color: cs.color
+    }, /*#__PURE__*/React.createElement("strong", null, "\u30EA\u30B9\u30AF\u8A31\u5BB9\u5EA6"), "\uFF1A30\u4EE3\u30FB\u9577\u671F\u6295\u8CC7\u53EF\u30FB\u5B89\u5B9A\u53CE\u5165 \u2192 \u3084\u3084\u9AD8\u3081\u8A2D\u5B9A\u53EF", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "NISA\u6D3B\u7528"), "\uFF1A\u65B0NISA\u3067\u6D41\u52D5\u6027\u78BA\u4FDD\uFF08\u6559\u80B2\u8CBB\u306B\u3082\u5BFE\u5FDC\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "iDeCo\u6D3B\u7528"), "\uFF1A\u6240\u5F97\u63A7\u9664\u3067\u7BC0\u7A0E\u3057\u306A\u304C\u3089\u8001\u5F8C\u8CC7\u91D1\u3092\u7A4D\u7ACB", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4F4F\u5B85\u30ED\u30FC\u30F3"), "\uFF1A\u91D1\u5229\u304C\u4F4E\u3044\u5834\u5408\u3001\u7E70\u4E0A\u8FD4\u6E08\u3088\u308A\u6295\u8CC7\u3092\u512A\u5148\u3059\u308B\u9078\u629E\u80A2\u3082", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6559\u80B2\u8CBB"), "\uFF1A18\u5E74\u5F8C\u304B\u3089\u5FC5\u8981 \u2192 \u682A\u5F0F\u6BD4\u7387\u9AD8\u3081\u3067\u9577\u671F\u904B\u7528\u53EF"), section === "B" && /*#__PURE__*/React.createElement(InfoBox, {
+      title: "\u89E3\u7B54\u306E\u30DD\u30A4\u30F3\u30C8",
+      color: cs.color
+    }, /*#__PURE__*/React.createElement("strong", null, "\u53D6\u308A\u5D29\u3057\u30D5\u30A7\u30FC\u30BA"), "\uFF1A\u5E74\u91D1\u958B\u59CB\u307E\u30672\u301C3\u5E74\u5206\u306E\u751F\u6D3B\u8CBB\u3092\u6D41\u52D5\u8CC7\u7523\u3067\u78BA\u4FDD", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E0D\u8DB3\u984D"), "\uFF1A\u670810\u4E07\u5186\uFF0830\u4E07\u221220\u4E07\uFF09\xD7 12\u30F6\u6708 = \u5E74120\u4E07\u5186\u4E0D\u8DB3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u9577\u5BFF\u30EA\u30B9\u30AF"), "\uFF1A90\u6B73\u307E\u306728\u5E74\u9593\u3001\u30A4\u30F3\u30D5\u30EC\u8003\u616E\u306A\u3057\u30673,360\u4E07\u5186\u5FC5\u8981", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A4\u30F3\u30D5\u30EC\u5BFE\u7B56"), "\uFF1A\u682A\u5F0F\u30FBREIT\u30FB\u7269\u4FA1\u9023\u52D5\u50B5\u3092\u4E00\u90E8\u7D44\u307F\u5165\u308C\u308B", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5B9A\u7387\u53D6\u308A\u5D29\u3057"), "\uFF1A\u5B9A\u7387\uFF08\u8CC7\u7523\u306E\u4F55%\uFF09\u53D6\u308A\u5D29\u3057\u306F\u9577\u5BFF\u30EA\u30B9\u30AF\u306B\u5F37\u3044"), /*#__PURE__*/React.createElement(CaseQuizBlock, {
+      cs: cs,
+      state: state,
+      setState: setState
+    }));
+  })(), section === "C" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u8CC7\u7523\u914D\u5206\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC\u306E\u4F7F\u3044\u65B9",
+    color: color
+  }, "\u5E74\u4EE3\u5225\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u9078\u629E\u3059\u308B\u304B\u3001\u30B9\u30E9\u30A4\u30C0\u30FC\u3067\u81EA\u7531\u306B\u8CC7\u7523\u914D\u5206\u3092\u8A2D\u5B9A\u3002", /*#__PURE__*/React.createElement("br", null), "\u671F\u5F85\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u3092\u30EA\u30A2\u30EB\u30BF\u30A4\u30E0\u3067\u78BA\u8A8D\u3057\u3001", /*#__PURE__*/React.createElement("br", null), "30\u5E74\u9593\u306E\u8CC7\u7523\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u3092\u30B0\u30E9\u30D5\u3067\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002"), /*#__PURE__*/React.createElement(CaseSimulator, null), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["退職後は「取り崩しフェーズ」：流動性確保 + 中リスク分散が基本", "定率取り崩し（毎年資産の4%等）は長寿リスクに対応しやすい", "ライフサイクル投資：年齢とともにリスク資産比率を下げる", "インフレリスク：現金・固定利率資産の実質価値低下に注意", "4%ルール：年間生活費の25倍の資産があれば30年取り崩し可（米国研究）"]
+  })));
 }
 
 // ============================================================
@@ -7562,249 +7056,226 @@ function AnalysisSectionA({
   const weakTab = withData.sort((a, b) => a.正答率 - b.正答率)[0];
   const adviceKey = weakTab?.subject === "倫理" ? "weak_ethics" : weakTab?.subject === "計算" ? "weak_calc" : "default";
   if (testHistory.length === 0) {
-    return /*#__PURE__*/_jsx("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         padding: "24px 16px"
-      },
-      children: /*#__PURE__*/_jsxs("div", {
-        style: {
-          ...STYLES.card,
-          textAlign: "center",
-          padding: 28
-        },
-        children: [/*#__PURE__*/_jsx(Activity, {
-          size: 44,
-          color: COLORS.highlight,
-          style: {
-            marginBottom: 12
-          }
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 700,
-            fontSize: 15,
-            color: COLORS.text,
-            margin: "0 0 6px"
-          },
-          children: "\u307E\u3060\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093"
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            margin: 0
-          },
-          children: "\u5404\u30BF\u30D6\u306E\u30AF\u30A4\u30BA\u306B\u6311\u6226\u3059\u308B\u3068\u3001\u3053\u3053\u306B\u6B63\u7B54\u7387\u304C\u8868\u793A\u3055\u308C\u307E\u3059\u3002"
-        })]
-      })
-    });
-  }
-  return /*#__PURE__*/_jsxs("div", {
-    style: {
-      padding: "0 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsxs("p", {
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.card,
+        textAlign: "center",
+        padding: 28
+      }
+    }, /*#__PURE__*/React.createElement(Activity, {
+      size: 44,
+      color: COLORS.highlight,
+      style: {
+        marginBottom: 12
+      }
+    }), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 700,
+        fontSize: 15,
+        color: COLORS.text,
+        margin: "0 0 6px"
+      }
+    }, "\u307E\u3060\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093"), /*#__PURE__*/React.createElement("p", {
       style: {
         fontSize: 12,
         color: COLORS.textLight,
-        margin: "0 0 14px"
-      },
-      children: ["\u7DCF\u554F\u984C\u6570: ", testHistory.length, "\u554F \uFF0F \u6B63\u7B54: ", testHistory.filter(h => h.correct).length, "\u554F"]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 700,
-          fontSize: 14,
-          color: COLORS.text,
-          margin: "0 0 10px"
-        },
-        children: "\uD83D\uDCE1 \u79D1\u76EE\u5225\u6B63\u7B54\u7387\u30EC\u30FC\u30C0\u30FC"
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 240,
-        children: /*#__PURE__*/_jsxs(RadarChart, {
-          data: radarData,
-          cx: "50%",
-          cy: "50%",
-          outerRadius: 80,
-          children: [/*#__PURE__*/_jsx(PolarGrid, {
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(PolarAngleAxis, {
-            dataKey: "subject",
-            tick: {
-              fontSize: 11,
-              fill: COLORS.text
-            }
-          }), /*#__PURE__*/_jsx(PolarRadiusAxis, {
-            angle: 90,
-            domain: [0, 100],
-            tick: {
-              fontSize: 9
-            }
-          }), /*#__PURE__*/_jsx(Radar, {
-            name: "\u6B63\u7B54\u7387",
-            dataKey: "\u6B63\u7B54\u7387",
-            stroke: COLORS.highlight,
-            fill: COLORS.highlight,
-            fillOpacity: 0.3
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`
-          })]
-        })
-      })]
-    }), sectionData.length > 0 && /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 700,
-          fontSize: 14,
-          color: COLORS.text,
-          margin: "0 0 10px"
-        },
-        children: "\uD83D\uDCCA \u30BB\u30AF\u30B7\u30E7\u30F3\u5225\u8A73\u7D30"
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 200,
-        children: /*#__PURE__*/_jsxs(BarChart, {
-          data: sectionData,
-          margin: {
-            top: 4,
-            right: 8,
-            left: -20,
-            bottom: 40
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "name",
-            tick: {
-              fontSize: 10
-            },
-            angle: -45,
-            textAnchor: "end"
-          }), /*#__PURE__*/_jsx(YAxis, {
-            domain: [0, 100],
-            tick: {
-              fontSize: 10
-            },
-            unit: "%"
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`
-          }), /*#__PURE__*/_jsx(Bar, {
-            dataKey: "\u6B63\u7B54\u7387",
-            fill: COLORS.secondary,
-            radius: [4, 4, 0, 0]
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            y: 60,
-            stroke: COLORS.danger,
-            strokeDasharray: "4 2",
-            label: {
-              value: "合格ライン",
-              fill: COLORS.danger,
-              fontSize: 10
-            }
-          })]
-        })
-      })]
-    }), trendData.length >= 2 && /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 700,
-          fontSize: 14,
-          color: COLORS.text,
-          margin: "0 0 10px"
-        },
-        children: "\uD83D\uDCC8 \u30B9\u30B3\u30A2\u63A8\u79FB"
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 160,
-        children: /*#__PURE__*/_jsxs(LineChart, {
-          data: trendData,
-          margin: {
-            top: 4,
-            right: 8,
-            left: -20,
-            bottom: 4
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "date",
-            tick: {
-              fontSize: 10
-            }
-          }), /*#__PURE__*/_jsx(YAxis, {
-            domain: [0, 100],
-            tick: {
-              fontSize: 10
-            },
-            unit: "%"
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`
-          }), /*#__PURE__*/_jsx(Line, {
-            type: "monotone",
-            dataKey: "\u6B63\u7B54\u7387",
-            stroke: COLORS.accent,
-            strokeWidth: 2,
-            dot: {
-              r: 4
-            }
-          }), /*#__PURE__*/_jsx(ReferenceLine, {
-            y: 60,
-            stroke: COLORS.danger,
-            strokeDasharray: "4 2"
-          })]
-        })
-      })]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        background: `${COLORS.highlight}12`,
-        borderRadius: 14,
-        padding: 14,
-        border: `1px solid ${COLORS.highlight}33`
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 700,
-          fontSize: 13,
-          color: COLORS.highlight,
-          margin: "0 0 6px"
-        },
-        children: "\uD83E\uDD16 AI\u5B66\u7FD2\u30A2\u30C9\u30D0\u30A4\u30B9\uFF08\u30E2\u30C3\u30AF\uFF09"
-      }), weakTab && /*#__PURE__*/_jsxs("p", {
-        style: {
-          fontSize: 12,
-          color: COLORS.textLight,
-          margin: "0 0 6px"
-        },
-        children: ["\u6700\u3082\u6B63\u7B54\u7387\u304C\u4F4E\u3044\u79D1\u76EE: ", /*#__PURE__*/_jsxs("strong", {
-          style: {
-            color: COLORS.danger
-          },
-          children: [weakTab.subject, "\uFF08", weakTab.正答率, "%\uFF09"]
-        })]
-      }), /*#__PURE__*/_jsx("p", {
-        style: {
-          fontSize: 13,
-          color: COLORS.text,
-          lineHeight: 1.65,
-          margin: 0
-        },
-        children: MOCK_ADVICE_DATA[adviceKey]
-      })]
-    })]
-  });
+        margin: 0
+      }
+    }, "\u5404\u30BF\u30D6\u306E\u30AF\u30A4\u30BA\u306B\u6311\u6226\u3059\u308B\u3068\u3001\u3053\u3053\u306B\u6B63\u7B54\u7387\u304C\u8868\u793A\u3055\u308C\u307E\u3059\u3002")));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      margin: "0 0 14px"
+    }
+  }, "\u7DCF\u554F\u984C\u6570: ", testHistory.length, "\u554F \uFF0F \u6B63\u7B54: ", testHistory.filter(h => h.correct).length, "\u554F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "0 0 10px"
+    }
+  }, "\uD83D\uDCE1 \u79D1\u76EE\u5225\u6B63\u7B54\u7387\u30EC\u30FC\u30C0\u30FC"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 240
+  }, /*#__PURE__*/React.createElement(RadarChart, {
+    data: radarData,
+    cx: "50%",
+    cy: "50%",
+    outerRadius: 80
+  }, /*#__PURE__*/React.createElement(PolarGrid, {
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(PolarAngleAxis, {
+    dataKey: "subject",
+    tick: {
+      fontSize: 11,
+      fill: COLORS.text
+    }
+  }), /*#__PURE__*/React.createElement(PolarRadiusAxis, {
+    angle: 90,
+    domain: [0, 100],
+    tick: {
+      fontSize: 9
+    }
+  }), /*#__PURE__*/React.createElement(Radar, {
+    name: "\u6B63\u7B54\u7387",
+    dataKey: "\u6B63\u7B54\u7387",
+    stroke: COLORS.highlight,
+    fill: COLORS.highlight,
+    fillOpacity: 0.3
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  })))), sectionData.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "0 0 10px"
+    }
+  }, "\uD83D\uDCCA \u30BB\u30AF\u30B7\u30E7\u30F3\u5225\u8A73\u7D30"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 200
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: sectionData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -20,
+      bottom: 40
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "name",
+    tick: {
+      fontSize: 10
+    },
+    angle: -45,
+    textAnchor: "end"
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    domain: [0, 100],
+    tick: {
+      fontSize: 10
+    },
+    unit: "%"
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "\u6B63\u7B54\u7387",
+    fill: COLORS.secondary,
+    radius: [4, 4, 0, 0]
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    y: 60,
+    stroke: COLORS.danger,
+    strokeDasharray: "4 2",
+    label: {
+      value: "合格ライン",
+      fill: COLORS.danger,
+      fontSize: 10
+    }
+  })))), trendData.length >= 2 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "0 0 10px"
+    }
+  }, "\uD83D\uDCC8 \u30B9\u30B3\u30A2\u63A8\u79FB"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 160
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    data: trendData,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -20,
+      bottom: 4
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "date",
+    tick: {
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    domain: [0, 100],
+    tick: {
+      fontSize: 10
+    },
+    unit: "%"
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Line, {
+    type: "monotone",
+    dataKey: "\u6B63\u7B54\u7387",
+    stroke: COLORS.accent,
+    strokeWidth: 2,
+    dot: {
+      r: 4
+    }
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    y: 60,
+    stroke: COLORS.danger,
+    strokeDasharray: "4 2"
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.highlight}12`,
+      borderRadius: 14,
+      padding: 14,
+      border: `1px solid ${COLORS.highlight}33`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      color: COLORS.highlight,
+      margin: "0 0 6px"
+    }
+  }, "\uD83E\uDD16 AI\u5B66\u7FD2\u30A2\u30C9\u30D0\u30A4\u30B9\uFF08\u30E2\u30C3\u30AF\uFF09"), weakTab && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      margin: "0 0 6px"
+    }
+  }, "\u6700\u3082\u6B63\u7B54\u7387\u304C\u4F4E\u3044\u79D1\u76EE: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.danger
+    }
+  }, weakTab.subject, "\uFF08", weakTab.正答率, "%\uFF09")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.65,
+      margin: 0
+    }
+  }, MOCK_ADVICE_DATA[adviceKey])));
 }
 
 // --- AnalysisSectionB: 計算問題特訓 ---
@@ -7879,267 +7350,234 @@ function AnalysisSectionB({
   }).sort((a, b) => a.rate - b.rate);
   const timerColor = timeLeft > 30 ? COLORS.secondary : timeLeft > 10 ? COLORS.accent : COLORS.danger;
   if (!currentItem) {
-    return /*#__PURE__*/_jsxs("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         padding: "0 14px 24px"
-      },
-      children: [/*#__PURE__*/_jsx(InfoBox, {
-        title: "\uD83D\uDCA1 \u4F7F\u3044\u65B9",
-        color: COLORS.primary,
-        children: "\u6B63\u7B54\u7387\u306E\u4F4E\u3044\u516C\u5F0F\u3092\u512A\u5148\u8868\u793A\u3057\u3066\u3044\u307E\u3059\u3002\u300C\u6311\u6226\u300D\u3092\u62BC\u3057\u3066\u304B\u308960\u79D2\u4EE5\u5185\u306B\u6570\u5024\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          marginTop: 14
-        },
-        children: sorted.map(item => {
-          const rateLabel = item.attempts > 0 ? `${Math.round(item.rate * 100)}%（${item.attempts}回）` : "未挑戦";
-          const rateColor = item.attempts === 0 ? COLORS.textLight : item.rate < 0.6 ? COLORS.danger : COLORS.secondary;
-          return /*#__PURE__*/_jsxs("div", {
-            style: {
-              ...STYLES.card,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "12px 14px"
-            },
-            children: [/*#__PURE__*/_jsxs("div", {
-              style: {
-                flex: 1,
-                minWidth: 0
-              },
-              children: [/*#__PURE__*/_jsx("p", {
-                style: {
-                  fontWeight: 700,
-                  fontSize: 13,
-                  color: COLORS.text,
-                  margin: "0 0 2px"
-                },
-                children: item.label
-              }), /*#__PURE__*/_jsx("p", {
-                style: {
-                  fontSize: 11,
-                  color: COLORS.textLight,
-                  margin: "0 0 4px",
-                  fontFamily: "monospace"
-                },
-                children: item.formula
-              }), /*#__PURE__*/_jsxs("p", {
-                style: {
-                  fontSize: 11,
-                  color: rateColor,
-                  margin: 0,
-                  fontWeight: 700
-                },
-                children: ["\u6B63\u7B54\u7387 ", rateLabel]
-              })]
-            }), /*#__PURE__*/_jsx("button", {
-              onClick: () => startPractice(item),
-              style: {
-                ...STYLES.btnPrimary,
-                padding: "8px 14px",
-                fontSize: 12,
-                flexShrink: 0
-              },
-              children: "\u6311\u6226"
-            })]
-          }, item.key);
-        })
-      }), localHistory.length > 0 && /*#__PURE__*/_jsxs("div", {
+      }
+    }, /*#__PURE__*/React.createElement(InfoBox, {
+      title: "\uD83D\uDCA1 \u4F7F\u3044\u65B9",
+      color: COLORS.primary
+    }, "\u6B63\u7B54\u7387\u306E\u4F4E\u3044\u516C\u5F0F\u3092\u512A\u5148\u8868\u793A\u3057\u3066\u3044\u307E\u3059\u3002\u300C\u6311\u6226\u300D\u3092\u62BC\u3057\u3066\u304B\u308960\u79D2\u4EE5\u5185\u306B\u6570\u5024\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        marginTop: 14
+      }
+    }, sorted.map(item => {
+      const rateLabel = item.attempts > 0 ? `${Math.round(item.rate * 100)}%（${item.attempts}回）` : "未挑戦";
+      const rateColor = item.attempts === 0 ? COLORS.textLight : item.rate < 0.6 ? COLORS.danger : COLORS.secondary;
+      return /*#__PURE__*/React.createElement("div", {
+        key: item.key,
         style: {
           ...STYLES.card,
-          marginTop: 16
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 700,
-            fontSize: 13,
-            color: COLORS.text,
-            margin: "0 0 10px"
-          },
-          children: "\u76F4\u8FD1\u306E\u7DF4\u7FD2\u5C65\u6B74"
-        }), localHistory.slice(0, 6).map((h, i) => {
-          const item = CALC_PRACTICE_ITEMS.find(c => c.key === h.key);
-          return /*#__PURE__*/_jsxs("div", {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 6
-            },
-            children: [/*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 14
-              },
-              children: h.correct ? "✅" : "❌"
-            }), /*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 12,
-                color: COLORS.text,
-                flex: 1
-              },
-              children: item?.label
-            }), /*#__PURE__*/_jsxs("span", {
-              style: {
-                fontSize: 11,
-                color: COLORS.textLight
-              },
-              children: [h.timeSpent, "\u79D2"]
-            })]
-          }, i);
-        })]
-      })]
-    });
-  }
-  return /*#__PURE__*/_jsxs("div", {
-    style: {
-      padding: "0 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        ...STYLES.card,
-        marginBottom: 14,
-        padding: "12px 16px"
-      },
-      children: [/*#__PURE__*/_jsx("span", {
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "12px 14px"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("p", {
         style: {
           fontWeight: 700,
-          fontSize: 14,
-          color: COLORS.text
-        },
-        children: currentItem.label
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          background: timerColor,
-          color: "#fff",
-          borderRadius: 20,
-          padding: "4px 16px",
-          fontSize: 17,
-          fontWeight: 900
-        },
-        children: [timeLeft, "\u79D2"]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        background: `${COLORS.primary}14`,
-        borderRadius: 12,
-        padding: "10px 14px",
-        marginBottom: 12,
-        textAlign: "center",
-        fontFamily: "monospace",
-        fontSize: 13,
-        color: COLORS.primary
-      },
-      children: currentItem.formula
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: /*#__PURE__*/_jsx("p", {
-        style: {
-          fontSize: 14,
+          fontSize: 13,
           color: COLORS.text,
-          lineHeight: 1.7,
-          margin: 0
-        },
-        children: currentQ && currentItem.question(currentQ.inputs)
-      })
-    }), !result ? /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "flex",
-        gap: 10
-      },
-      children: [/*#__PURE__*/_jsx("input", {
-        type: "number",
-        value: userAnswer,
-        onChange: e => setUserAnswer(e.target.value),
-        onKeyDown: e => e.key === "Enter" && handleSubmit(),
-        placeholder: `答えを入力${currentQ?.unit ? `（${currentQ.unit}）` : ""}`,
+          margin: "0 0 2px"
+        }
+      }, item.label), /*#__PURE__*/React.createElement("p", {
         style: {
-          ...STYLES.input,
-          flex: 1
-        },
-        autoFocus: true
-      }), /*#__PURE__*/_jsx("button", {
-        onClick: handleSubmit,
+          fontSize: 11,
+          color: COLORS.textLight,
+          margin: "0 0 4px",
+          fontFamily: "monospace"
+        }
+      }, item.formula), /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 11,
+          color: rateColor,
+          margin: 0,
+          fontWeight: 700
+        }
+      }, "\u6B63\u7B54\u7387 ", rateLabel)), /*#__PURE__*/React.createElement("button", {
+        onClick: () => startPractice(item),
         style: {
           ...STYLES.btnPrimary,
-          padding: "10px 18px"
-        },
-        children: "\u7B54\u3048\u308B"
-      })]
-    }) : /*#__PURE__*/_jsxs("div", {
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          background: result.correct ? `${COLORS.secondary}18` : `${COLORS.danger}12`,
-          border: `2px solid ${result.correct ? COLORS.secondary : COLORS.danger}`,
-          borderRadius: 14,
-          padding: 16,
-          marginBottom: 14,
-          textAlign: "center"
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 900,
-            fontSize: 18,
-            color: result.correct ? COLORS.secondary : COLORS.danger,
-            margin: "0 0 6px"
-          },
-          children: result.correct ? "🎉 正解！" : result.timeout ? "⏰ 時間切れ！" : "❌ 不正解"
-        }), !result.correct && /*#__PURE__*/_jsxs("p", {
-          style: {
-            fontSize: 14,
-            color: COLORS.text,
-            margin: "0 0 8px"
-          },
-          children: ["\u6B63\u89E3: ", /*#__PURE__*/_jsxs("strong", {
-            children: [result.expected, result.unit]
-          })]
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            lineHeight: 1.6,
-            margin: 0
-          },
-          children: MOCK_ADVICE_DATA[currentItem.key] || MOCK_ADVICE_DATA.default
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
+          padding: "8px 14px",
+          fontSize: 12,
+          flexShrink: 0
+        }
+      }, "\u6311\u6226"));
+    })), localHistory.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.card,
+        marginTop: 16
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13,
+        color: COLORS.text,
+        margin: "0 0 10px"
+      }
+    }, "\u76F4\u8FD1\u306E\u7DF4\u7FD2\u5C65\u6B74"), localHistory.slice(0, 6).map((h, i) => {
+      const item = CALC_PRACTICE_ITEMS.find(c => c.key === h.key);
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
         style: {
           display: "flex",
-          gap: 10
-        },
-        children: [/*#__PURE__*/_jsx("button", {
-          onClick: () => startPractice(currentItem),
-          style: {
-            ...STYLES.btnPrimary,
-            flex: 1,
-            padding: 12
-          },
-          children: "\u3082\u3046\u4E00\u5EA6"
-        }), /*#__PURE__*/_jsx("button", {
-          onClick: () => {
-            setCurrentItem(null);
-            setCurrentQ(null);
-            setResult(null);
-          },
-          style: {
-            ...STYLES.btnOutline,
-            flex: 1,
-            padding: 12,
-            borderRadius: 12
-          },
-          children: "\u4E00\u89A7\u3078\u623B\u308B"
-        })]
-      })]
-    })]
-  });
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 6
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 14
+        }
+      }, h.correct ? "✅" : "❌"), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 12,
+          color: COLORS.text,
+          flex: 1
+        }
+      }, item?.label), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 11,
+          color: COLORS.textLight
+        }
+      }, h.timeSpent, "\u79D2"));
+    })));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      ...STYLES.card,
+      marginBottom: 14,
+      padding: "12px 16px"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text
+    }
+  }, currentItem.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: timerColor,
+      color: "#fff",
+      borderRadius: 20,
+      padding: "4px 16px",
+      fontSize: 17,
+      fontWeight: 900
+    }
+  }, timeLeft, "\u79D2")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.primary}14`,
+      borderRadius: 12,
+      padding: "10px 14px",
+      marginBottom: 12,
+      textAlign: "center",
+      fontFamily: "monospace",
+      fontSize: 13,
+      color: COLORS.primary
+    }
+  }, currentItem.formula), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: COLORS.text,
+      lineHeight: 1.7,
+      margin: 0
+    }
+  }, currentQ && currentItem.question(currentQ.inputs))), !result ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: userAnswer,
+    onChange: e => setUserAnswer(e.target.value),
+    onKeyDown: e => e.key === "Enter" && handleSubmit(),
+    placeholder: `答えを入力${currentQ?.unit ? `（${currentQ.unit}）` : ""}`,
+    style: {
+      ...STYLES.input,
+      flex: 1
+    },
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSubmit,
+    style: {
+      ...STYLES.btnPrimary,
+      padding: "10px 18px"
+    }
+  }, "\u7B54\u3048\u308B")) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: result.correct ? `${COLORS.secondary}18` : `${COLORS.danger}12`,
+      border: `2px solid ${result.correct ? COLORS.secondary : COLORS.danger}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 14,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 900,
+      fontSize: 18,
+      color: result.correct ? COLORS.secondary : COLORS.danger,
+      margin: "0 0 6px"
+    }
+  }, result.correct ? "🎉 正解！" : result.timeout ? "⏰ 時間切れ！" : "❌ 不正解"), !result.correct && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "0 0 8px"
+    }
+  }, "\u6B63\u89E3: ", /*#__PURE__*/React.createElement("strong", null, result.expected, result.unit)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, MOCK_ADVICE_DATA[currentItem.key] || MOCK_ADVICE_DATA.default)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => startPractice(currentItem),
+    style: {
+      ...STYLES.btnPrimary,
+      flex: 1,
+      padding: 12
+    }
+  }, "\u3082\u3046\u4E00\u5EA6"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setCurrentItem(null);
+      setCurrentQ(null);
+      setResult(null);
+    },
+    style: {
+      ...STYLES.btnOutline,
+      flex: 1,
+      padding: 12,
+      borderRadius: 12
+    }
+  }, "\u4E00\u89A7\u3078\u623B\u308B"))));
 }
 
 // --- AnalysisSectionC: 忘却曲線・復習管理 ---
@@ -8190,241 +7628,214 @@ function AnalysisSectionC({
       }
     }));
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "0 14px 24px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "0 0 4px"
+    }
+  }, "\uD83D\uDCC9 \u30A8\u30D3\u30F3\u30B0\u30CF\u30A6\u30B9\u306E\u5FD8\u5374\u66F2\u7DDA"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      margin: "0 0 12px"
+    }
+  }, "\u7E70\u308A\u8FD4\u3057\u5FA9\u7FD2\u3059\u308B\u3053\u3068\u3067\u8A18\u61B6\u5B9A\u7740\u7387\u304C\u5927\u304D\u304F\u5411\u4E0A\u3057\u307E\u3059"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 180
+  }, /*#__PURE__*/React.createElement(LineChart, {
+    data: FORGETTING_CURVE_DATA,
+    margin: {
+      top: 4,
+      right: 8,
+      left: -20,
+      bottom: 4
+    }
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    strokeDasharray: "3 3",
+    stroke: COLORS.border
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "day",
+    tick: {
+      fontSize: 9
     },
-    children: [/*#__PURE__*/_jsxs("div", {
+    interval: 4
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    domain: [0, 100],
+    tick: {
+      fontSize: 9
+    },
+    unit: "%"
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Legend, {
+    wrapperStyle: {
+      fontSize: 11
+    }
+  }), /*#__PURE__*/React.createElement(Line, {
+    type: "monotone",
+    dataKey: "\u5FA9\u7FD2\u306A\u3057",
+    stroke: COLORS.danger,
+    strokeWidth: 2,
+    dot: false
+  }), /*#__PURE__*/React.createElement(Line, {
+    type: "monotone",
+    dataKey: "\u5FA9\u7FD2\u3042\u308A",
+    stroke: COLORS.secondary,
+    strokeWidth: 2,
+    dot: false,
+    strokeDasharray: "5 3"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 16,
+      marginTop: 8,
+      fontSize: 11,
+      color: COLORS.textLight,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\u7FCC\u65E5: \u7D0474%\u5FD8\u5374"), /*#__PURE__*/React.createElement("span", null, "1\u9031\u9593: \u7D0467%\u5FD8\u5374"), /*#__PURE__*/React.createElement("span", null, "1\u30F6\u6708: \u7D0479%\u5FD8\u5374"))), reviewItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13,
+      color: COLORS.text,
+      margin: 0
+    }
+  }, "\u5FA9\u7FD2\u9032\u6357"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: COLORS.secondary,
+      fontWeight: 700
+    }
+  }, masteredCount, " / ", reviewItems.length, " \u7FD2\u5F97\u6E08\u307F")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.border,
+      borderRadius: 8,
+      height: 8,
+      overflow: "hidden",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.secondary,
+      height: "100%",
+      borderRadius: 8,
+      width: `${reviewItems.length > 0 ? masteredCount / reviewItems.length * 100 : 0}%`,
+      transition: "width 0.4s"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, reviewItems.map(([kw, cnt]) => {
+    const st = getStatus(kw);
+    const info = STATUS[st];
+    return /*#__PURE__*/React.createElement("div", {
+      key: kw,
       style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 700,
-          fontSize: 14,
-          color: COLORS.text,
-          margin: "0 0 4px"
-        },
-        children: "\uD83D\uDCC9 \u30A8\u30D3\u30F3\u30B0\u30CF\u30A6\u30B9\u306E\u5FD8\u5374\u66F2\u7DDA"
-      }), /*#__PURE__*/_jsx("p", {
-        style: {
-          fontSize: 11,
-          color: COLORS.textLight,
-          margin: "0 0 12px"
-        },
-        children: "\u7E70\u308A\u8FD4\u3057\u5FA9\u7FD2\u3059\u308B\u3053\u3068\u3067\u8A18\u61B6\u5B9A\u7740\u7387\u304C\u5927\u304D\u304F\u5411\u4E0A\u3057\u307E\u3059"
-      }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-        width: "100%",
-        height: 180,
-        children: /*#__PURE__*/_jsxs(LineChart, {
-          data: FORGETTING_CURVE_DATA,
-          margin: {
-            top: 4,
-            right: 8,
-            left: -20,
-            bottom: 4
-          },
-          children: [/*#__PURE__*/_jsx(CartesianGrid, {
-            strokeDasharray: "3 3",
-            stroke: COLORS.border
-          }), /*#__PURE__*/_jsx(XAxis, {
-            dataKey: "day",
-            tick: {
-              fontSize: 9
-            },
-            interval: 4
-          }), /*#__PURE__*/_jsx(YAxis, {
-            domain: [0, 100],
-            tick: {
-              fontSize: 9
-            },
-            unit: "%"
-          }), /*#__PURE__*/_jsx(Tooltip, {
-            formatter: v => `${v}%`
-          }), /*#__PURE__*/_jsx(Legend, {
-            wrapperStyle: {
-              fontSize: 11
-            }
-          }), /*#__PURE__*/_jsx(Line, {
-            type: "monotone",
-            dataKey: "\u5FA9\u7FD2\u306A\u3057",
-            stroke: COLORS.danger,
-            strokeWidth: 2,
-            dot: false
-          }), /*#__PURE__*/_jsx(Line, {
-            type: "monotone",
-            dataKey: "\u5FA9\u7FD2\u3042\u308A",
-            stroke: COLORS.secondary,
-            strokeWidth: 2,
-            dot: false,
-            strokeDasharray: "5 3"
-          })]
-        })
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 16,
-          marginTop: 8,
-          fontSize: 11,
-          color: COLORS.textLight,
-          flexWrap: "wrap"
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          children: "\u7FCC\u65E5: \u7D0474%\u5FD8\u5374"
-        }), /*#__PURE__*/_jsx("span", {
-          children: "1\u9031\u9593: \u7D0467%\u5FD8\u5374"
-        }), /*#__PURE__*/_jsx("span", {
-          children: "1\u30F6\u6708: \u7D0479%\u5FD8\u5374"
-        })]
-      })]
-    }), reviewItems.length > 0 && /*#__PURE__*/_jsxs("div", {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        background: "#fff",
+        borderRadius: 10,
+        padding: "10px 12px",
+        border: `1px solid ${COLORS.border}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
-        ...STYLES.card,
-        marginBottom: 14
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 700,
-            fontSize: 13,
-            color: COLORS.text,
-            margin: 0
-          },
-          children: "\u5FA9\u7FD2\u9032\u6357"
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            fontSize: 12,
-            color: COLORS.secondary,
-            fontWeight: 700
-          },
-          children: [masteredCount, " / ", reviewItems.length, " \u7FD2\u5F97\u6E08\u307F"]
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          background: COLORS.border,
-          borderRadius: 8,
-          height: 8,
-          overflow: "hidden",
-          marginBottom: 14
-        },
-        children: /*#__PURE__*/_jsx("div", {
-          style: {
-            background: COLORS.secondary,
-            height: "100%",
-            borderRadius: 8,
-            width: `${reviewItems.length > 0 ? masteredCount / reviewItems.length * 100 : 0}%`,
-            transition: "width 0.4s"
-          }
-        })
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: 8
-        },
-        children: reviewItems.map(([kw, cnt]) => {
-          const st = getStatus(kw);
-          const info = STATUS[st];
-          return /*#__PURE__*/_jsxs("div", {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              background: "#fff",
-              borderRadius: 10,
-              padding: "10px 12px",
-              border: `1px solid ${COLORS.border}`
-            },
-            children: [/*#__PURE__*/_jsxs("div", {
-              style: {
-                flex: 1,
-                minWidth: 0
-              },
-              children: [/*#__PURE__*/_jsx("p", {
-                style: {
-                  fontWeight: 700,
-                  fontSize: 13,
-                  color: COLORS.text,
-                  margin: "0 0 1px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
-                },
-                children: kw
-              }), /*#__PURE__*/_jsxs("p", {
-                style: {
-                  fontSize: 11,
-                  color: COLORS.textLight,
-                  margin: 0
-                },
-                children: ["\u9593\u9055\u3044 ", cnt, "\u56DE"]
-              })]
-            }), /*#__PURE__*/_jsx("span", {
-              style: {
-                ...STYLES.badge(info.color),
-                fontSize: 10,
-                whiteSpace: "nowrap",
-                flexShrink: 0
-              },
-              children: info.label
-            }), info.next ? /*#__PURE__*/_jsx("button", {
-              onClick: () => updateReview(kw, info.next),
-              style: {
-                background: info.color,
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "5px 10px",
-                fontSize: 11,
-                cursor: "pointer",
-                fontWeight: 700,
-                flexShrink: 0
-              },
-              children: info.next === "tomorrow" ? "今日OK" : "完璧！"
-            }) : /*#__PURE__*/_jsx("button", {
-              onClick: () => updateReview(kw, "today"),
-              style: {
-                background: "transparent",
-                color: COLORS.textLight,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 8,
-                padding: "5px 10px",
-                fontSize: 11,
-                cursor: "pointer",
-                flexShrink: 0
-              },
-              children: "\u30EA\u30BB\u30C3\u30C8"
-            })]
-          }, kw);
-        })
-      })]
-    }), reviewItems.length === 0 && /*#__PURE__*/_jsx("div", {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("p", {
       style: {
-        ...STYLES.card,
-        textAlign: "center",
-        padding: 24,
-        marginBottom: 14
-      },
-      children: /*#__PURE__*/_jsxs("p", {
-        style: {
-          fontSize: 14,
-          color: COLORS.textLight,
-          margin: 0
-        },
-        children: ["\u30AF\u30A4\u30BA\u3067\u9593\u9055\u3048\u305F\u30AD\u30FC\u30EF\u30FC\u30C9\u304C\u3053\u3053\u306B\u8868\u793A\u3055\u308C\u307E\u3059\u3002", /*#__PURE__*/_jsx("br", {}), "\u5404\u30BF\u30D6\u306E\u30AF\u30A4\u30BA\u306B\u6311\u6226\u3057\u3066\u307F\u307E\u3057\u3087\u3046\uFF01"]
-      })
-    }), /*#__PURE__*/_jsx(ExamTipCard, {
-      color: COLORS.accent,
-      tips: ["翌日・3日後・1週間後・2週間後・1ヶ月後の間隔で繰り返すと定着率が高まる（間隔反復）", "「今日OK」→「完璧！」の順でステータスを進めましょう", "正答率60%以上を全セクションで維持するのが合格の目安", "計算問題は「なぜその公式になるか」を理解してから暗記すると応用が効く"]
-    })]
-  });
+        fontWeight: 700,
+        fontSize: 13,
+        color: COLORS.text,
+        margin: "0 0 1px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, kw), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        margin: 0
+      }
+    }, "\u9593\u9055\u3044 ", cnt, "\u56DE")), /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...STYLES.badge(info.color),
+        fontSize: 10,
+        whiteSpace: "nowrap",
+        flexShrink: 0
+      }
+    }, info.label), info.next ? /*#__PURE__*/React.createElement("button", {
+      onClick: () => updateReview(kw, info.next),
+      style: {
+        background: info.color,
+        color: "#fff",
+        border: "none",
+        borderRadius: 8,
+        padding: "5px 10px",
+        fontSize: 11,
+        cursor: "pointer",
+        fontWeight: 700,
+        flexShrink: 0
+      }
+    }, info.next === "tomorrow" ? "今日OK" : "完璧！") : /*#__PURE__*/React.createElement("button", {
+      onClick: () => updateReview(kw, "today"),
+      style: {
+        background: "transparent",
+        color: COLORS.textLight,
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 8,
+        padding: "5px 10px",
+        fontSize: 11,
+        cursor: "pointer",
+        flexShrink: 0
+      }
+    }, "\u30EA\u30BB\u30C3\u30C8"));
+  }))), reviewItems.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      textAlign: "center",
+      padding: 24,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: COLORS.textLight,
+      margin: 0
+    }
+  }, "\u30AF\u30A4\u30BA\u3067\u9593\u9055\u3048\u305F\u30AD\u30FC\u30EF\u30FC\u30C9\u304C\u3053\u3053\u306B\u8868\u793A\u3055\u308C\u307E\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u5404\u30BF\u30D6\u306E\u30AF\u30A4\u30BA\u306B\u6311\u6226\u3057\u3066\u307F\u307E\u3057\u3087\u3046\uFF01")), /*#__PURE__*/React.createElement(ExamTipCard, {
+    color: COLORS.accent,
+    tips: ["翌日・3日後・1週間後・2週間後・1ヶ月後の間隔で繰り返すと定着率が高まる（間隔反復）", "「今日OK」→「完璧！」の順でステータスを進めましょう", "正答率60%以上を全セクションで維持するのが合格の目安", "計算問題は「なぜその公式になるか」を理解してから暗記すると応用が効く"]
+  }));
 }
 const ANALYSIS_SECTIONS = [{
   id: "A",
@@ -8548,168 +7959,149 @@ function AIMockPanel({
   const [open, setOpen] = useState(false);
   const text = MOCK_AI_DATA[type]?.[topicKey] || MOCK_AI_DATA[type]?.default || "";
   if (!text) return null;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 10
-    },
-    children: [/*#__PURE__*/_jsxs("button", {
-      onClick: () => setOpen(o => !o),
-      style: {
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        background: open ? `${color}18` : "transparent",
-        border: `1.5px solid ${open ? color : COLORS.border}`,
-        borderRadius: 10,
-        padding: "7px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 700,
-        color: open ? color : COLORS.textLight,
-        fontFamily: "'Noto Sans JP', sans-serif",
-        transition: "all 0.18s ease",
-        width: "100%",
-        textAlign: "left"
-      },
-      children: [/*#__PURE__*/_jsx("span", {
-        style: {
-          fontSize: 14
-        },
-        children: "\uD83E\uDD16"
-      }), label, /*#__PURE__*/_jsx("span", {
-        style: {
-          marginLeft: "auto",
-          fontSize: 10
-        },
-        children: open ? "▲" : "▼"
-      })]
-    }), open && /*#__PURE__*/_jsx("div", {
-      style: {
-        background: `${color}0A`,
-        border: `1px solid ${color}30`,
-        borderRadius: "0 0 10px 10px",
-        padding: "12px 14px",
-        fontSize: 13,
-        color: COLORS.text,
-        lineHeight: 1.7
-      },
-      children: text
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      background: open ? `${color}18` : "transparent",
+      border: `1.5px solid ${open ? color : COLORS.border}`,
+      borderRadius: 10,
+      padding: "7px 14px",
+      cursor: "pointer",
+      fontSize: 12,
+      fontWeight: 700,
+      color: open ? color : COLORS.textLight,
+      fontFamily: "'Noto Sans JP', sans-serif",
+      transition: "all 0.18s ease",
+      width: "100%",
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14
+    }
+  }, "\uD83E\uDD16"), label, /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: "auto",
+      fontSize: 10
+    }
+  }, open ? "▲" : "▼")), open && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${color}0A`,
+      border: `1px solid ${color}30`,
+      borderRadius: "0 0 10px 10px",
+      padding: "12px 14px",
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, text));
 }
 
 // --- AICompareCard: 概念比較パネル ---
 function AICompareCard({
   item
 }) {
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 14
-    },
-    children: [/*#__PURE__*/_jsxs("p", {
-      style: {
-        fontWeight: 800,
-        fontSize: 14,
-        color: COLORS.highlight,
-        margin: "0 0 10px"
-      },
-      children: ["\uD83D\uDD01 ", item.title]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 8,
-        marginBottom: 10
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          background: `${COLORS.primary}10`,
-          borderRadius: 10,
-          padding: 10,
-          border: `1px solid ${COLORS.primary}30`
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 700,
-            fontSize: 12,
-            color: COLORS.primary,
-            margin: "0 0 3px"
-          },
-          children: item.left.name
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 11,
-            color: COLORS.textLight,
-            fontFamily: "monospace",
-            margin: "0 0 4px"
-          },
-          children: item.left.key
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 11,
-            color: COLORS.text,
-            margin: 0,
-            lineHeight: 1.5
-          },
-          children: item.left.desc
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          background: `${COLORS.secondary}10`,
-          borderRadius: 10,
-          padding: 10,
-          border: `1px solid ${COLORS.secondary}30`
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 700,
-            fontSize: 12,
-            color: COLORS.secondary,
-            margin: "0 0 3px"
-          },
-          children: item.right.name
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 11,
-            color: COLORS.textLight,
-            fontFamily: "monospace",
-            margin: "0 0 4px"
-          },
-          children: item.right.key
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 11,
-            color: COLORS.text,
-            margin: 0,
-            lineHeight: 1.5
-          },
-          children: item.right.desc
-        })]
-      })]
-    }), /*#__PURE__*/_jsx("div", {
-      style: {
-        background: `${COLORS.accent}12`,
-        borderRadius: 8,
-        padding: "8px 12px"
-      },
-      children: /*#__PURE__*/_jsxs("p", {
-        style: {
-          fontSize: 12,
-          color: COLORS.text,
-          lineHeight: 1.6,
-          margin: 0
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            fontWeight: 700,
-            color: COLORS.accent
-          },
-          children: "\u8A66\u9A13\u30DD\u30A4\u30F3\u30C8\uFF1A"
-        }), item.note]
-      })
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.highlight,
+      margin: "0 0 10px"
+    }
+  }, "\uD83D\uDD01 ", item.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.primary}10`,
+      borderRadius: 10,
+      padding: 10,
+      border: `1px solid ${COLORS.primary}30`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12,
+      color: COLORS.primary,
+      margin: "0 0 3px"
+    }
+  }, item.left.name), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      fontFamily: "monospace",
+      margin: "0 0 4px"
+    }
+  }, item.left.key), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      margin: 0,
+      lineHeight: 1.5
+    }
+  }, item.left.desc)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.secondary}10`,
+      borderRadius: 10,
+      padding: 10,
+      border: `1px solid ${COLORS.secondary}30`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12,
+      color: COLORS.secondary,
+      margin: "0 0 3px"
+    }
+  }, item.right.name), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      fontFamily: "monospace",
+      margin: "0 0 4px"
+    }
+  }, item.right.key), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      margin: 0,
+      lineHeight: 1.5
+    }
+  }, item.right.desc))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.accent}12`,
+      borderRadius: 8,
+      padding: "8px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: COLORS.accent
+    }
+  }, "\u8A66\u9A13\u30DD\u30A4\u30F3\u30C8\uFF1A"), item.note)));
 }
 
 // --- AIReviewWidget: ホーム画面向けパーソナライズ提案 ---
@@ -8746,132 +8138,116 @@ function AIReviewWidget({
     });
     return Object.entries(wm).sort(([, a], [, b]) => b - a).slice(0, 3).map(([k]) => k);
   })();
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 12,
       background: `${COLORS.highlight}0A`,
       border: `1.5px solid ${COLORS.highlight}33`
-    },
-    children: [/*#__PURE__*/_jsxs("button", {
-      onClick: () => setOpen(o => !o),
-      style: {
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        width: "100%",
-        padding: 0,
-        fontFamily: "'Noto Sans JP', sans-serif"
-      },
-      children: [/*#__PURE__*/_jsx("span", {
-        style: {
-          fontSize: 18
-        },
-        children: "\uD83E\uDD16"
-      }), /*#__PURE__*/_jsx("span", {
-        style: {
-          fontWeight: 800,
-          fontSize: 14,
-          color: COLORS.highlight,
-          flex: 1,
-          textAlign: "left"
-        },
-        children: "\u4ECA\u65E5\u306EAI\u5B66\u7FD2\u63D0\u6848"
-      }), /*#__PURE__*/_jsx(ChevronRight, {
-        size: 16,
-        color: COLORS.highlight,
-        style: {
-          transform: open ? "rotate(90deg)" : "none",
-          transition: "transform 0.2s"
-        }
-      })]
-    }), open && /*#__PURE__*/_jsxs("div", {
-      style: {
-        marginTop: 12
-      },
-      children: [weakTab && /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 13,
-            color: COLORS.text
-          },
-          children: "\u6700\u3082\u6B63\u7B54\u7387\u304C\u4F4E\u3044\u5206\u91CE:"
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            ...STYLES.badge(COLORS.danger),
-            fontWeight: 700
-          },
-          children: [TAB_DISPLAY[weakTab.tab] || weakTab.tab, "\uFF08", Math.round(weakTab.rate * 100), "%\uFF09"]
-        })]
-      }), calcRate !== null && calcRate < 0.6 && /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 13,
-            color: COLORS.text
-          },
-          children: "\u8A08\u7B97\u554F\u984C\u6B63\u7B54\u7387:"
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            ...STYLES.badge(COLORS.accent),
-            fontWeight: 700
-          },
-          children: [Math.round(calcRate * 100), "% \u2192 \u8A08\u7B97\u7279\u8A13\u30BF\u30D6\u3067\u7DF4\u7FD2\u3092\uFF01"]
-        })]
-      }), topKeywords.length > 0 && /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            margin: "0 0 6px"
-          },
-          children: "\u983B\u51FA\u306E\u9593\u9055\u3044\u30AD\u30FC\u30EF\u30FC\u30C9:"
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6
-          },
-          children: topKeywords.map(kw => /*#__PURE__*/_jsx("span", {
-            style: STYLES.badge(COLORS.primary),
-            children: kw
-          }, kw))
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          background: `${COLORS.highlight}10`,
-          borderRadius: 10,
-          padding: "10px 12px"
-        },
-        children: /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 12,
-            color: COLORS.text,
-            lineHeight: 1.65,
-            margin: 0
-          },
-          children: MOCK_AI_DATA.explanation[explKey]
-        })
-      })]
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      width: "100%",
+      padding: 0,
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, "\uD83E\uDD16"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.highlight,
+      flex: 1,
+      textAlign: "left"
+    }
+  }, "\u4ECA\u65E5\u306EAI\u5B66\u7FD2\u63D0\u6848"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: COLORS.highlight,
+    style: {
+      transform: open ? "rotate(90deg)" : "none",
+      transition: "transform 0.2s"
+    }
+  })), open && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, weakTab && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text
+    }
+  }, "\u6700\u3082\u6B63\u7B54\u7387\u304C\u4F4E\u3044\u5206\u91CE:"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(COLORS.danger),
+      fontWeight: 700
+    }
+  }, TAB_DISPLAY[weakTab.tab] || weakTab.tab, "\uFF08", Math.round(weakTab.rate * 100), "%\uFF09")), calcRate !== null && calcRate < 0.6 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text
+    }
+  }, "\u8A08\u7B97\u554F\u984C\u6B63\u7B54\u7387:"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...STYLES.badge(COLORS.accent),
+      fontWeight: 700
+    }
+  }, Math.round(calcRate * 100), "% \u2192 \u8A08\u7B97\u7279\u8A13\u30BF\u30D6\u3067\u7DF4\u7FD2\u3092\uFF01")), topKeywords.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      margin: "0 0 6px"
+    }
+  }, "\u983B\u51FA\u306E\u9593\u9055\u3044\u30AD\u30FC\u30EF\u30FC\u30C9:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }
+  }, topKeywords.map(kw => /*#__PURE__*/React.createElement("span", {
+    key: kw,
+    style: STYLES.badge(COLORS.primary)
+  }, kw)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `${COLORS.highlight}10`,
+      borderRadius: 10,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.65,
+      margin: 0
+    }
+  }, MOCK_AI_DATA.explanation[explKey]))));
 }
 
 // --- AnalysisSectionD: AI解説・比較パネル集 ---
@@ -8904,37 +8280,35 @@ function AnalysisSectionD() {
     key: "ideco",
     label: "iDeCo"
   }];
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "0 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(InfoBox, {
-      title: "\uD83D\uDCA1 AI\u89E3\u8AAC\u306E\u4F7F\u3044\u65B9",
-      color: COLORS.highlight,
-      children: "\u5404\u30C8\u30D4\u30C3\u30AF\u3092\u30BF\u30C3\u30D7\u3059\u308B\u3068AI\u98A8\u306E\u89E3\u8AAC\u304C\u5C55\u958B\u3057\u307E\u3059\u3002 \u300C\u6BD4\u8F03\u3067\u7406\u89E3\u300D\u30BB\u30AF\u30B7\u30E7\u30F3\u3067\u306F\u8A66\u9A13\u983B\u51FA\u306E\u6982\u5FF5\u6BD4\u8F03\u3092\u307E\u3068\u3081\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002"
-    }), /*#__PURE__*/_jsx("p", {
-      style: {
-        fontWeight: 700,
-        fontSize: 14,
-        color: COLORS.text,
-        margin: "14px 0 10px"
-      },
-      children: "\uD83D\uDCDA \u30C8\u30D4\u30C3\u30AF\u5225AI\u89E3\u8AAC"
-    }), topics.map(t => /*#__PURE__*/_jsx(AIMockPanel, {
-      topicKey: t.key,
-      label: `${t.label}を解説`
-    }, t.key)), /*#__PURE__*/_jsx("p", {
-      style: {
-        fontWeight: 700,
-        fontSize: 14,
-        color: COLORS.text,
-        margin: "20px 0 10px"
-      },
-      children: "\uD83D\uDD01 \u6BD4\u8F03\u3067\u7406\u89E3\u3059\u308B"
-    }), MOCK_AI_DATA.compare.map(item => /*#__PURE__*/_jsx(AICompareCard, {
-      item: item
-    }, item.id))]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\uD83D\uDCA1 AI\u89E3\u8AAC\u306E\u4F7F\u3044\u65B9",
+    color: COLORS.highlight
+  }, "\u5404\u30C8\u30D4\u30C3\u30AF\u3092\u30BF\u30C3\u30D7\u3059\u308B\u3068AI\u98A8\u306E\u89E3\u8AAC\u304C\u5C55\u958B\u3057\u307E\u3059\u3002 \u300C\u6BD4\u8F03\u3067\u7406\u89E3\u300D\u30BB\u30AF\u30B7\u30E7\u30F3\u3067\u306F\u8A66\u9A13\u983B\u51FA\u306E\u6982\u5FF5\u6BD4\u8F03\u3092\u307E\u3068\u3081\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "14px 0 10px"
+    }
+  }, "\uD83D\uDCDA \u30C8\u30D4\u30C3\u30AF\u5225AI\u89E3\u8AAC"), topics.map(t => /*#__PURE__*/React.createElement(AIMockPanel, {
+    key: t.key,
+    topicKey: t.key,
+    label: `${t.label}を解説`
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14,
+      color: COLORS.text,
+      margin: "20px 0 10px"
+    }
+  }, "\uD83D\uDD01 \u6BD4\u8F03\u3067\u7406\u89E3\u3059\u308B"), MOCK_AI_DATA.compare.map(item => /*#__PURE__*/React.createElement(AICompareCard, {
+    key: item.id,
+    item: item
+  })));
 }
 
 // --- AnalysisTab ---
@@ -8947,47 +8321,46 @@ function AnalysisTab({
   const renderSection = () => {
     switch (section) {
       case "A":
-        return /*#__PURE__*/_jsx(AnalysisSectionA, {
+        return /*#__PURE__*/React.createElement(AnalysisSectionA, {
           state: state
         });
       case "B":
-        return /*#__PURE__*/_jsx(AnalysisSectionB, {
+        return /*#__PURE__*/React.createElement(AnalysisSectionB, {
           state: state,
           setState: setState
         });
       case "C":
-        return /*#__PURE__*/_jsx(AnalysisSectionC, {
+        return /*#__PURE__*/React.createElement(AnalysisSectionC, {
           state: state,
           setState: setState
         });
       case "D":
-        return /*#__PURE__*/_jsx(AnalysisSectionD, {});
+        return /*#__PURE__*/React.createElement(AnalysisSectionD, null);
       default:
         return null;
     }
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: "\u2465 \u82E6\u624B\u5206\u6790",
-      subtitle: "\u6B63\u7B54\u7387\u30EC\u30FC\u30C0\u30FC\u30FB\u8A08\u7B97\u7279\u8A13\u30FB\u5FD8\u5374\u66F2\u7DDA\u3067\u5F31\u70B9\u3092\u5B8C\u5168\u514B\u670D",
-      color: color,
-      icon: Activity
-    }), /*#__PURE__*/_jsx(SectionTab, {
-      sections: ANALYSIS_SECTIONS,
-      activeSection: section,
-      onSelect: setSection,
-      color: color
-    }), /*#__PURE__*/_jsx(SectionProgress, {
-      tabId: "analysis",
-      sections: ANALYSIS_SECTIONS,
-      progress: state.progress,
-      color: color,
-      onSelect: setSection
-    }), renderSection()]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: "\u2465 \u82E6\u624B\u5206\u6790",
+    subtitle: "\u6B63\u7B54\u7387\u30EC\u30FC\u30C0\u30FC\u30FB\u8A08\u7B97\u7279\u8A13\u30FB\u5FD8\u5374\u66F2\u7DDA\u3067\u5F31\u70B9\u3092\u5B8C\u5168\u514B\u670D",
+    color: color,
+    icon: Activity
+  }), /*#__PURE__*/React.createElement(SectionTab, {
+    sections: ANALYSIS_SECTIONS,
+    activeSection: section,
+    onSelect: setSection,
+    color: color
+  }), /*#__PURE__*/React.createElement(SectionProgress, {
+    tabId: "analysis",
+    sections: ANALYSIS_SECTIONS,
+    progress: state.progress,
+    color: color,
+    onSelect: setSection
+  }), renderSection());
 }
 
 // ============================================================
@@ -9135,7 +8508,7 @@ function MockExam({
   const timerColor = timeLeft < 300 ? COLORS.danger : timeLeft < 600 ? COLORS.accent : COLORS.text;
 
   // ── Ready Screen ──
-  if (phase === "ready") return /*#__PURE__*/_jsx("div", {
+  if (phase === "ready") return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
       inset: 0,
@@ -9145,80 +8518,70 @@ function MockExam({
       justifyContent: "center",
       zIndex: 1000,
       padding: 16
-    },
-    children: /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.cardLg,
-        width: "100%",
-        maxWidth: 400
-      },
-      children: [/*#__PURE__*/_jsx("p", {
-        style: {
-          fontWeight: 900,
-          fontSize: 20,
-          color: COLORS.primary,
-          margin: "0 0 12px",
-          textAlign: "center"
-        },
-        children: "\uD83D\uDCDD \u6A21\u64EC\u8A66\u9A13"
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          marginBottom: 16
-        },
-        children: [["形式", "4肢択一・40問"], ["制限時間", "60分"], ["合格基準", "60点以上（60%）"], ["出題構成", "倫理8問・基礎10問・PF理論10問・金融商品8問・ケース4問"]].map(([k, v]) => /*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            gap: 8,
-            fontSize: 13
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              color: COLORS.textLight,
-              minWidth: 72,
-              fontWeight: 600
-            },
-            children: k
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              color: COLORS.text
-            },
-            children: v
-          })]
-        }, k))
-      }), /*#__PURE__*/_jsx(InfoBox, {
-        color: COLORS.accent,
-        children: "\u7D50\u679C\u306F\u30C6\u30B9\u30C8\u5C65\u6B74\u306B\u4FDD\u5B58\u3055\u308C\u3001\u82E6\u624B\u5206\u6790\u30BF\u30D6\u306B\u53CD\u6620\u3055\u308C\u307E\u3059\u3002"
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 10,
-          marginTop: 14
-        },
-        children: [/*#__PURE__*/_jsx("button", {
-          onClick: startExam,
-          style: {
-            ...STYLES.btnPrimary,
-            flex: 1,
-            padding: 14,
-            fontSize: 15
-          },
-          children: "\u8A66\u9A13\u3092\u958B\u59CB"
-        }), /*#__PURE__*/_jsx("button", {
-          onClick: onClose,
-          style: {
-            ...STYLES.btnOutline,
-            flex: 1,
-            padding: 14,
-            borderRadius: 12
-          },
-          children: "\u623B\u308B"
-        })]
-      })]
-    })
-  });
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      width: "100%",
+      maxWidth: 400
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 900,
+      fontSize: 20,
+      color: COLORS.primary,
+      margin: "0 0 12px",
+      textAlign: "center"
+    }
+  }, "\uD83D\uDCDD \u6A21\u64EC\u8A66\u9A13"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6,
+      marginBottom: 16
+    }
+  }, [["形式", "4肢択一・40問"], ["制限時間", "60分"], ["合格基準", "60点以上（60%）"], ["出題構成", "倫理8問・基礎10問・PF理論10問・金融商品8問・ケース4問"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: "flex",
+      gap: 8,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textLight,
+      minWidth: 72,
+      fontWeight: 600
+    }
+  }, k), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text
+    }
+  }, v)))), /*#__PURE__*/React.createElement(InfoBox, {
+    color: COLORS.accent
+  }, "\u7D50\u679C\u306F\u30C6\u30B9\u30C8\u5C65\u6B74\u306B\u4FDD\u5B58\u3055\u308C\u3001\u82E6\u624B\u5206\u6790\u30BF\u30D6\u306B\u53CD\u6620\u3055\u308C\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: startExam,
+    style: {
+      ...STYLES.btnPrimary,
+      flex: 1,
+      padding: 14,
+      fontSize: 15
+    }
+  }, "\u8A66\u9A13\u3092\u958B\u59CB"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      ...STYLES.btnOutline,
+      flex: 1,
+      padding: 14,
+      borderRadius: 12
+    }
+  }, "\u623B\u308B"))));
 
   // ── Exam Screen ──
   if (phase === "exam") {
@@ -9228,7 +8591,7 @@ function MockExam({
       label: q.tab,
       color: COLORS.primary
     };
-    return /*#__PURE__*/_jsxs("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         position: "fixed",
         inset: 0,
@@ -9237,179 +8600,159 @@ function MockExam({
         display: "flex",
         flexDirection: "column",
         overflow: "hidden"
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: "#fff",
+        borderBottom: `1px solid ${COLORS.border}`,
+        padding: "10px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: COLORS.textLight
+      }
+    }, idx + 1, " / 40"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        background: COLORS.border,
+        borderRadius: 6,
+        height: 6,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: `${(idx + 1) / 40 * 100}%`,
+        height: "100%",
+        background: COLORS.primary,
+        borderRadius: 6,
+        transition: "width 0.3s"
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 15,
+        fontWeight: 900,
+        color: timerColor,
+        minWidth: 54
+      }
+    }, mm, ":", ss)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        overflowY: "auto",
+        padding: "16px 16px 8px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: STYLES.badge(tabInfo.color)
+    }, tabInfo.label), q.isCalc && /*#__PURE__*/React.createElement("span", {
+      style: STYLES.badge(COLORS.highlight)
+    }, "\u8A08\u7B97"), q.isHikakke && /*#__PURE__*/React.createElement("span", {
+      style: STYLES.badge(COLORS.danger)
+    }, "\u3072\u3063\u304B\u3051\u6CE8\u610F")), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 15,
+        fontWeight: 700,
+        color: COLORS.text,
+        lineHeight: 1.7,
+        margin: "0 0 16px"
+      }
+    }, q.q), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 8
+      }
+    }, q.choices.map((c, i) => {
+      let bg = "#fff",
+        border = `1.5px solid ${COLORS.border}`,
+        col = COLORS.text;
+      if (confirmed) {
+        if (i === q.answer) {
+          bg = `${COLORS.secondary}18`;
+          border = `2px solid ${COLORS.secondary}`;
+          col = COLORS.secondary;
+        } else if (i === selected) {
+          bg = `${COLORS.danger}12`;
+          border = `2px solid ${COLORS.danger}`;
+          col = COLORS.danger;
+        }
+      } else if (i === selected) {
+        bg = `${COLORS.primary}12`;
+        border = `2px solid ${COLORS.primary}`;
+        col = COLORS.primary;
+      }
+      return /*#__PURE__*/React.createElement("button", {
+        key: i,
+        onClick: () => !confirmed && setSelected(i),
+        disabled: confirmed,
         style: {
-          background: "#fff",
-          borderBottom: `1px solid ${COLORS.border}`,
-          padding: "10px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexShrink: 0
-        },
-        children: [/*#__PURE__*/_jsxs("span", {
-          style: {
-            fontSize: 13,
-            fontWeight: 700,
-            color: COLORS.textLight
-          },
-          children: [idx + 1, " / 40"]
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            flex: 1,
-            background: COLORS.border,
-            borderRadius: 6,
-            height: 6,
-            overflow: "hidden"
-          },
-          children: /*#__PURE__*/_jsx("div", {
-            style: {
-              width: `${(idx + 1) / 40 * 100}%`,
-              height: "100%",
-              background: COLORS.primary,
-              borderRadius: 6,
-              transition: "width 0.3s"
-            }
-          })
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            fontSize: 15,
-            fontWeight: 900,
-            color: timerColor,
-            minWidth: 54
-          },
-          children: [mm, ":", ss]
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
+          background: bg,
+          border,
+          borderRadius: 12,
+          padding: "12px 14px",
+          textAlign: "left",
+          cursor: confirmed ? "default" : "pointer",
+          fontSize: 13,
+          color: col,
+          lineHeight: 1.5,
+          fontFamily: "'Noto Sans JP', sans-serif",
+          transition: "all 0.15s"
+        }
+      }, /*#__PURE__*/React.createElement("strong", {
         style: {
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px 16px 8px"
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            gap: 6,
-            marginBottom: 10
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: STYLES.badge(tabInfo.color),
-            children: tabInfo.label
-          }), q.isCalc && /*#__PURE__*/_jsx("span", {
-            style: STYLES.badge(COLORS.highlight),
-            children: "\u8A08\u7B97"
-          }), q.isHikakke && /*#__PURE__*/_jsx("span", {
-            style: STYLES.badge(COLORS.danger),
-            children: "\u3072\u3063\u304B\u3051\u6CE8\u610F"
-          })]
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 15,
-            fontWeight: 700,
-            color: COLORS.text,
-            lineHeight: 1.7,
-            margin: "0 0 16px"
-          },
-          children: q.q
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            gap: 8
-          },
-          children: q.choices.map((c, i) => {
-            let bg = "#fff",
-              border = `1.5px solid ${COLORS.border}`,
-              col = COLORS.text;
-            if (confirmed) {
-              if (i === q.answer) {
-                bg = `${COLORS.secondary}18`;
-                border = `2px solid ${COLORS.secondary}`;
-                col = COLORS.secondary;
-              } else if (i === selected) {
-                bg = `${COLORS.danger}12`;
-                border = `2px solid ${COLORS.danger}`;
-                col = COLORS.danger;
-              }
-            } else if (i === selected) {
-              bg = `${COLORS.primary}12`;
-              border = `2px solid ${COLORS.primary}`;
-              col = COLORS.primary;
-            }
-            return /*#__PURE__*/_jsxs("button", {
-              onClick: () => !confirmed && setSelected(i),
-              disabled: confirmed,
-              style: {
-                background: bg,
-                border,
-                borderRadius: 12,
-                padding: "12px 14px",
-                textAlign: "left",
-                cursor: confirmed ? "default" : "pointer",
-                fontSize: 13,
-                color: col,
-                lineHeight: 1.5,
-                fontFamily: "'Noto Sans JP', sans-serif",
-                transition: "all 0.15s"
-              },
-              children: [/*#__PURE__*/_jsx("strong", {
-                style: {
-                  marginRight: 6
-                },
-                children: ["①", "②", "③", "④"][i]
-              }), c]
-            }, i);
-          })
-        }), confirmed && q.explanation && /*#__PURE__*/_jsx("div", {
-          style: {
-            background: `${COLORS.primary}0C`,
-            border: `1px solid ${COLORS.primary}30`,
-            borderRadius: 12,
-            padding: "10px 14px",
-            marginTop: 12
-          },
-          children: /*#__PURE__*/_jsxs("p", {
-            style: {
-              fontSize: 12,
-              color: COLORS.text,
-              lineHeight: 1.65,
-              margin: 0
-            },
-            children: [/*#__PURE__*/_jsx("strong", {
-              children: "\u89E3\u8AAC\uFF1A"
-            }), q.explanation]
-          })
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          padding: "10px 16px 16px",
-          borderTop: `1px solid ${COLORS.border}`,
-          flexShrink: 0
-        },
-        children: !confirmed ? /*#__PURE__*/_jsx("button", {
-          onClick: confirmAnswer,
-          disabled: selected === null,
-          style: {
-            ...STYLES.btnPrimary,
-            width: "100%",
-            padding: 13,
-            fontSize: 15,
-            opacity: selected === null ? 0.5 : 1
-          },
-          children: "\u7B54\u3048\u308B"
-        }) : /*#__PURE__*/_jsx("button", {
-          onClick: handleNext,
-          style: {
-            ...STYLES.btnSecondary,
-            width: "100%",
-            padding: 13,
-            fontSize: 15
-          },
-          children: idx + 1 < 40 ? `次の問題 →` : `結果を見る`
-        })
-      })]
-    });
+          marginRight: 6
+        }
+      }, ["①", "②", "③", "④"][i]), c);
+    })), confirmed && q.explanation && /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: `${COLORS.primary}0C`,
+        border: `1px solid ${COLORS.primary}30`,
+        borderRadius: 12,
+        padding: "10px 14px",
+        marginTop: 12
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: COLORS.text,
+        lineHeight: 1.65,
+        margin: 0
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, "\u89E3\u8AAC\uFF1A"), q.explanation))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "10px 16px 16px",
+        borderTop: `1px solid ${COLORS.border}`,
+        flexShrink: 0
+      }
+    }, !confirmed ? /*#__PURE__*/React.createElement("button", {
+      onClick: confirmAnswer,
+      disabled: selected === null,
+      style: {
+        ...STYLES.btnPrimary,
+        width: "100%",
+        padding: 13,
+        fontSize: 15,
+        opacity: selected === null ? 0.5 : 1
+      }
+    }, "\u7B54\u3048\u308B") : /*#__PURE__*/React.createElement("button", {
+      onClick: handleNext,
+      style: {
+        ...STYLES.btnSecondary,
+        width: "100%",
+        padding: 13,
+        fontSize: 15
+      }
+    }, idx + 1 < 40 ? `次の問題 →` : `結果を見る`)));
   }
 
   // ── Result Screen ──
@@ -9419,274 +8762,244 @@ function MockExam({
       正答率: Math.round(s.correct / s.total * 100),
       color: MOCK_EXAM_TABS[tab]?.color || COLORS.primary
     }));
-    return /*#__PURE__*/_jsx("div", {
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         position: "fixed",
         inset: 0,
         background: COLORS.bg,
         zIndex: 1000,
         overflowY: "auto"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "20px 16px 32px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center",
+        marginBottom: 20
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: COLORS.textLight,
+        margin: "0 0 4px"
+      }
+    }, "\u6A21\u64EC\u8A66\u9A13 \u7D50\u679C"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 64,
+        fontWeight: 900,
+        color: result.passed ? COLORS.secondary : COLORS.danger,
+        lineHeight: 1
+      }
+    }, result.score, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 24
+      }
+    }, "\u70B9")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        color: COLORS.textLight,
+        margin: "4px 0 10px"
+      }
+    }, "40\u554F\u4E2D ", result.correct, "\u554F\u6B63\u89E3"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "inline-block",
+        padding: "6px 22px",
+        borderRadius: 24,
+        background: result.passed ? `${COLORS.secondary}20` : `${COLORS.danger}18`,
+        border: `2px solid ${result.passed ? COLORS.secondary : COLORS.danger}`,
+        fontSize: 16,
+        fontWeight: 900,
+        color: result.passed ? COLORS.secondary : COLORS.danger
+      }
+    }, result.passed ? "🎉 合格！" : "📚 不合格（60点以上で合格）")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.card,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13,
+        color: COLORS.text,
+        margin: "0 0 10px"
+      }
+    }, "\u5206\u91CE\u5225\u6B63\u7B54\u7387"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+      width: "100%",
+      height: 160
+    }, /*#__PURE__*/React.createElement(BarChart, {
+      data: barData,
+      margin: {
+        top: 4,
+        right: 8,
+        left: -20,
+        bottom: 4
+      }
+    }, /*#__PURE__*/React.createElement(CartesianGrid, {
+      strokeDasharray: "3 3",
+      stroke: COLORS.border
+    }), /*#__PURE__*/React.createElement(XAxis, {
+      dataKey: "name",
+      tick: {
+        fontSize: 11
+      }
+    }), /*#__PURE__*/React.createElement(YAxis, {
+      domain: [0, 100],
+      tick: {
+        fontSize: 10
       },
-      children: /*#__PURE__*/_jsxs("div", {
+      unit: "%"
+    }), /*#__PURE__*/React.createElement(Tooltip, {
+      formatter: v => `${v}%`
+    }), /*#__PURE__*/React.createElement(Bar, {
+      dataKey: "\u6B63\u7B54\u7387",
+      radius: [4, 4, 0, 0]
+    }, barData.map((entry, i) => /*#__PURE__*/React.createElement(Cell, {
+      key: i,
+      fill: entry.color
+    }))), /*#__PURE__*/React.createElement(ReferenceLine, {
+      y: 60,
+      stroke: COLORS.danger,
+      strokeDasharray: "4 2"
+    })))), result.calcTotal > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.card,
+        marginBottom: 14,
+        display: "flex",
+        alignItems: "center",
+        gap: 14
+      }
+    }, /*#__PURE__*/React.createElement(Calculator, {
+      size: 28,
+      color: COLORS.highlight
+    }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13,
+        color: COLORS.text,
+        margin: "0 0 2px"
+      }
+    }, "\u8A08\u7B97\u554F\u984C\u306E\u6B63\u7B54\u7387"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: COLORS.highlight,
+        fontWeight: 700,
+        margin: 0
+      }
+    }, result.calcCorrect, " / ", result.calcTotal, "\u554F \uFF08", Math.round(result.calcCorrect / result.calcTotal * 100), "%\uFF09"))), result.wrong.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...STYLES.card,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setShowWrong(s => !s),
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        width: "100%",
+        padding: 0,
+        fontFamily: "'Noto Sans JP', sans-serif"
+      }
+    }, /*#__PURE__*/React.createElement(AlertTriangle, {
+      size: 16,
+      color: COLORS.danger
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13,
+        color: COLORS.text,
+        flex: 1,
+        textAlign: "left"
+      }
+    }, "\u9593\u9055\u3048\u305F\u554F\u984C\uFF08", result.wrong.length, "\u554F\uFF09"), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 16,
+      color: COLORS.textMuted,
+      style: {
+        transform: showWrong ? "rotate(90deg)" : "none",
+        transition: "transform 0.2s"
+      }
+    })), showWrong && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 12
+      }
+    }, result.wrong.map((q, i) => {
+      const ti = MOCK_EXAM_TABS[q.tab] || {
+        label: q.tab,
+        color: COLORS.primary
+      };
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
         style: {
-          padding: "20px 16px 32px"
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            textAlign: "center",
-            marginBottom: 20
-          },
-          children: [/*#__PURE__*/_jsx("p", {
-            style: {
-              fontSize: 14,
-              color: COLORS.textLight,
-              margin: "0 0 4px"
-            },
-            children: "\u6A21\u64EC\u8A66\u9A13 \u7D50\u679C"
-          }), /*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 64,
-              fontWeight: 900,
-              color: result.passed ? COLORS.secondary : COLORS.danger,
-              lineHeight: 1
-            },
-            children: [result.score, /*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 24
-              },
-              children: "\u70B9"
-            })]
-          }), /*#__PURE__*/_jsxs("div", {
-            style: {
-              fontSize: 14,
-              color: COLORS.textLight,
-              margin: "4px 0 10px"
-            },
-            children: ["40\u554F\u4E2D ", result.correct, "\u554F\u6B63\u89E3"]
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              display: "inline-block",
-              padding: "6px 22px",
-              borderRadius: 24,
-              background: result.passed ? `${COLORS.secondary}20` : `${COLORS.danger}18`,
-              border: `2px solid ${result.passed ? COLORS.secondary : COLORS.danger}`,
-              fontSize: 16,
-              fontWeight: 900,
-              color: result.passed ? COLORS.secondary : COLORS.danger
-            },
-            children: result.passed ? "🎉 合格！" : "📚 不合格（60点以上で合格）"
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.card,
-            marginBottom: 14
-          },
-          children: [/*#__PURE__*/_jsx("p", {
-            style: {
-              fontWeight: 700,
-              fontSize: 13,
-              color: COLORS.text,
-              margin: "0 0 10px"
-            },
-            children: "\u5206\u91CE\u5225\u6B63\u7B54\u7387"
-          }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-            width: "100%",
-            height: 160,
-            children: /*#__PURE__*/_jsxs(BarChart, {
-              data: barData,
-              margin: {
-                top: 4,
-                right: 8,
-                left: -20,
-                bottom: 4
-              },
-              children: [/*#__PURE__*/_jsx(CartesianGrid, {
-                strokeDasharray: "3 3",
-                stroke: COLORS.border
-              }), /*#__PURE__*/_jsx(XAxis, {
-                dataKey: "name",
-                tick: {
-                  fontSize: 11
-                }
-              }), /*#__PURE__*/_jsx(YAxis, {
-                domain: [0, 100],
-                tick: {
-                  fontSize: 10
-                },
-                unit: "%"
-              }), /*#__PURE__*/_jsx(Tooltip, {
-                formatter: v => `${v}%`
-              }), /*#__PURE__*/_jsx(Bar, {
-                dataKey: "\u6B63\u7B54\u7387",
-                radius: [4, 4, 0, 0],
-                children: barData.map((entry, i) => /*#__PURE__*/_jsx(Cell, {
-                  fill: entry.color
-                }, i))
-              }), /*#__PURE__*/_jsx(ReferenceLine, {
-                y: 60,
-                stroke: COLORS.danger,
-                strokeDasharray: "4 2"
-              })]
-            })
-          })]
-        }), result.calcTotal > 0 && /*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.card,
-            marginBottom: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 14
-          },
-          children: [/*#__PURE__*/_jsx(Calculator, {
-            size: 28,
-            color: COLORS.highlight
-          }), /*#__PURE__*/_jsxs("div", {
-            children: [/*#__PURE__*/_jsx("p", {
-              style: {
-                fontWeight: 700,
-                fontSize: 13,
-                color: COLORS.text,
-                margin: "0 0 2px"
-              },
-              children: "\u8A08\u7B97\u554F\u984C\u306E\u6B63\u7B54\u7387"
-            }), /*#__PURE__*/_jsxs("p", {
-              style: {
-                fontSize: 13,
-                color: COLORS.highlight,
-                fontWeight: 700,
-                margin: 0
-              },
-              children: [result.calcCorrect, " / ", result.calcTotal, "\u554F \uFF08", Math.round(result.calcCorrect / result.calcTotal * 100), "%\uFF09"]
-            })]
-          })]
-        }), result.wrong.length > 0 && /*#__PURE__*/_jsxs("div", {
-          style: {
-            ...STYLES.card,
-            marginBottom: 14
-          },
-          children: [/*#__PURE__*/_jsxs("button", {
-            onClick: () => setShowWrong(s => !s),
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-              padding: 0,
-              fontFamily: "'Noto Sans JP', sans-serif"
-            },
-            children: [/*#__PURE__*/_jsx(AlertTriangle, {
-              size: 16,
-              color: COLORS.danger
-            }), /*#__PURE__*/_jsxs("span", {
-              style: {
-                fontWeight: 700,
-                fontSize: 13,
-                color: COLORS.text,
-                flex: 1,
-                textAlign: "left"
-              },
-              children: ["\u9593\u9055\u3048\u305F\u554F\u984C\uFF08", result.wrong.length, "\u554F\uFF09"]
-            }), /*#__PURE__*/_jsx(ChevronRight, {
-              size: 16,
-              color: COLORS.textMuted,
-              style: {
-                transform: showWrong ? "rotate(90deg)" : "none",
-                transition: "transform 0.2s"
-              }
-            })]
-          }), showWrong && /*#__PURE__*/_jsx("div", {
-            style: {
-              marginTop: 12
-            },
-            children: result.wrong.map((q, i) => {
-              const ti = MOCK_EXAM_TABS[q.tab] || {
-                label: q.tab,
-                color: COLORS.primary
-              };
-              return /*#__PURE__*/_jsxs("div", {
-                style: {
-                  borderTop: `1px solid ${COLORS.border}`,
-                  paddingTop: 10,
-                  marginTop: 10
-                },
-                children: [/*#__PURE__*/_jsx("div", {
-                  style: {
-                    display: "flex",
-                    gap: 6,
-                    marginBottom: 6
-                  },
-                  children: /*#__PURE__*/_jsx("span", {
-                    style: STYLES.badge(ti.color),
-                    children: ti.label
-                  })
-                }), /*#__PURE__*/_jsx("p", {
-                  style: {
-                    fontSize: 13,
-                    color: COLORS.text,
-                    fontWeight: 600,
-                    margin: "0 0 6px",
-                    lineHeight: 1.6
-                  },
-                  children: q.q
-                }), /*#__PURE__*/_jsxs("p", {
-                  style: {
-                    fontSize: 12,
-                    color: COLORS.danger,
-                    margin: "0 0 2px"
-                  },
-                  children: ["\u3042\u306A\u305F\u306E\u7B54\u3048: ", q.yourAnswer >= 0 ? `${["①", "②", "③", "④"][q.yourAnswer]} ${q.choices?.[q.yourAnswer]}` : "未回答"]
-                }), /*#__PURE__*/_jsxs("p", {
-                  style: {
-                    fontSize: 12,
-                    color: COLORS.secondary,
-                    margin: "0 0 6px"
-                  },
-                  children: ["\u6B63\u89E3: ", ["①", "②", "③", "④"][q.answer], " ", q.choices?.[q.answer]]
-                }), q.explanation && /*#__PURE__*/_jsx("p", {
-                  style: {
-                    fontSize: 11,
-                    color: COLORS.textLight,
-                    lineHeight: 1.6,
-                    margin: 0
-                  },
-                  children: q.explanation
-                })]
-              }, i);
-            })
-          })]
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            gap: 10
-          },
-          children: [/*#__PURE__*/_jsx("button", {
-            onClick: () => {
-              setPhase("ready");
-              setResult(null);
-              setShowWrong(false);
-            },
-            style: {
-              ...STYLES.btnPrimary,
-              flex: 1,
-              padding: 13
-            },
-            children: "\u3082\u3046\u4E00\u5EA6\u6311\u6226"
-          }), /*#__PURE__*/_jsx("button", {
-            onClick: onClose,
-            style: {
-              ...STYLES.btnOutline,
-              flex: 1,
-              padding: 13,
-              borderRadius: 12
-            },
-            children: "\u30DB\u30FC\u30E0\u3078"
-          })]
-        })]
-      })
-    });
+          borderTop: `1px solid ${COLORS.border}`,
+          paddingTop: 10,
+          marginTop: 10
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 6,
+          marginBottom: 6
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: STYLES.badge(ti.color)
+      }, ti.label)), /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 13,
+          color: COLORS.text,
+          fontWeight: 600,
+          margin: "0 0 6px",
+          lineHeight: 1.6
+        }
+      }, q.q), /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 12,
+          color: COLORS.danger,
+          margin: "0 0 2px"
+        }
+      }, "\u3042\u306A\u305F\u306E\u7B54\u3048: ", q.yourAnswer >= 0 ? `${["①", "②", "③", "④"][q.yourAnswer]} ${q.choices?.[q.yourAnswer]}` : "未回答"), /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 12,
+          color: COLORS.secondary,
+          margin: "0 0 6px"
+        }
+      }, "\u6B63\u89E3: ", ["①", "②", "③", "④"][q.answer], " ", q.choices?.[q.answer]), q.explanation && /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 11,
+          color: COLORS.textLight,
+          lineHeight: 1.6,
+          margin: 0
+        }
+      }, q.explanation));
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        setPhase("ready");
+        setResult(null);
+        setShowWrong(false);
+      },
+      style: {
+        ...STYLES.btnPrimary,
+        flex: 1,
+        padding: 13
+      }
+    }, "\u3082\u3046\u4E00\u5EA6\u6311\u6226"), /*#__PURE__*/React.createElement("button", {
+      onClick: onClose,
+      style: {
+        ...STYLES.btnOutline,
+        flex: 1,
+        padding: 13,
+        borderRadius: 12
+      }
+    }, "\u30DB\u30FC\u30E0\u3078"))));
   }
   return null;
 }
@@ -9694,44 +9007,40 @@ function PlaceholderTab({
   tab
 }) {
   const Icon = tab.icon;
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "24px 16px",
       textAlign: "center"
-    },
-    children: [/*#__PURE__*/_jsx(PageHeader, {
-      title: tab.label,
-      subtitle: "\u3053\u306E\u30BF\u30D6\u306F\u6E96\u5099\u4E2D\u3067\u3059",
-      color: tab.color,
-      icon: Icon
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.cardLg,
-        textAlign: "center",
-        padding: 40,
-        color: COLORS.textLight
-      },
-      children: [/*#__PURE__*/_jsx(Icon, {
-        size: 48,
-        color: tab.color + "66",
-        style: {
-          marginBottom: 12
-        }
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          fontSize: 16,
-          fontWeight: 700,
-          marginBottom: 8
-        },
-        children: "\u30D5\u30A7\u30FC\u30BA3\u4EE5\u964D\u3067\u5B9F\u88C5\u4E88\u5B9A"
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          fontSize: 13
-        },
-        children: ["\u5185\u5BB9\uFF1A", tab.label, "\u306B\u95A2\u3059\u308B\u5B66\u7FD2\u30B3\u30F3\u30C6\u30F3\u30C4\u30FB\u96FB\u5353\u30FB\u30C6\u30B9\u30C8"]
-      })]
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: tab.label,
+    subtitle: "\u3053\u306E\u30BF\u30D6\u306F\u6E96\u5099\u4E2D\u3067\u3059",
+    color: tab.color,
+    icon: Icon
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.cardLg,
+      textAlign: "center",
+      padding: 40,
+      color: COLORS.textLight
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    size: 48,
+    color: tab.color + "66",
+    style: {
+      marginBottom: 12
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 8
+    }
+  }, "\u30D5\u30A7\u30FC\u30BA3\u4EE5\u964D\u3067\u5B9F\u88C5\u4E88\u5B9A"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13
+    }
+  }, "\u5185\u5BB9\uFF1A", tab.label, "\u306B\u95A2\u3059\u308B\u5B66\u7FD2\u30B3\u30F3\u30C6\u30F3\u30C4\u30FB\u96FB\u5353\u30FB\u30C6\u30B9\u30C8")));
 }
 
 // ============================================================
@@ -9754,33 +9063,32 @@ function ProgressRing({
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const dash = pct / 100 * circ;
-  return /*#__PURE__*/_jsxs("svg", {
+  return /*#__PURE__*/React.createElement("svg", {
     width: size,
     height: size,
     style: {
       transform: "rotate(-90deg)"
-    },
-    children: [/*#__PURE__*/_jsx("circle", {
-      cx: size / 2,
-      cy: size / 2,
-      r: r,
-      fill: "none",
-      stroke: COLORS.border,
-      strokeWidth: stroke
-    }), /*#__PURE__*/_jsx("circle", {
-      cx: size / 2,
-      cy: size / 2,
-      r: r,
-      fill: "none",
-      stroke: color,
-      strokeWidth: stroke,
-      strokeDasharray: `${dash} ${circ}`,
-      strokeLinecap: "round",
-      style: {
-        transition: "stroke-dasharray 0.5s ease"
-      }
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: size / 2,
+    cy: size / 2,
+    r: r,
+    fill: "none",
+    stroke: COLORS.border,
+    strokeWidth: stroke
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: size / 2,
+    cy: size / 2,
+    r: r,
+    fill: "none",
+    stroke: color,
+    strokeWidth: stroke,
+    strokeDasharray: `${dash} ${circ}`,
+    strokeLinecap: "round",
+    style: {
+      transition: "stroke-dasharray 0.5s ease"
+    }
+  }));
 }
 
 // 計算正答率グラフデータ
@@ -9829,614 +9137,558 @@ function HomeTab({
     setCalcQuiz(next);
     setTodayAnswered(false);
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
-    },
-    children: [/*#__PURE__*/_jsx(SearchBar, {
-      onNavigate: onTabChange
-    }), /*#__PURE__*/_jsxs("div", {
+    }
+  }, /*#__PURE__*/React.createElement(SearchBar, {
+    onNavigate: onTabChange
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `linear-gradient(135deg, ${COLORS.primary} 0%, #2471b5 100%)`,
+      borderRadius: 22,
+      padding: "18px 20px",
+      marginBottom: 12,
+      color: "#fff",
+      display: "flex",
+      gap: 16,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 600,
+      opacity: 0.8,
+      marginBottom: 3
+    }
+  }, "\uD83D\uDCB9 \u8A66\u9A13\u52C9\u5F37\u30A2\u30D7\u30EA"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 19,
+      fontWeight: 900,
+      lineHeight: 1.35
+    }
+  }, "\u8CC7\u7523\u5F62\u6210\u30B3\u30F3\u30B5\u30EB\u30BF\u30F3\u30C8", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15
+    }
+  }, "\uFF08ABC\uFF09\u8CC7\u683C\u8A66\u9A13")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      marginTop: 6,
+      opacity: 0.75
+    }
+  }, "\u65E5\u672C\u8A3C\u5238\u30A2\u30CA\u30EA\u30B9\u30C8\u5354\u4F1A \uFF0F CBT\u65B9\u5F0F")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(ProgressRing, {
+    pct: progressPct,
+    size: 72,
+    color: "#fff"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 900
+    }
+  }, progressPct), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 9,
+      opacity: 0.8
+    }
+  }, "%")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement(Award, {
+    size: 16,
+    color: COLORS.accent
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.text
+    }
+  }, "\u76EE\u6A19\u53D7\u9A13\u65E5"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      marginLeft: "auto"
+    }
+  }, "CBT\u65B9\u5F0F\u30FB\u901A\u5E74\u53D7\u9A13")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: state.examDate,
+    onChange: e => setState(s => ({
+      ...s,
+      examDate: e.target.value
+    })),
+    style: {
+      ...STYLES.input,
+      width: 155,
+      fontSize: 13
+    }
+  }), daysLeft !== null && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: daysColor + "18",
+      border: `2px solid ${daysColor}`,
+      borderRadius: 12,
+      padding: "6px 14px",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 900,
+      color: daysColor,
+      lineHeight: 1
+    }
+  }, daysLeft > 0 ? daysLeft : 0), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: daysColor,
+      fontWeight: 700
+    }
+  }, daysLeft > 0 ? "日後" : "本日")), !state.examDate && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight
+    }
+  }, "\u65E5\u4ED8\u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044")), daysLeft !== null && daysLeft <= 30 && daysLeft > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      padding: "7px 10px",
+      background: COLORS.accent + "12",
+      borderRadius: 8,
+      fontSize: 12,
+      color: COLORS.accent,
+      fontWeight: 600
+    }
+  }, "\u26A1 \u6B8B\u308A", daysLeft, "\u65E5\uFF011\u65E5\u3042\u305F\u308A", Math.ceil(40 / daysLeft * 10) / 10, "\u554F\u30DA\u30FC\u30B9\u3067\u6F14\u7FD2\u3092\uFF01")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(BarChart2, {
+    size: 16,
+    color: COLORS.primary
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.text
+    }
+  }, "\u5B66\u7FD2\u9032\u6357")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      fontWeight: 600
+    }
+  }, doneSections, "/", totalSections, " \u5B8C\u4E86")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8,
+      background: COLORS.border,
+      borderRadius: 8,
+      marginBottom: 12,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${progressPct}%`,
+      background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`,
+      borderRadius: 8,
+      transition: "width 0.5s ease"
+    }
+  })), TABS.filter(t => t.id !== "home").map((tab, idx) => {
+    const secs = state.progress[tab.id] || {};
+    const keys = Object.keys(secs);
+    const done = Object.values(secs).filter(Boolean).length;
+    const all = keys.length;
+    const pct = all > 0 ? Math.round(done / all * 100) : 0;
+    return /*#__PURE__*/React.createElement("div", {
+      key: tab.id,
+      onClick: () => onTabChange(tab.id),
       style: {
-        background: `linear-gradient(135deg, ${COLORS.primary} 0%, #2471b5 100%)`,
-        borderRadius: 22,
-        padding: "18px 20px",
-        marginBottom: 12,
-        color: "#fff",
-        display: "flex",
-        gap: 16,
-        alignItems: "center"
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          flex: 1
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 11,
-            fontWeight: 600,
-            opacity: 0.8,
-            marginBottom: 3
-          },
-          children: "\uD83D\uDCB9 \u8A66\u9A13\u52C9\u5F37\u30A2\u30D7\u30EA"
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            fontSize: 19,
-            fontWeight: 900,
-            lineHeight: 1.35
-          },
-          children: ["\u8CC7\u7523\u5F62\u6210\u30B3\u30F3\u30B5\u30EB\u30BF\u30F3\u30C8", /*#__PURE__*/_jsx("br", {}), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 15
-            },
-            children: "\uFF08ABC\uFF09\u8CC7\u683C\u8A66\u9A13"
-          })]
-        }), /*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 11,
-            marginTop: 6,
-            opacity: 0.75
-          },
-          children: "\u65E5\u672C\u8A3C\u5238\u30A2\u30CA\u30EA\u30B9\u30C8\u5354\u4F1A \uFF0F CBT\u65B9\u5F0F"
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          position: "relative",
-          flexShrink: 0
-        },
-        children: [/*#__PURE__*/_jsx(ProgressRing, {
-          pct: progressPct,
-          size: 72,
-          color: "#fff"
-        }), /*#__PURE__*/_jsxs("div", {
-          style: {
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 18,
-              fontWeight: 900
-            },
-            children: progressPct
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontSize: 9,
-              opacity: 0.8
-            },
-            children: "%"
-          })]
-        })]
-      })]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsx(Award, {
-          size: 16,
-          color: COLORS.accent
-        }), /*#__PURE__*/_jsx("span", {
-          style: {
-            fontWeight: 800,
-            fontSize: 14,
-            color: COLORS.text
-          },
-          children: "\u76EE\u6A19\u53D7\u9A13\u65E5"
-        }), /*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 11,
-            color: COLORS.textLight,
-            marginLeft: "auto"
-          },
-          children: "CBT\u65B9\u5F0F\u30FB\u901A\u5E74\u53D7\u9A13"
-        })]
-      }), /*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          gap: 10,
-          alignItems: "center"
-        },
-        children: [/*#__PURE__*/_jsx("input", {
-          type: "date",
-          value: state.examDate,
-          onChange: e => setState(s => ({
-            ...s,
-            examDate: e.target.value
-          })),
-          style: {
-            ...STYLES.input,
-            width: 155,
-            fontSize: 13
-          }
-        }), daysLeft !== null && /*#__PURE__*/_jsxs("div", {
-          style: {
-            background: daysColor + "18",
-            border: `2px solid ${daysColor}`,
-            borderRadius: 12,
-            padding: "6px 14px",
-            textAlign: "center"
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 20,
-              fontWeight: 900,
-              color: daysColor,
-              lineHeight: 1
-            },
-            children: daysLeft > 0 ? daysLeft : 0
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 10,
-              color: daysColor,
-              fontWeight: 700
-            },
-            children: daysLeft > 0 ? "日後" : "本日"
-          })]
-        }), !state.examDate && /*#__PURE__*/_jsx("span", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight
-          },
-          children: "\u65E5\u4ED8\u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044"
-        })]
-      }), daysLeft !== null && daysLeft <= 30 && daysLeft > 0 && /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginTop: 8,
-          padding: "7px 10px",
-          background: COLORS.accent + "12",
-          borderRadius: 8,
-          fontSize: 12,
-          color: COLORS.accent,
-          fontWeight: 600
-        },
-        children: ["\u26A1 \u6B8B\u308A", daysLeft, "\u65E5\uFF011\u65E5\u3042\u305F\u308A", Math.ceil(40 / daysLeft * 10) / 10, "\u554F\u30DA\u30FC\u30B9\u3067\u6F14\u7FD2\u3092\uFF01"]
-      })]
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 10
-        },
-        children: [/*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8
-          },
-          children: [/*#__PURE__*/_jsx(BarChart2, {
-            size: 16,
-            color: COLORS.primary
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              fontWeight: 800,
-              fontSize: 14,
-              color: COLORS.text
-            },
-            children: "\u5B66\u7FD2\u9032\u6357"
-          })]
-        }), /*#__PURE__*/_jsxs("span", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            fontWeight: 600
-          },
-          children: [doneSections, "/", totalSections, " \u5B8C\u4E86"]
-        })]
-      }), /*#__PURE__*/_jsx("div", {
-        style: {
-          height: 8,
-          background: COLORS.border,
-          borderRadius: 8,
-          marginBottom: 12,
-          overflow: "hidden"
-        },
-        children: /*#__PURE__*/_jsx("div", {
-          style: {
-            height: "100%",
-            width: `${progressPct}%`,
-            background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`,
-            borderRadius: 8,
-            transition: "width 0.5s ease"
-          }
-        })
-      }), TABS.filter(t => t.id !== "home").map((tab, idx) => {
-        const secs = state.progress[tab.id] || {};
-        const keys = Object.keys(secs);
-        const done = Object.values(secs).filter(Boolean).length;
-        const all = keys.length;
-        const pct = all > 0 ? Math.round(done / all * 100) : 0;
-        return /*#__PURE__*/_jsxs("div", {
-          onClick: () => onTabChange(tab.id),
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "8px 0",
-            borderBottom: idx < 5 ? `1px solid ${COLORS.border}` : "none",
-            cursor: "pointer"
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: {
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              background: tab.color + "18",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0
-            },
-            children: /*#__PURE__*/_jsx(tab.icon, {
-              size: 14,
-              color: tab.color
-            })
-          }), /*#__PURE__*/_jsxs("div", {
-            style: {
-              flex: 1,
-              minWidth: 0
-            },
-            children: [/*#__PURE__*/_jsx("div", {
-              style: {
-                fontSize: 12,
-                fontWeight: 700,
-                color: COLORS.text,
-                marginBottom: 3
-              },
-              children: tab.label
-            }), /*#__PURE__*/_jsx("div", {
-              style: {
-                height: 4,
-                background: COLORS.border,
-                borderRadius: 4,
-                overflow: "hidden"
-              },
-              children: /*#__PURE__*/_jsx("div", {
-                style: {
-                  height: "100%",
-                  width: `${pct}%`,
-                  background: tab.color,
-                  borderRadius: 4,
-                  transition: "width 0.4s ease"
-                }
-              })
-            })]
-          }), /*#__PURE__*/_jsx("div", {
-            style: {
-              display: "flex",
-              gap: 3,
-              flexShrink: 0
-            },
-            children: keys.map(k => /*#__PURE__*/_jsx("div", {
-              style: {
-                width: 14,
-                height: 14,
-                borderRadius: 4,
-                background: secs[k] ? tab.color : COLORS.border,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              },
-              children: secs[k] && /*#__PURE__*/_jsx(Check, {
-                size: 9,
-                color: "#fff"
-              })
-            }, k))
-          }), /*#__PURE__*/_jsxs("span", {
-            style: {
-              fontSize: 11,
-              fontWeight: 700,
-              color: done === all ? COLORS.secondary : COLORS.textLight,
-              minWidth: 28,
-              textAlign: "right"
-            },
-            children: [done, "/", all]
-          }), /*#__PURE__*/_jsx(ChevronRight, {
-            size: 13,
-            color: COLORS.textMuted
-          })]
-        }, tab.id);
-      }), calcChartData.length > 0 && /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginTop: 14
-        },
-        children: [/*#__PURE__*/_jsx("div", {
-          style: {
-            fontSize: 12,
-            fontWeight: 700,
-            color: COLORS.highlight,
-            marginBottom: 8
-          },
-          children: "\u8A08\u7B97\u554F\u984C \u6B63\u7B54\u7387\uFF08\u82E6\u624B\u9806\uFF09"
-        }), /*#__PURE__*/_jsx(ResponsiveContainer, {
-          width: "100%",
-          height: 120,
-          children: /*#__PURE__*/_jsxs(BarChart, {
-            data: calcChartData,
-            margin: {
-              top: 4,
-              right: 4,
-              left: -20,
-              bottom: 0
-            },
-            children: [/*#__PURE__*/_jsx(XAxis, {
-              dataKey: "name",
-              tick: {
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(YAxis, {
-              domain: [0, 100],
-              tick: {
-                fontSize: 10
-              }
-            }), /*#__PURE__*/_jsx(Tooltip, {
-              formatter: v => `${v}%`
-            }), /*#__PURE__*/_jsx(Bar, {
-              dataKey: "rate",
-              fill: COLORS.highlight,
-              radius: [4, 4, 0, 0]
-            }), /*#__PURE__*/_jsx(ReferenceLine, {
-              y: 60,
-              stroke: COLORS.danger,
-              strokeDasharray: "4 2"
-            })]
-          })
-        })]
-      }), /*#__PURE__*/_jsxs("button", {
-        style: {
-          ...STYLES.btnOutline,
-          width: "100%",
-          marginTop: 12,
-          fontSize: 12
-        },
-        onClick: () => {
-          if (window.confirm("学習進捗・テスト履歴をすべてリセットしますか？")) {
-            setState(INITIAL_STATE);
-          }
-        },
-        children: [/*#__PURE__*/_jsx(RefreshCw, {
-          size: 12,
-          style: {
-            marginRight: 5
-          }
-        }), " \u9032\u6357\u3092\u30EA\u30BB\u30C3\u30C8"]
-      })]
-    }), showMockExam && /*#__PURE__*/_jsx(MockExam, {
-      state: state,
-      setState: setState,
-      onClose: () => setShowMockExam(false)
-    }), /*#__PURE__*/_jsxs("div", {
-      style: {
-        ...STYLES.card,
-        marginBottom: 12,
-        background: `linear-gradient(135deg, ${COLORS.primary}18, ${COLORS.highlight}12)`,
-        border: `1.5px solid ${COLORS.primary}40`,
         display: "flex",
         alignItems: "center",
-        gap: 14
-      },
-      children: [/*#__PURE__*/_jsxs("div", {
-        style: {
-          flex: 1
-        },
-        children: [/*#__PURE__*/_jsx("p", {
-          style: {
-            fontWeight: 800,
-            fontSize: 15,
-            color: COLORS.primary,
-            margin: "0 0 3px"
-          },
-          children: "\uD83D\uDCDD \u6A21\u64EC\u8A66\u9A13"
-        }), /*#__PURE__*/_jsx("p", {
-          style: {
-            fontSize: 12,
-            color: COLORS.textLight,
-            margin: 0
-          },
-          children: "40\u554F\u30FB60\u5206\u30FB4\u80A2\u629E\u4E00 \uFF0F 60\u70B9\u4EE5\u4E0A\u3067\u5408\u683C"
-        })]
-      }), /*#__PURE__*/_jsx("button", {
-        onClick: () => setShowMockExam(true),
-        style: {
-          ...STYLES.btnPrimary,
-          padding: "10px 18px",
-          flexShrink: 0,
-          fontSize: 13
-        },
-        children: "\u958B\u59CB"
-      })]
-    }), calcQuiz && /*#__PURE__*/_jsxs("div", {
+        gap: 8,
+        padding: "8px 0",
+        borderBottom: idx < 5 ? `1px solid ${COLORS.border}` : "none",
+        cursor: "pointer"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsx(MiniCalcCard, {
-        quiz: calcQuiz,
-        onAnswer: correct => {
-          setTodayAnswered(true);
-          setState(s => ({
-            ...s,
-            calcHistory: [...s.calcHistory, {
-              date: new Date().toISOString(),
-              formula: calcQuiz.keyword,
-              correct,
-              timeSpent: 0
-            }]
-          }));
-        }
-      }), /*#__PURE__*/_jsxs("button", {
-        style: {
-          ...STYLES.btnOutline,
-          width: "100%",
-          marginTop: 6,
-          fontSize: 12
-        },
-        onClick: refreshCalcQuiz,
-        children: [/*#__PURE__*/_jsx(RefreshCw, {
-          size: 12,
-          style: {
-            marginRight: 5
-          }
-        }), " \u5225\u306E\u554F\u984C\u3092\u51FA\u3059"]
-      })]
-    }), /*#__PURE__*/_jsx(AIReviewWidget, {
-      state: state
-    }), /*#__PURE__*/_jsxs("div", {
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        background: tab.color + "18",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(tab.icon, {
+      size: 14,
+      color: tab.color
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
-        ...STYLES.card,
-        marginBottom: 12
-      },
-      children: [/*#__PURE__*/_jsxs("button", {
-        onClick: () => setShowExamInfo(s => !s),
-        style: {
-          width: "100%",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: 0,
-          fontFamily: "'Noto Sans JP', sans-serif"
-        },
-        children: [/*#__PURE__*/_jsx(BookOpen, {
-          size: 16,
-          color: COLORS.primary
-        }), /*#__PURE__*/_jsx("span", {
-          style: {
-            fontWeight: 800,
-            fontSize: 14,
-            color: COLORS.text,
-            flex: 1,
-            textAlign: "left"
-          },
-          children: "\u8A66\u9A13\u6982\u8981"
-        }), /*#__PURE__*/_jsx(ChevronRight, {
-          size: 16,
-          color: COLORS.textMuted,
-          style: {
-            transform: showExamInfo ? "rotate(90deg)" : "none",
-            transition: "transform 0.2s"
-          }
-        })]
-      }), showExamInfo && /*#__PURE__*/_jsxs("div", {
-        style: {
-          marginTop: 12
-        },
-        children: [[["正式名称", "資産形成コンサルタント（ABC）資格試験"], ["主催", "日本証券アナリスト協会"], ["試験方式", "CBT（コンピュータ試験）・全国約300会場"], ["出題形式", "4肢択一・40問"], ["試験時間", "60分"], ["合格基準", "60点以上（100点満点換算）"], ["受験料", "9,900円（一般）"], ["受験資格", "特になし"], ["有効期限", "無期限（更新不要）"], ["難易度", "FP2〜1級レベル＋金融資産運用の深掘り"]].map(([k, v]) => /*#__PURE__*/_jsxs("div", {
-          style: {
-            display: "flex",
-            gap: 8,
-            padding: "5px 0",
-            borderBottom: `1px solid ${COLORS.border}`,
-            fontSize: 13
-          },
-          children: [/*#__PURE__*/_jsx("span", {
-            style: {
-              color: COLORS.textLight,
-              minWidth: 72,
-              fontWeight: 600,
-              fontSize: 12
-            },
-            children: k
-          }), /*#__PURE__*/_jsx("span", {
-            style: {
-              color: COLORS.text,
-              fontSize: 13
-            },
-            children: v
-          })]
-        }, k)), /*#__PURE__*/_jsxs("div", {
-          style: {
-            marginTop: 12
-          },
-          children: [/*#__PURE__*/_jsx("div", {
-            style: {
-              fontSize: 12,
-              fontWeight: 700,
-              color: COLORS.textLight,
-              marginBottom: 6
-            },
-            children: "\u51FA\u984C\u5206\u91CE\u3068\u6BD4\u7387\uFF08\u76EE\u5B89\uFF09"
-          }), [{
-            label: "顧客本位・倫理",
-            pct: 20,
-            color: COLORS.secondary
-          }, {
-            label: "資産運用の基礎",
-            pct: 25,
-            color: COLORS.accent
-          }, {
-            label: "ポートフォリオ理論",
-            pct: 25,
-            color: COLORS.highlight
-          }, {
-            label: "金融商品",
-            pct: 20,
-            color: "#E67E22"
-          }, {
-            label: "ケーススタディ",
-            pct: 10,
-            color: "#16A085"
-          }].map(item => /*#__PURE__*/_jsxs("div", {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 5
-            },
-            children: [/*#__PURE__*/_jsx("span", {
-              style: {
-                fontSize: 11,
-                color: COLORS.text,
-                minWidth: 110
-              },
-              children: item.label
-            }), /*#__PURE__*/_jsx("div", {
-              style: {
-                flex: 1,
-                height: 6,
-                background: COLORS.border,
-                borderRadius: 6,
-                overflow: "hidden"
-              },
-              children: /*#__PURE__*/_jsx("div", {
-                style: {
-                  height: "100%",
-                  width: `${item.pct * 4}%`,
-                  background: item.color,
-                  borderRadius: 6
-                }
-              })
-            }), /*#__PURE__*/_jsxs("span", {
-              style: {
-                fontSize: 11,
-                color: item.color,
-                fontWeight: 700,
-                minWidth: 28
-              },
-              children: [item.pct, "%"]
-            })]
-          }, item.label))]
-        })]
-      })]
-    })]
-  });
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: COLORS.text,
+        marginBottom: 3
+      }
+    }, tab.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: 4,
+        background: COLORS.border,
+        borderRadius: 4,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: "100%",
+        width: `${pct}%`,
+        background: tab.color,
+        borderRadius: 4,
+        transition: "width 0.4s ease"
+      }
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 3,
+        flexShrink: 0
+      }
+    }, keys.map(k => /*#__PURE__*/React.createElement("div", {
+      key: k,
+      style: {
+        width: 14,
+        height: 14,
+        borderRadius: 4,
+        background: secs[k] ? tab.color : COLORS.border,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }
+    }, secs[k] && /*#__PURE__*/React.createElement(Check, {
+      size: 9,
+      color: "#fff"
+    })))), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: done === all ? COLORS.secondary : COLORS.textLight,
+        minWidth: 28,
+        textAlign: "right"
+      }
+    }, done, "/", all), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 13,
+      color: COLORS.textMuted
+    }));
+  }), calcChartData.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.highlight,
+      marginBottom: 8
+    }
+  }, "\u8A08\u7B97\u554F\u984C \u6B63\u7B54\u7387\uFF08\u82E6\u624B\u9806\uFF09"), /*#__PURE__*/React.createElement(ResponsiveContainer, {
+    width: "100%",
+    height: 120
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: calcChartData,
+    margin: {
+      top: 4,
+      right: 4,
+      left: -20,
+      bottom: 0
+    }
+  }, /*#__PURE__*/React.createElement(XAxis, {
+    dataKey: "name",
+    tick: {
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(YAxis, {
+    domain: [0, 100],
+    tick: {
+      fontSize: 10
+    }
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    formatter: v => `${v}%`
+  }), /*#__PURE__*/React.createElement(Bar, {
+    dataKey: "rate",
+    fill: COLORS.highlight,
+    radius: [4, 4, 0, 0]
+  }), /*#__PURE__*/React.createElement(ReferenceLine, {
+    y: 60,
+    stroke: COLORS.danger,
+    strokeDasharray: "4 2"
+  })))), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnOutline,
+      width: "100%",
+      marginTop: 12,
+      fontSize: 12
+    },
+    onClick: () => {
+      if (window.confirm("学習進捗・テスト履歴をすべてリセットしますか？")) {
+        setState(INITIAL_STATE);
+      }
+    }
+  }, /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 12,
+    style: {
+      marginRight: 5
+    }
+  }), " \u9032\u6357\u3092\u30EA\u30BB\u30C3\u30C8")), showMockExam && /*#__PURE__*/React.createElement(MockExam, {
+    state: state,
+    setState: setState,
+    onClose: () => setShowMockExam(false)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12,
+      background: `linear-gradient(135deg, ${COLORS.primary}18, ${COLORS.highlight}12)`,
+      border: `1.5px solid ${COLORS.primary}40`,
+      display: "flex",
+      alignItems: "center",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 800,
+      fontSize: 15,
+      color: COLORS.primary,
+      margin: "0 0 3px"
+    }
+  }, "\uD83D\uDCDD \u6A21\u64EC\u8A66\u9A13"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      margin: 0
+    }
+  }, "40\u554F\u30FB60\u5206\u30FB4\u80A2\u629E\u4E00 \uFF0F 60\u70B9\u4EE5\u4E0A\u3067\u5408\u683C")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowMockExam(true),
+    style: {
+      ...STYLES.btnPrimary,
+      padding: "10px 18px",
+      flexShrink: 0,
+      fontSize: 13
+    }
+  }, "\u958B\u59CB")), calcQuiz && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(MiniCalcCard, {
+    quiz: calcQuiz,
+    onAnswer: correct => {
+      setTodayAnswered(true);
+      setState(s => ({
+        ...s,
+        calcHistory: [...s.calcHistory, {
+          date: new Date().toISOString(),
+          formula: calcQuiz.keyword,
+          correct,
+          timeSpent: 0
+        }]
+      }));
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...STYLES.btnOutline,
+      width: "100%",
+      marginTop: 6,
+      fontSize: 12
+    },
+    onClick: refreshCalcQuiz
+  }, /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 12,
+    style: {
+      marginRight: 5
+    }
+  }), " \u5225\u306E\u554F\u984C\u3092\u51FA\u3059")), /*#__PURE__*/React.createElement(AIReviewWidget, {
+    state: state
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowExamInfo(s => !s),
+    style: {
+      width: "100%",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: 0,
+      fontFamily: "'Noto Sans JP', sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement(BookOpen, {
+    size: 16,
+    color: COLORS.primary
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.text,
+      flex: 1,
+      textAlign: "left"
+    }
+  }, "\u8A66\u9A13\u6982\u8981"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: COLORS.textMuted,
+    style: {
+      transform: showExamInfo ? "rotate(90deg)" : "none",
+      transition: "transform 0.2s"
+    }
+  })), showExamInfo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, [["正式名称", "資産形成コンサルタント（ABC）資格試験"], ["主催", "日本証券アナリスト協会"], ["試験方式", "CBT（コンピュータ試験）・全国約300会場"], ["出題形式", "4肢択一・40問"], ["試験時間", "60分"], ["合格基準", "60点以上（100点満点換算）"], ["受験料", "9,900円（一般）"], ["受験資格", "特になし"], ["有効期限", "無期限（更新不要）"], ["難易度", "FP2〜1級レベル＋金融資産運用の深掘り"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: "flex",
+      gap: 8,
+      padding: "5px 0",
+      borderBottom: `1px solid ${COLORS.border}`,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textLight,
+      minWidth: 72,
+      fontWeight: 600,
+      fontSize: 12
+    }
+  }, k), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.text,
+      fontSize: 13
+    }
+  }, v))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 6
+    }
+  }, "\u51FA\u984C\u5206\u91CE\u3068\u6BD4\u7387\uFF08\u76EE\u5B89\uFF09"), [{
+    label: "顧客本位・倫理",
+    pct: 20,
+    color: COLORS.secondary
+  }, {
+    label: "資産運用の基礎",
+    pct: 25,
+    color: COLORS.accent
+  }, {
+    label: "ポートフォリオ理論",
+    pct: 25,
+    color: COLORS.highlight
+  }, {
+    label: "金融商品",
+    pct: 20,
+    color: "#E67E22"
+  }, {
+    label: "ケーススタディ",
+    pct: 10,
+    color: "#16A085"
+  }].map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.label,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 5
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      minWidth: 110
+    }
+  }, item.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 6,
+      background: COLORS.border,
+      borderRadius: 6,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${item.pct * 4}%`,
+      background: item.color,
+      borderRadius: 6
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: item.color,
+      fontWeight: 700,
+      minWidth: 28
+    }
+  }, item.pct, "%")))))));
 }
 
 // ============================================================
@@ -10466,51 +9718,51 @@ function ABCExamApp() {
   const renderTab = () => {
     switch (activeTab) {
       case "home":
-        return /*#__PURE__*/_jsx(HomeTab, {
+        return /*#__PURE__*/React.createElement(HomeTab, {
           state: state,
           setState: setState,
           onTabChange: setActiveTab
         });
       case "ethics":
-        return /*#__PURE__*/_jsx(EthicsTab, {
+        return /*#__PURE__*/React.createElement(EthicsTab, {
           state: state,
           setState: setState
         });
       case "basics":
-        return /*#__PURE__*/_jsx(BasicsTab, {
+        return /*#__PURE__*/React.createElement(BasicsTab, {
           state: state,
           setState: setState
         });
       case "portfolio":
-        return /*#__PURE__*/_jsx(PortfolioTab, {
+        return /*#__PURE__*/React.createElement(PortfolioTab, {
           state: state,
           setState: setState
         });
       case "products":
-        return /*#__PURE__*/_jsx(ProductsTab, {
+        return /*#__PURE__*/React.createElement(ProductsTab, {
           state: state,
           setState: setState
         });
       case "casestudy":
-        return /*#__PURE__*/_jsx(CaseStudyTab, {
+        return /*#__PURE__*/React.createElement(CaseStudyTab, {
           state: state,
           setState: setState
         });
       case "analysis":
-        return /*#__PURE__*/_jsx(AnalysisTab, {
+        return /*#__PURE__*/React.createElement(AnalysisTab, {
           state: state,
           setState: setState
         });
       default:
         {
           const tab = TABS.find(t => t.id === activeTab);
-          return tab ? /*#__PURE__*/_jsx(PlaceholderTab, {
+          return tab ? /*#__PURE__*/React.createElement(PlaceholderTab, {
             tab: tab
           }) : null;
         }
     }
   };
-  return /*#__PURE__*/_jsxs("div", {
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Noto Sans JP', 'Hiragino Sans', sans-serif",
       background: COLORS.bg,
@@ -10520,16 +9772,10 @@ function ABCExamApp() {
       maxWidth: 480,
       margin: "0 auto",
       position: "relative"
-    },
-    children: [/*#__PURE__*/_jsx("main", {
-      children: renderTab()
-    }), /*#__PURE__*/_jsx(NavigationBar, {
-      activeTab: activeTab,
-      onTabChange: setActiveTab
-    })]
-  });
+    }
+  }, /*#__PURE__*/React.createElement("main", null, renderTab()), /*#__PURE__*/React.createElement(NavigationBar, {
+    activeTab: activeTab,
+    onTabChange: setActiveTab
+  }));
 }
-
-import { createElement } from 'https://esm.sh/react@18';
-import { createRoot } from 'https://esm.sh/react-dom@18/client';
-createRoot(document.getElementById('root')).render(createElement(ABCExamApp));
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ABCExamApp));
