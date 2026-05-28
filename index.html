@@ -22,7 +22,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 
-  <!-- importmap: bare module specifier → CDN URL に解決 -->
   <script type="importmap">
   {
     "imports": {
@@ -39,62 +38,11 @@
   <div id="root">
     <div id="loading">
       <div class="spinner"></div>
-      <p>アプリを読み込み中...</p>
-      <p style="font-size:12px;color:#7F8C8D">初回は20〜30秒ほどかかる場合があります</p>
+      <p>読み込み中...</p>
     </div>
   </div>
 
-  <!-- Babel standalone をグローバルとして読み込む（同期・ブロッキング） -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <script type="module">
-    // 動的スクリプト注入エラーをキャッチ
-    window.addEventListener("error", (e) => {
-      const el = document.getElementById("root");
-      if (el && el.querySelector("#loading")) {
-        el.innerHTML = `<div style="padding:24px;font-family:sans-serif;color:#E74C3C;text-align:center">
-          <p style="font-size:18px;font-weight:bold;margin-bottom:8px">⚠️ 実行エラー</p>
-          <p style="font-size:13px">${e.message}</p>
-          <p style="font-size:12px;margin-top:12px;color:#7F8C8D">ページを再読み込みしてください</p>
-        </div>`;
-      }
-    }, true);
-
-    async function boot() {
-      // JSX ソースを取得
-      const res = await fetch("./abc-exam-app.jsx");
-      if (!res.ok) throw new Error(`ファイル取得失敗: ${res.status}`);
-      const src = await res.text();
-
-      // JSX → JS 変換（automatic runtime で react/jsx-runtime を使う）
-      const { code } = Babel.transform(src, {
-        filename: "app.jsx",
-        presets: [["react", { runtime: "automatic" }]],
-      });
-
-      // export default を除去してマウントコードを末尾に追加
-      // importmap が有効なモジュールスクリプトとして DOM に注入する
-      const appCode = code.replace(/\bexport\s+default\s+/, "") + `
-
-import { createElement } from "react";
-import { createRoot }    from "react-dom/client";
-createRoot(document.getElementById("root")).render(createElement(ABCExamApp));
-`;
-      const tag = document.createElement("script");
-      tag.type = "module";
-      tag.textContent = appCode;
-      document.head.appendChild(tag);
-    }
-
-    boot().catch(err => {
-      console.error(err);
-      document.getElementById("root").innerHTML =
-        `<div style="padding:24px;font-family:sans-serif;color:#E74C3C;text-align:center">
-          <p style="font-size:18px;font-weight:bold;margin-bottom:8px">⚠️ 読み込みエラー</p>
-          <p style="font-size:13px">${err.message}</p>
-          <p style="font-size:12px;margin-top:12px;color:#7F8C8D">ページを再読み込みしてください</p>
-        </div>`;
-    });
-  </script>
+  <!-- JSX事前変換済みのESモジュールを直接読み込む -->
+  <script type="module" src="./abc-exam-app.js"></script>
 </body>
 </html>
