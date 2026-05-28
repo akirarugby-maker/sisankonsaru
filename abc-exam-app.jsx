@@ -14,7 +14,7 @@
 フェーズ10: ③ポートフォリオ理論タブ      [✅]
 フェーズ11: ④金融商品タブ               [✅]
 フェーズ12: ⑤ケーススタディタブ          [✅]
-フェーズ13: ⑥苦手分析タブ               [ ]
+フェーズ13: ⑥苦手分析タブ               [✅]
 フェーズ14: AI機能（モック）統合         [ ]
 フェーズ15: 仕上げ・模擬試験・結合       [ ]
 ========================================
@@ -29,7 +29,8 @@ import {
 import {
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ReferenceLine, Area, AreaChart
+  ReferenceLine, Area, AreaChart,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from "recharts";
 
 // ============================================================
@@ -5216,6 +5217,572 @@ function CaseStudyTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ13: ⑥苦手分析タブ
+// ============================================================
+
+const MOCK_ADVICE_DATA = {
+  capm:           "CAPMの計算が苦手なようです。まずβの概念を押さえましょう。β=1は市場と同じ動き。公式はE(Ri)=Rf+β×(Rm-Rf)。Rfとβ、Rmを正確に区別することがコツです。",
+  sharpe:         "シャープレシオはリスク1単位あたりの超過リターン。(Rp-Rf)/σp で計算します。比較するときは同じリスク水準で考えましょう。",
+  pv:             "現在価値は「将来のお金を今の価値に換算」。PV=FV/(1+r)^n。割引率rが高いほど現在価値は小さくなります。",
+  pf_risk:        "ポートフォリオリスクの計算では相関係数の扱いが鍵です。ρ=-1で完全に相殺される原理から考えると覚えやすいです。",
+  ddm:            "DDMは株価=来期配当/(期待収益率-成長率)。分母の(r-g)がゼロや負になると成立しないことに注意。",
+  duration:       "デュレーションは「金利感応度」と覚えましょう。修正デュレーション×金利変化率≈価格変化率（マイナス符号あり）。",
+  weak_ethics:    "倫理・顧客本位分野が苦手なようです。フィデューシャリーデューティーの7原則を繰り返し読み、ケーススタディで実際の適用場面を想定して理解を深めましょう。",
+  weak_calc:      "計算問題の正答率が低いようです。まず各公式の変数の意味を確認しましょう。次に数値を変えながら電卓で繰り返し練習することをお勧めします。",
+  default:        "間違いが多い分野を電卓練習と理解テストで集中的に対策しましょう。試験まで40問・60%合格を目標に計画的に学習を進めてください。",
+};
+
+const CALC_PRACTICE_ITEMS = [
+  {
+    key: "capm",
+    label: "CAPM期待リターン",
+    formula: "E(Ri) = Rf + β × (Rm − Rf)",
+    question: (v) => `リスクフリーレート${v.rf}%、β=${v.beta}、市場リターン${v.rm}%のとき期待リターンは？`,
+    generate: () => {
+      const rf   = +(Math.random() * 3 + 1).toFixed(1);
+      const rm   = +(Math.random() * 5 + 6).toFixed(1);
+      const beta = +(Math.random() * 1.5 + 0.5).toFixed(1);
+      const ans  = +(rf + beta * (rm - rf)).toFixed(2);
+      return { inputs: { rf, rm, beta }, answer: ans, unit: "%" };
+    },
+  },
+  {
+    key: "sharpe",
+    label: "シャープレシオ",
+    formula: "SR = (Rp − Rf) / σp",
+    question: (v) => `ポートフォリオリターン${v.rp}%、無リスク利子率${v.rf}%、標準偏差${v.sigma}%のときシャープレシオは？`,
+    generate: () => {
+      const rf    = +(Math.random() * 2 + 1).toFixed(1);
+      const rp    = +(Math.random() * 8 + 4).toFixed(1);
+      const sigma = +(Math.random() * 10 + 5).toFixed(1);
+      const ans   = +((rp - rf) / sigma).toFixed(2);
+      return { inputs: { rp, rf, sigma }, answer: ans, unit: "" };
+    },
+  },
+  {
+    key: "pv",
+    label: "現在価値（PV）",
+    formula: "PV = FV / (1 + r)ⁿ",
+    question: (v) => `${v.n}年後に${v.fv}万円を受け取る。割引率${v.r}%のとき現在価値は？`,
+    generate: () => {
+      const fv  = [100, 200, 300, 500][Math.floor(Math.random() * 4)];
+      const r   = +(Math.random() * 4 + 2).toFixed(1);
+      const n   = Math.floor(Math.random() * 8 + 3);
+      const ans = +(fv / Math.pow(1 + r / 100, n)).toFixed(1);
+      return { inputs: { fv, r, n }, answer: ans, unit: "万円" };
+    },
+  },
+  {
+    key: "pf_risk",
+    label: "2資産PFリスク",
+    formula: "σp = √(w₁²σ₁² + 2ρw₁w₂σ₁σ₂ + w₂²σ₂²)",
+    question: (v) => `資産A比率${v.w1 * 100}%（σ=${v.s1}%）、資産B比率${(1 - v.w1) * 100}%（σ=${v.s2}%）、相関係数${v.rho}のときPFリスクは？`,
+    generate: () => {
+      const w1  = [0.4, 0.5, 0.6][Math.floor(Math.random() * 3)];
+      const w2  = 1 - w1;
+      const s1  = Math.floor(Math.random() * 6 + 8);
+      const s2  = Math.floor(Math.random() * 6 + 8);
+      const rho = [0, 0.3, 0.5, -0.3][Math.floor(Math.random() * 4)];
+      const ans = +(Math.sqrt(w1 ** 2 * s1 ** 2 + 2 * rho * w1 * w2 * s1 * s2 + w2 ** 2 * s2 ** 2)).toFixed(1);
+      return { inputs: { w1, s1, s2, rho }, answer: ans, unit: "%" };
+    },
+  },
+  {
+    key: "ddm",
+    label: "DDM（配当割引モデル）",
+    formula: "P = D₁ / (r − g)",
+    question: (v) => `来期配当${v.d}円、期待収益率${v.r}%、配当成長率${v.g}%のとき理論株価は？`,
+    generate: () => {
+      const d   = [50, 60, 80, 100][Math.floor(Math.random() * 4)];
+      const g   = +(Math.random() * 3 + 1).toFixed(1);
+      const r   = +(g + Math.random() * 5 + 3).toFixed(1);
+      const ans = +(d / ((r - g) / 100)).toFixed(0);
+      return { inputs: { d, r, g }, answer: ans, unit: "円" };
+    },
+  },
+  {
+    key: "duration",
+    label: "修正デュレーション価格変化",
+    formula: "ΔP/P ≈ −ModD × Δy",
+    question: (v) => `修正デュレーション${v.d}年の債券。金利が${v.dy}%上昇したとき価格変化率は？`,
+    generate: () => {
+      const d   = +(Math.random() * 5 + 3).toFixed(1);
+      const dy  = [0.5, 1.0, 1.5, 2.0][Math.floor(Math.random() * 4)];
+      const ans = +(-d * dy).toFixed(2);
+      return { inputs: { d, dy }, answer: ans, unit: "%" };
+    },
+  },
+];
+
+function generateForgettingCurve() {
+  const data = [];
+  for (let t = 0; t <= 30; t++) {
+    const raw  = Math.round(100 * Math.exp(-t / 7));
+    const rev  = t <= 1 ? raw : Math.min(100, Math.round(100 * Math.exp(-(t - 1) / 14)));
+    data.push({ day: `${t}日`, 復習なし: Math.max(raw, 0), 復習あり: Math.max(rev, 0) });
+  }
+  return data;
+}
+const FORGETTING_CURVE_DATA = generateForgettingCurve();
+
+// --- AnalysisSectionA: 正答率分析 ---
+function AnalysisSectionA({ state }) {
+  const { testHistory } = state;
+  const TAB_LABELS = {
+    ethics:    "倫理",
+    basics:    "基礎",
+    portfolio: "PF理論",
+    products:  "金融商品",
+    casestudy: "ケース",
+    calc:      "計算",
+  };
+
+  const radarData = Object.entries(TAB_LABELS).map(([key, subject]) => {
+    const records = key === "calc"
+      ? testHistory.filter((h) => h.isCalc)
+      : testHistory.filter((h) => h.tab === key);
+    const total   = records.length;
+    const correct = records.filter((h) => h.correct).length;
+    return { subject, 正答率: total > 0 ? Math.round((correct / total) * 100) : 0, fullMark: 100 };
+  });
+
+  const TAB_SECTIONS = {
+    ethics:    ["A","B","C"],
+    basics:    ["A","B","C","D","E"],
+    portfolio: ["A","B","C","D"],
+    products:  ["A","B","C","D","E"],
+    casestudy: ["A","B"],
+  };
+  const sectionData = [];
+  Object.entries(TAB_SECTIONS).forEach(([tab, secs]) => {
+    secs.forEach((sec) => {
+      const records = testHistory.filter((h) => h.tab === tab && h.section === sec);
+      if (records.length > 0) {
+        const correct = records.filter((h) => h.correct).length;
+        sectionData.push({ name: `${TAB_LABELS[tab]}-${sec}`, 正答率: Math.round((correct / records.length) * 100) });
+      }
+    });
+  });
+
+  const dateMap = {};
+  testHistory.forEach((h) => {
+    const d = h.date?.slice(0, 10);
+    if (!d) return;
+    if (!dateMap[d]) dateMap[d] = { correct: 0, total: 0 };
+    dateMap[d].total++;
+    if (h.correct) dateMap[d].correct++;
+  });
+  const trendData = Object.entries(dateMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, { correct, total }]) => ({ date: date.slice(5), 正答率: Math.round((correct / total) * 100) }));
+
+  const withData = radarData.filter((d) => d.正答率 > 0);
+  const weakTab  = withData.sort((a, b) => a.正答率 - b.正答率)[0];
+  const adviceKey = weakTab?.subject === "倫理" ? "weak_ethics" : weakTab?.subject === "計算" ? "weak_calc" : "default";
+
+  if (testHistory.length === 0) {
+    return (
+      <div style={{ padding: "24px 16px" }}>
+        <div style={{ ...STYLES.card, textAlign: "center", padding: 28 }}>
+          <Activity size={44} color={COLORS.highlight} style={{ marginBottom: 12 }} />
+          <p style={{ fontWeight: 700, fontSize: 15, color: COLORS.text, margin: "0 0 6px" }}>まだデータがありません</p>
+          <p style={{ fontSize: 12, color: COLORS.textLight, margin: 0 }}>各タブのクイズに挑戦すると、ここに正答率が表示されます。</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "0 14px 24px" }}>
+      <p style={{ fontSize: 12, color: COLORS.textLight, margin: "0 0 14px" }}>
+        総問題数: {testHistory.length}問 ／ 正答: {testHistory.filter((h) => h.correct).length}問
+      </p>
+
+      <div style={{ ...STYLES.card, marginBottom: 14 }}>
+        <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "0 0 10px" }}>📡 科目別正答率レーダー</p>
+        <ResponsiveContainer width="100%" height={240}>
+          <RadarChart data={radarData} cx="50%" cy="50%" outerRadius={80}>
+            <PolarGrid stroke={COLORS.border} />
+            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: COLORS.text }} />
+            <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} />
+            <Radar name="正答率" dataKey="正答率" stroke={COLORS.highlight} fill={COLORS.highlight} fillOpacity={0.3} />
+            <Tooltip formatter={(v) => `${v}%`} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {sectionData.length > 0 && (
+        <div style={{ ...STYLES.card, marginBottom: 14 }}>
+          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "0 0 10px" }}>📊 セクション別詳細</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={sectionData} margin={{ top: 4, right: 8, left: -20, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} unit="%" />
+              <Tooltip formatter={(v) => `${v}%`} />
+              <Bar dataKey="正答率" fill={COLORS.secondary} radius={[4, 4, 0, 0]} />
+              <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" label={{ value: "合格ライン", fill: COLORS.danger, fontSize: 10 }} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {trendData.length >= 2 && (
+        <div style={{ ...STYLES.card, marginBottom: 14 }}>
+          <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "0 0 10px" }}>📈 スコア推移</p>
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart data={trendData} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} unit="%" />
+              <Tooltip formatter={(v) => `${v}%`} />
+              <Line type="monotone" dataKey="正答率" stroke={COLORS.accent} strokeWidth={2} dot={{ r: 4 }} />
+              <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      <div style={{ background: `${COLORS.highlight}12`, borderRadius: 14, padding: 14, border: `1px solid ${COLORS.highlight}33` }}>
+        <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.highlight, margin: "0 0 6px" }}>🤖 AI学習アドバイス（モック）</p>
+        {weakTab && (
+          <p style={{ fontSize: 12, color: COLORS.textLight, margin: "0 0 6px" }}>
+            最も正答率が低い科目: <strong style={{ color: COLORS.danger }}>{weakTab.subject}（{weakTab.正答率}%）</strong>
+          </p>
+        )}
+        <p style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.65, margin: 0 }}>{MOCK_ADVICE_DATA[adviceKey]}</p>
+      </div>
+    </div>
+  );
+}
+
+// --- AnalysisSectionB: 計算問題特訓 ---
+function AnalysisSectionB({ state, setState }) {
+  const [currentItem, setCurrentItem] = useState(null);
+  const [currentQ,    setCurrentQ]    = useState(null);
+  const [userAnswer,  setUserAnswer]  = useState("");
+  const [result,      setResult]      = useState(null);
+  const [timeLeft,    setTimeLeft]    = useState(60);
+  const [timerActive, setTimerActive] = useState(false);
+  const [localHistory, setLocalHistory] = useState([]);
+
+  useEffect(() => {
+    if (!timerActive) return;
+    if (timeLeft <= 0) {
+      setResult({ correct: false, timeout: true });
+      setTimerActive(false);
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [timerActive, timeLeft]);
+
+  const startPractice = (item) => {
+    const q = item.generate();
+    setCurrentItem(item);
+    setCurrentQ(q);
+    setUserAnswer("");
+    setResult(null);
+    setTimeLeft(60);
+    setTimerActive(true);
+  };
+
+  const handleSubmit = () => {
+    if (!currentQ || result) return;
+    setTimerActive(false);
+    const num     = parseFloat(userAnswer);
+    const correct = !isNaN(num) && Math.abs(num - currentQ.answer) <= Math.abs(currentQ.answer) * 0.02 + 0.05;
+    const timeSpent = 60 - timeLeft;
+    setResult({ correct, expected: currentQ.answer, unit: currentQ.unit });
+    setLocalHistory((h) => [{ key: currentItem.key, correct, timeSpent }, ...h.slice(0, 19)]);
+    setState((s) => ({
+      ...s,
+      calcHistory: [
+        { date: new Date().toISOString(), formula: currentItem.key, correct, timeSpent },
+        ...(s.calcHistory || []).slice(0, 49),
+      ],
+    }));
+  };
+
+  const calcHistory = state.calcHistory || [];
+  const sorted = CALC_PRACTICE_ITEMS.map((item) => {
+    const hist = calcHistory.filter((h) => h.formula === item.key);
+    const rate = hist.length > 0 ? hist.filter((h) => h.correct).length / hist.length : -1;
+    return { ...item, rate, attempts: hist.length };
+  }).sort((a, b) => a.rate - b.rate);
+
+  const timerColor = timeLeft > 30 ? COLORS.secondary : timeLeft > 10 ? COLORS.accent : COLORS.danger;
+
+  if (!currentItem) {
+    return (
+      <div style={{ padding: "0 14px 24px" }}>
+        <InfoBox title="💡 使い方" color={COLORS.primary}>
+          正答率の低い公式を優先表示しています。「挑戦」を押してから60秒以内に数値を入力してください。
+        </InfoBox>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 14 }}>
+          {sorted.map((item) => {
+            const rateLabel = item.attempts > 0 ? `${Math.round(item.rate * 100)}%（${item.attempts}回）` : "未挑戦";
+            const rateColor = item.attempts === 0 ? COLORS.textLight : item.rate < 0.6 ? COLORS.danger : COLORS.secondary;
+            return (
+              <div key={item.key} style={{ ...STYLES.card, display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: "0 0 2px" }}>{item.label}</p>
+                  <p style={{ fontSize: 11, color: COLORS.textLight, margin: "0 0 4px", fontFamily: "monospace" }}>{item.formula}</p>
+                  <p style={{ fontSize: 11, color: rateColor, margin: 0, fontWeight: 700 }}>正答率 {rateLabel}</p>
+                </div>
+                <button
+                  onClick={() => startPractice(item)}
+                  style={{ ...STYLES.btnPrimary, padding: "8px 14px", fontSize: 12, flexShrink: 0 }}
+                >挑戦</button>
+              </div>
+            );
+          })}
+        </div>
+
+        {localHistory.length > 0 && (
+          <div style={{ ...STYLES.card, marginTop: 16 }}>
+            <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: "0 0 10px" }}>直近の練習履歴</p>
+            {localHistory.slice(0, 6).map((h, i) => {
+              const item = CALC_PRACTICE_ITEMS.find((c) => c.key === h.key);
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 14 }}>{h.correct ? "✅" : "❌"}</span>
+                  <span style={{ fontSize: 12, color: COLORS.text, flex: 1 }}>{item?.label}</span>
+                  <span style={{ fontSize: 11, color: COLORS.textLight }}>{h.timeSpent}秒</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "0 14px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", ...STYLES.card, marginBottom: 14, padding: "12px 16px" }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{currentItem.label}</span>
+        <div style={{ background: timerColor, color: "#fff", borderRadius: 20, padding: "4px 16px", fontSize: 17, fontWeight: 900 }}>
+          {timeLeft}秒
+        </div>
+      </div>
+
+      <div style={{ background: `${COLORS.primary}14`, borderRadius: 12, padding: "10px 14px", marginBottom: 12, textAlign: "center", fontFamily: "monospace", fontSize: 13, color: COLORS.primary }}>
+        {currentItem.formula}
+      </div>
+
+      <div style={{ ...STYLES.card, marginBottom: 14 }}>
+        <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.7, margin: 0 }}>
+          {currentQ && currentItem.question(currentQ.inputs)}
+        </p>
+      </div>
+
+      {!result ? (
+        <div style={{ display: "flex", gap: 10 }}>
+          <input
+            type="number"
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            placeholder={`答えを入力${currentQ?.unit ? `（${currentQ.unit}）` : ""}`}
+            style={{ ...STYLES.input, flex: 1 }}
+            autoFocus
+          />
+          <button onClick={handleSubmit} style={{ ...STYLES.btnPrimary, padding: "10px 18px" }}>答える</button>
+        </div>
+      ) : (
+        <div>
+          <div style={{
+            background: result.correct ? `${COLORS.secondary}18` : `${COLORS.danger}12`,
+            border: `2px solid ${result.correct ? COLORS.secondary : COLORS.danger}`,
+            borderRadius: 14, padding: 16, marginBottom: 14, textAlign: "center",
+          }}>
+            <p style={{ fontWeight: 900, fontSize: 18, color: result.correct ? COLORS.secondary : COLORS.danger, margin: "0 0 6px" }}>
+              {result.correct ? "🎉 正解！" : result.timeout ? "⏰ 時間切れ！" : "❌ 不正解"}
+            </p>
+            {!result.correct && (
+              <p style={{ fontSize: 14, color: COLORS.text, margin: "0 0 8px" }}>
+                正解: <strong>{result.expected}{result.unit}</strong>
+              </p>
+            )}
+            <p style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.6, margin: 0 }}>
+              {MOCK_ADVICE_DATA[currentItem.key] || MOCK_ADVICE_DATA.default}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => startPractice(currentItem)} style={{ ...STYLES.btnPrimary, flex: 1, padding: 12 }}>もう一度</button>
+            <button
+              onClick={() => { setCurrentItem(null); setCurrentQ(null); setResult(null); }}
+              style={{ ...STYLES.btnOutline, flex: 1, padding: 12, borderRadius: 12 }}
+            >一覧へ戻る</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- AnalysisSectionC: 忘却曲線・復習管理 ---
+function AnalysisSectionC({ state, setState }) {
+  const { testHistory, reviewStatus } = state;
+
+  const wrongMap = {};
+  testHistory.filter((h) => !h.correct && h.keyword).forEach((h) => {
+    wrongMap[h.keyword] = (wrongMap[h.keyword] || 0) + 1;
+  });
+  const reviewItems = Object.entries(wrongMap)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 12);
+
+  const STATUS = {
+    today:    { label: "今日復習",  color: COLORS.accent,    next: "tomorrow" },
+    tomorrow: { label: "明日確認",  color: COLORS.primary,   next: "mastered" },
+    mastered: { label: "習得済み",  color: COLORS.secondary, next: null },
+  };
+
+  const getStatus = (kw) => (reviewStatus || {})[kw] || "today";
+  const masteredCount = reviewItems.filter(([kw]) => getStatus(kw) === "mastered").length;
+
+  const updateReview = (kw, next) => {
+    setState((s) => ({
+      ...s,
+      reviewStatus: { ...s.reviewStatus, [kw]: next },
+      progress:     { ...s.progress, analysis: { analyzed: true } },
+    }));
+  };
+
+  return (
+    <div style={{ padding: "0 14px 24px" }}>
+      <div style={{ ...STYLES.card, marginBottom: 14 }}>
+        <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "0 0 4px" }}>📉 エビングハウスの忘却曲線</p>
+        <p style={{ fontSize: 11, color: COLORS.textLight, margin: "0 0 12px" }}>繰り返し復習することで記憶定着率が大きく向上します</p>
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={FORGETTING_CURVE_DATA} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+            <XAxis dataKey="day" tick={{ fontSize: 9 }} interval={4} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 9 }} unit="%" />
+            <Tooltip formatter={(v) => `${v}%`} />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Line type="monotone" dataKey="復習なし" stroke={COLORS.danger} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="復習あり" stroke={COLORS.secondary} strokeWidth={2} dot={false} strokeDasharray="5 3" />
+          </LineChart>
+        </ResponsiveContainer>
+        <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 11, color: COLORS.textLight, flexWrap: "wrap" }}>
+          <span>翌日: 約74%忘却</span>
+          <span>1週間: 約67%忘却</span>
+          <span>1ヶ月: 約79%忘却</span>
+        </div>
+      </div>
+
+      {reviewItems.length > 0 && (
+        <div style={{ ...STYLES.card, marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: 0 }}>復習進捗</p>
+            <span style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 700 }}>
+              {masteredCount} / {reviewItems.length} 習得済み
+            </span>
+          </div>
+          <div style={{ background: COLORS.border, borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 14 }}>
+            <div style={{
+              background: COLORS.secondary, height: "100%", borderRadius: 8,
+              width: `${reviewItems.length > 0 ? (masteredCount / reviewItems.length) * 100 : 0}%`,
+              transition: "width 0.4s",
+            }} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {reviewItems.map(([kw, cnt]) => {
+              const st   = getStatus(kw);
+              const info = STATUS[st];
+              return (
+                <div key={kw} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  background: "#fff", borderRadius: 10, padding: "10px 12px",
+                  border: `1px solid ${COLORS.border}`,
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 700, fontSize: 13, color: COLORS.text, margin: "0 0 1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{kw}</p>
+                    <p style={{ fontSize: 11, color: COLORS.textLight, margin: 0 }}>間違い {cnt}回</p>
+                  </div>
+                  <span style={{ ...STYLES.badge(info.color), fontSize: 10, whiteSpace: "nowrap", flexShrink: 0 }}>{info.label}</span>
+                  {info.next ? (
+                    <button
+                      onClick={() => updateReview(kw, info.next)}
+                      style={{
+                        background: info.color, color: "#fff", border: "none",
+                        borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer", fontWeight: 700, flexShrink: 0,
+                      }}
+                    >{info.next === "tomorrow" ? "今日OK" : "完璧！"}</button>
+                  ) : (
+                    <button
+                      onClick={() => updateReview(kw, "today")}
+                      style={{
+                        background: "transparent", color: COLORS.textLight,
+                        border: `1px solid ${COLORS.border}`,
+                        borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer", flexShrink: 0,
+                      }}
+                    >リセット</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {reviewItems.length === 0 && (
+        <div style={{ ...STYLES.card, textAlign: "center", padding: 24, marginBottom: 14 }}>
+          <p style={{ fontSize: 14, color: COLORS.textLight, margin: 0 }}>
+            クイズで間違えたキーワードがここに表示されます。<br />各タブのクイズに挑戦してみましょう！
+          </p>
+        </div>
+      )}
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "翌日・3日後・1週間後・2週間後・1ヶ月後の間隔で繰り返すと定着率が高まる（間隔反復）",
+        "「今日OK」→「完璧！」の順でステータスを進めましょう",
+        "正答率60%以上を全セクションで維持するのが合格の目安",
+        "計算問題は「なぜその公式になるか」を理解してから暗記すると応用が効く",
+      ]} />
+    </div>
+  );
+}
+
+const ANALYSIS_SECTIONS = [
+  { id: "A", label: "正答率分析" },
+  { id: "B", label: "計算特訓" },
+  { id: "C", label: "忘却曲線" },
+];
+
+// --- AnalysisTab ---
+function AnalysisTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = COLORS.highlight;
+
+  const renderSection = () => {
+    switch (section) {
+      case "A": return <AnalysisSectionA state={state} />;
+      case "B": return <AnalysisSectionB state={state} setState={setState} />;
+      case "C": return <AnalysisSectionC state={state} setState={setState} />;
+      default:  return null;
+    }
+  };
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="⑥ 苦手分析"
+        subtitle="正答率レーダー・計算特訓・忘却曲線で弱点を完全克服"
+        color={color}
+        icon={Activity}
+      />
+      <SectionTab sections={ANALYSIS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="analysis" sections={ANALYSIS_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+      {renderSection()}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -5744,6 +6311,10 @@ export default function ABCExamApp() {
       case "casestudy":
         return (
           <CaseStudyTab state={state} setState={setState} />
+        );
+      case "analysis":
+        return (
+          <AnalysisTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
