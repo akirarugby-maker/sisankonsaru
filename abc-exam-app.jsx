@@ -3,7 +3,7 @@
 💹 ABCコンサルタント試験アプリ - ビルド進捗
 ========================================
 フェーズ1:  基盤・デザインシステム        [✅]
-フェーズ2:  計算コンポーネント・公式データ [ ]
+フェーズ2:  計算コンポーネント・公式データ [✅]
 フェーズ3:  倫理・基礎データ定義          [ ]
 フェーズ4:  PF・金融商品データ            [ ]
 フェーズ5:  共通コンポーネント            [ ]
@@ -382,7 +382,618 @@ function PageHeader({ title, subtitle, color = COLORS.primary, icon: Icon }) {
 }
 
 // ============================================================
-// プレースホルダータブ（フェーズ2以降で実装）
+// フェーズ2: 計算コンポーネント・公式データ
+// ============================================================
+
+// --- StepDisplay: 計算ステップ表示 ---
+function StepDisplay({ steps }) {
+  if (!steps || steps.length === 0) return null;
+  return (
+    <div
+      style={{
+        background:   "#F0F8FF",
+        border:       `1px solid ${COLORS.border}`,
+        borderRadius: 12,
+        padding:      12,
+        marginTop:    10,
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, marginBottom: 8 }}>
+        計算過程
+      </div>
+      {steps.map((step, i) => (
+        <div
+          key={i}
+          style={{
+            display:      "flex",
+            gap:          10,
+            marginBottom: 5,
+            alignItems:   "flex-start",
+          }}
+        >
+          <span
+            style={{
+              minWidth:       22,
+              height:         22,
+              background:     COLORS.primary,
+              color:          "#fff",
+              borderRadius:   "50%",
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              fontSize:       11,
+              fontWeight:     800,
+              flexShrink:     0,
+            }}
+          >
+            {i + 1}
+          </span>
+          <span style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.6 }}>{step}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// --- ResultCard: 計算結果表示 ---
+function ResultCard({ label, value, unit = "", color = COLORS.primary, large = false }) {
+  return (
+    <div
+      style={{
+        background:    color + "12",
+        border:        `2px solid ${color}44`,
+        borderRadius:  14,
+        padding:       large ? "16px 20px" : "12px 16px",
+        textAlign:     "center",
+        flex:          1,
+      }}
+    >
+      <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 600, marginBottom: 4 }}>
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize:   large ? 28 : 22,
+          fontWeight: 900,
+          color:      color,
+          lineHeight: 1,
+        }}
+      >
+        {value}
+        {unit && (
+          <span style={{ fontSize: large ? 14 : 12, marginLeft: 3, fontWeight: 700 }}>
+            {unit}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- CalcComponent: 汎用電卓コンポーネント ---
+function CalcComponent({
+  formulaName,
+  inputs,          // [{ label, key, unit, defaultValue, step, min, max }]
+  calculate,       // (inputValues) => { results: [{label,value,unit,color}], steps: string[] }
+  chartBuilder,    // (inputValues, result) => JSX | null
+  accentColor = COLORS.primary,
+}) {
+  const defaultValues = Object.fromEntries(
+    inputs.map((inp) => [inp.key, inp.defaultValue ?? ""])
+  );
+  const [values, setValues]     = useState(defaultValues);
+  const [result, setResult]     = useState(null);
+  const [showChart, setShowChart] = useState(false);
+
+  const handleCalc = () => {
+    try {
+      const parsed = Object.fromEntries(
+        Object.entries(values).map(([k, v]) => [k, parseFloat(v)])
+      );
+      const valid = Object.values(parsed).every((v) => !isNaN(v));
+      if (!valid) { setResult({ error: "すべての値を入力してください" }); return; }
+      setResult(calculate(parsed));
+    } catch (e) {
+      setResult({ error: "計算エラー: " + e.message });
+    }
+  };
+
+  const handleReset = () => {
+    setValues(defaultValues);
+    setResult(null);
+    setShowChart(false);
+  };
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12 }}>
+      <div style={{ ...STYLES.sectionTitle, color: accentColor }}>
+        <Calculator size={17} color={accentColor} /> {formulaName}
+      </div>
+
+      {/* 入力フィールド */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+        {inputs.map((inp) => (
+          <div key={inp.key}>
+            <label style={STYLES.label}>
+              {inp.label}
+              {inp.unit && <span style={{ color: COLORS.textMuted }}> ({inp.unit})</span>}
+            </label>
+            <input
+              type="number"
+              value={values[inp.key]}
+              step={inp.step ?? "any"}
+              min={inp.min}
+              max={inp.max}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, [inp.key]: e.target.value }))
+              }
+              style={STYLES.input}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* ボタン */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button style={{ ...STYLES.btnPrimary, flex: 1, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)` }} onClick={handleCalc}>
+          計算する
+        </button>
+        <button style={{ ...STYLES.btnOutline, color: accentColor, borderColor: accentColor }} onClick={handleReset}>
+          リセット
+        </button>
+      </div>
+
+      {/* エラー */}
+      {result?.error && (
+        <div
+          style={{
+            marginTop:    10,
+            padding:      "8px 12px",
+            background:   COLORS.danger + "18",
+            border:       `1px solid ${COLORS.danger}44`,
+            borderRadius: 10,
+            fontSize:     13,
+            color:        COLORS.danger,
+          }}
+        >
+          {result.error}
+        </div>
+      )}
+
+      {/* 結果 */}
+      {result && !result.error && (
+        <>
+          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+            {result.results.map((r, i) => (
+              <ResultCard
+                key={i}
+                label={r.label}
+                value={r.value}
+                unit={r.unit}
+                color={r.color || accentColor}
+                large={i === 0}
+              />
+            ))}
+          </div>
+          <StepDisplay steps={result.steps} />
+
+          {/* グラフ切替 */}
+          {chartBuilder && (
+            <button
+              style={{
+                ...STYLES.btnOutline,
+                color:       accentColor,
+                borderColor: accentColor,
+                width:       "100%",
+                marginTop:   10,
+                fontSize:    13,
+              }}
+              onClick={() => setShowChart((s) => !s)}
+            >
+              {showChart ? "グラフを隠す" : "グラフで確認"}
+            </button>
+          )}
+          {showChart && chartBuilder && chartBuilder(
+            Object.fromEntries(
+              Object.entries(values).map(([k, v]) => [k, parseFloat(v)])
+            ),
+            result
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// --- FormulaCard: 公式カード ---
+function FormulaCard({ name, formula, variables, example, color = COLORS.primary, onOpenCalc }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div
+      style={{
+        ...STYLES.card,
+        marginBottom:  10,
+        borderLeft:    `4px solid ${color}`,
+        cursor:        "pointer",
+      }}
+      onClick={() => setExpanded((e) => !e)}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontWeight: 800, fontSize: 14, color: COLORS.text }}>{name}</div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={STYLES.badge(color)}>公式</span>
+          <ChevronRight
+            size={16}
+            color={color}
+            style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
+          />
+        </div>
+      </div>
+
+      {/* 公式文字列 */}
+      <div
+        style={{
+          marginTop:    8,
+          background:   color + "10",
+          border:       `1px solid ${color}30`,
+          borderRadius: 10,
+          padding:      "8px 12px",
+          fontFamily:   "monospace",
+          fontSize:     14,
+          color:        color,
+          fontWeight:   700,
+          letterSpacing: 0.5,
+        }}
+      >
+        {formula}
+      </div>
+
+      {/* 展開部分 */}
+      {expanded && (
+        <div style={{ marginTop: 10 }}>
+          {/* 変数説明 */}
+          {variables && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 6 }}>
+                変数の意味
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {variables.map((v, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, fontSize: 13 }}>
+                    <span
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: 700,
+                        color:      color,
+                        minWidth:   40,
+                      }}
+                    >
+                      {v.symbol}
+                    </span>
+                    <span style={{ color: COLORS.text }}>{v.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 計算例 */}
+          {example && (
+            <div
+              style={{
+                background:   COLORS.secondary + "12",
+                border:       `1px solid ${COLORS.secondary}33`,
+                borderRadius: 10,
+                padding:      "10px 12px",
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, marginBottom: 6 }}>
+                計算例
+              </div>
+              {example.inputs && (
+                <div style={{ fontSize: 13, color: COLORS.text, marginBottom: 4 }}>
+                  {example.inputs}
+                </div>
+              )}
+              {example.steps && (
+                <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 4 }}>
+                  {example.steps}
+                </div>
+              )}
+              {example.output && (
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.secondary }}>
+                  → {example.output}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 電卓へのリンク */}
+          {onOpenCalc && (
+            <button
+              style={{ ...STYLES.btnSecondary, width: "100%", marginTop: 10, fontSize: 13 }}
+              onClick={(e) => { e.stopPropagation(); onOpenCalc(); }}
+            >
+              <Calculator size={13} style={{ marginRight: 6 }} />
+              電卓で計算してみる
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- ExamTipCard: 試験頻出ポイントカード ---
+function ExamTipCard({ tips, color = COLORS.accent }) {
+  return (
+    <div
+      style={{
+        ...STYLES.card,
+        borderLeft:   `4px solid ${color}`,
+        marginBottom: 12,
+      }}
+    >
+      <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+        <AlertTriangle size={15} color={color} /> 試験頻出ポイント
+      </div>
+      {tips.map((tip, i) => (
+        <div
+          key={i}
+          style={{
+            display:      "flex",
+            gap:          8,
+            marginBottom: 6,
+            alignItems:   "flex-start",
+          }}
+        >
+          <span
+            style={{
+              minWidth:       20,
+              height:         20,
+              background:     color,
+              color:          "#fff",
+              borderRadius:   "50%",
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              fontSize:       10,
+              fontWeight:     800,
+              flexShrink:     0,
+            }}
+          >
+            !
+          </span>
+          <span style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.6 }}>{tip}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// --- SectionTab: タブ内セクション切替 ---
+function SectionTab({ sections, activeSection, onSelect, color }) {
+  return (
+    <div
+      style={{
+        display:        "flex",
+        gap:            6,
+        overflowX:      "auto",
+        marginBottom:   14,
+        paddingBottom:  4,
+        scrollbarWidth: "none",
+      }}
+    >
+      {sections.map((sec) => (
+        <button
+          key={sec.id}
+          onClick={() => onSelect(sec.id)}
+          style={{
+            background:   activeSection === sec.id ? color : "transparent",
+            color:        activeSection === sec.id ? "#fff" : COLORS.textLight,
+            border:       `1.5px solid ${activeSection === sec.id ? color : COLORS.border}`,
+            borderRadius: 20,
+            padding:      "6px 14px",
+            cursor:       "pointer",
+            fontSize:     12,
+            fontWeight:   700,
+            whiteSpace:   "nowrap",
+            transition:   "all 0.18s ease",
+            fontFamily:   "'Noto Sans JP', sans-serif",
+          }}
+        >
+          {sec.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// --- ChartCard: グラフラッパー ---
+function ChartCard({ title, height = 200, children, color = COLORS.primary }) {
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12 }}>
+      {title && (
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, marginBottom: 10 }}>
+          <BarChart2 size={15} color={color} /> {title}
+        </div>
+      )}
+      <ResponsiveContainer width="100%" height={height}>
+        {children}
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// --- InfoBox: 解説・定義ボックス ---
+function InfoBox({ title, children, color = COLORS.primary }) {
+  return (
+    <div
+      style={{
+        background:   color + "0C",
+        border:       `1.5px solid ${color}33`,
+        borderRadius: 14,
+        padding:      "12px 14px",
+        marginBottom: 10,
+      }}
+    >
+      {title && (
+        <div style={{ fontSize: 13, fontWeight: 800, color, marginBottom: 6 }}>
+          {title}
+        </div>
+      )}
+      <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.7 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// --- 公式データ定義 ---
+const FORMULA_DATA = {
+  // リターン計算
+  simpleReturn: {
+    name: "単純リターン（保有期間リターン）",
+    formula: "R = (期末価格 - 期初価格 + 配当) / 期初価格 × 100",
+    variables: [
+      { symbol: "R",    meaning: "リターン（%）" },
+      { symbol: "期末価格", meaning: "売却時または期末の価格" },
+      { symbol: "期初価格", meaning: "購入時または期初の価格" },
+      { symbol: "配当",  meaning: "期間中に受け取った配当金" },
+    ],
+    example: {
+      inputs:  "期初100円 → 期末110円、配当2円",
+      steps:   "(110 - 100 + 2) / 100 × 100",
+      output:  "リターン = 12%",
+    },
+  },
+  annualReturn: {
+    name: "年率リターン（複利換算）",
+    formula: "年率R = (1 + 保有期間R)^(1/年数) - 1",
+    variables: [
+      { symbol: "年率R",    meaning: "1年当たりの平均リターン" },
+      { symbol: "保有期間R", meaning: "保有期間全体のリターン（小数）" },
+      { symbol: "年数",     meaning: "保有年数" },
+    ],
+    example: {
+      inputs:  "3年間で保有期間リターン33.1%",
+      steps:   "(1 + 0.331)^(1/3) - 1",
+      output:  "年率リターン ≈ 10%",
+    },
+  },
+  geoMean: {
+    name: "幾何平均リターン（複利ベース）",
+    formula: "Rg = ((1+R1)×(1+R2)×…×(1+Rn))^(1/n) - 1",
+    variables: [
+      { symbol: "Rg",     meaning: "幾何平均リターン" },
+      { symbol: "R1…Rn", meaning: "各期間のリターン（小数）" },
+      { symbol: "n",      meaning: "期間数" },
+    ],
+    example: {
+      inputs:  "3年間: +20%, -10%, +15%",
+      steps:   "(1.20 × 0.90 × 1.15)^(1/3) - 1",
+      output:  "幾何平均 ≈ 7.78%",
+    },
+  },
+  // リスク計算
+  stdDev: {
+    name: "標準偏差（リスク）",
+    formula: "σ = √(Σ(Ri - Ra)² / n)",
+    variables: [
+      { symbol: "σ",  meaning: "標準偏差（リスク）" },
+      { symbol: "Ri", meaning: "各期間のリターン" },
+      { symbol: "Ra", meaning: "平均リターン" },
+      { symbol: "n",  meaning: "データ数" },
+    ],
+    example: {
+      inputs:  "リターン: 10%, 20%, -5%, 15%（平均10%）",
+      steps:   "√((0²+100+225+25)/4) = √87.5",
+      output:  "σ ≈ 9.35%",
+    },
+  },
+  correlation: {
+    name: "相関係数",
+    formula: "ρ(A,B) = Cov(A,B) / (σA × σB)",
+    variables: [
+      { symbol: "ρ",       meaning: "相関係数（-1 ≤ ρ ≤ 1）" },
+      { symbol: "Cov(A,B)", meaning: "2資産の共分散" },
+      { symbol: "σA, σB",  meaning: "各資産の標準偏差" },
+    ],
+    example: {
+      inputs:  "Cov=0.006, σA=10%, σB=8%",
+      steps:   "0.006 / (0.10 × 0.08)",
+      output:  "ρ = 0.75",
+    },
+  },
+  // 現在価値
+  pv: {
+    name: "現在価値（PV）",
+    formula: "PV = FV / (1 + r)^n",
+    variables: [
+      { symbol: "PV", meaning: "現在価値" },
+      { symbol: "FV", meaning: "将来価値（Future Value）" },
+      { symbol: "r",  meaning: "割引率（年率）" },
+      { symbol: "n",  meaning: "期間（年）" },
+    ],
+    example: {
+      inputs:  "5年後の100万円、割引率3%",
+      steps:   "1,000,000 / (1.03)^5",
+      output:  "PV ≈ 862,609円",
+    },
+  },
+  // CAPM
+  capm: {
+    name: "CAPM（資本資産評価モデル）",
+    formula: "E(Ri) = Rf + βi × [E(Rm) - Rf]",
+    variables: [
+      { symbol: "E(Ri)", meaning: "資産iの期待リターン" },
+      { symbol: "Rf",    meaning: "リスクフリーレート（無リスク資産利回り）" },
+      { symbol: "βi",   meaning: "資産iのベータ値（市場感応度）" },
+      { symbol: "E(Rm)", meaning: "市場ポートフォリオの期待リターン" },
+    ],
+    example: {
+      inputs:  "Rf=2%, β=1.2, 市場リターン=8%",
+      steps:   "2% + 1.2 × (8% - 2%)",
+      output:  "期待リターン = 9.2%",
+    },
+  },
+  // シャープレシオ
+  sharpe: {
+    name: "シャープレシオ",
+    formula: "SR = (Rp - Rf) / σp",
+    variables: [
+      { symbol: "SR", meaning: "シャープレシオ（高いほど効率的）" },
+      { symbol: "Rp", meaning: "ポートフォリオのリターン" },
+      { symbol: "Rf", meaning: "リスクフリーレート" },
+      { symbol: "σp", meaning: "ポートフォリオの標準偏差" },
+    ],
+    example: {
+      inputs:  "Rp=12%, Rf=2%, σp=15%",
+      steps:   "(12% - 2%) / 15%",
+      output:  "SR = 0.667",
+    },
+  },
+  // ポートフォリオリスク
+  portfolioRisk: {
+    name: "2資産ポートフォリオのリスク",
+    formula: "σP² = wA²σA² + wB²σB² + 2wA·wB·ρAB·σA·σB",
+    variables: [
+      { symbol: "σP",       meaning: "ポートフォリオの標準偏差" },
+      { symbol: "wA, wB",   meaning: "各資産の投資比率（合計=1）" },
+      { symbol: "σA, σB",   meaning: "各資産の標準偏差" },
+      { symbol: "ρAB",      meaning: "2資産間の相関係数" },
+    ],
+    example: {
+      inputs:  "wA=60%, σA=15%, wB=40%, σB=10%, ρ=0.3",
+      steps:   "√(0.36×0.0225 + 0.16×0.01 + 2×0.6×0.4×0.3×0.15×0.1)",
+      output:  "σP ≈ 10.7%",
+    },
+  },
+};
+
+// ============================================================
+// プレースホルダータブ（フェーズ3以降で実装）
 // ============================================================
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
@@ -404,7 +1015,7 @@ function PlaceholderTab({ tab }) {
       >
         <Icon size={48} color={tab.color + "66"} style={{ marginBottom: 12 }} />
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
-          フェーズ2以降で実装予定
+          フェーズ3以降で実装予定
         </div>
         <div style={{ fontSize: 13 }}>
           内容：{tab.label}に関する学習コンテンツ・電卓・テスト
