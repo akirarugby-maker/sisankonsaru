@@ -11,7 +11,7 @@
 フェーズ7:  ①顧客本位・倫理タブ          [✅]
 フェーズ8:  ②資産運用の基礎タブ 前半     [✅]
 フェーズ9:  ②資産運用の基礎タブ 後半     [✅]
-フェーズ10: ③ポートフォリオ理論タブ      [ ]
+フェーズ10: ③ポートフォリオ理論タブ      [✅]
 フェーズ11: ④金融商品タブ               [ ]
 フェーズ12: ⑤ケーススタディタブ          [ ]
 フェーズ13: ⑥苦手分析タブ               [ ]
@@ -4006,6 +4006,462 @@ function BasicsBackTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ10: ③ポートフォリオ理論タブ
+// ============================================================
+
+// --- セクションA: 分散投資の効果 ---
+function PortfolioSectionA({ color, state, setState }) {
+  const [rhoSlider, setRhoSlider]   = useState(0);   // -100〜100 → /100
+  const [wASlider,  setWASlider]    = useState(50);
+  const [rA,        setRA]          = useState(8);
+  const [rB,        setRB]          = useState(4);
+  const [sigA,      setSigA]        = useState(15);
+  const [sigB,      setSigB]        = useState(8);
+
+  const rho = rhoSlider / 100;
+  const wA  = wASlider  / 100;
+  const wB  = 1 - wA;
+
+  const pfRet  = wA * rA + wB * rB;
+  const pfVar  = wA*wA*sigA*sigA + wB*wB*sigB*sigB + 2*wA*wB*rho*sigA*sigB;
+  const pfRisk = Math.sqrt(Math.max(0, pfVar));
+
+  // 相関係数別の比率-リスク曲線
+  const frontierData = (() => {
+    const rows = [];
+    for (let w = 0; w <= 100; w += 5) {
+      const wa = w / 100, wb = 1 - wa;
+      const ret = wa * rA + wb * rB;
+      const entry = { wA: w, ret: parseFloat(ret.toFixed(2)) };
+      [-1, -0.5, 0, 0.5, 1].forEach((r) => {
+        const v   = wa*wa*sigA*sigA + wb*wb*sigB*sigB + 2*wa*wb*r*sigA*sigB;
+        entry[`ρ=${r}`] = parseFloat(Math.sqrt(Math.max(0, v)).toFixed(2));
+      });
+      rows.push(entry);
+    }
+    return rows;
+  })();
+
+  const done = state.progress.portfolio?.A;
+
+  return (
+    <div>
+      <InfoBox title="2資産ポートフォリオのリスク公式" color={color}>
+        <strong>σP² = wA²σA² + wB²σB² + 2·wA·wB·ρ·σA·σB</strong><br />
+        ρ = +1：分散効果なし（リスクは加重平均）<br />
+        ρ =  0：部分的な分散効果<br />
+        ρ = −1：適切な比率でリスクをゼロにできる（理論上）
+      </InfoBox>
+
+      <FormulaCard {...FORMULA_DATA.portfolioRisk} color={color} />
+
+      {/* インタラクティブ分散効果グラフ */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <TrendingUp size={15} color={color} /> 相関係数別ポートフォリオリスク（インタラクティブ）
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {[
+            { label: `σA: ${sigA}%`,   val: sigA, set: setSigA, min: 1, max: 40 },
+            { label: `σB: ${sigB}%`,   val: sigB, set: setSigB, min: 1, max: 40 },
+            { label: `E(rA): ${rA}%`,  val: rA,   set: setRA,   min: -5, max: 20 },
+            { label: `E(rB): ${rB}%`,  val: rB,   set: setRB,   min: -5, max: 20 },
+          ].map((s) => (
+            <div key={s.label}>
+              <label style={STYLES.label}>{s.label}</label>
+              <input type="range" min={s.min} max={s.max} value={s.val}
+                onChange={(e) => s.set(Number(e.target.value))}
+                style={{ width: "100%", accentColor: color }} />
+            </div>
+          ))}
+        </div>
+
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={frontierData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+            <XAxis dataKey="wA" tick={{ fontSize: 9 }} label={{ value: "資産A比率(%)", position: "insideBottom", offset: -2, fontSize: 10 }} />
+            <YAxis tick={{ fontSize: 9 }} unit="%" label={{ value: "PFリスク%", angle: -90, position: "insideLeft", fontSize: 9 }} />
+            <Tooltip formatter={(v) => `${v}%`} labelFormatter={(l) => `資産A比率: ${l}%`} />
+            <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
+            {[
+              ["ρ=-1",   COLORS.secondary],
+              ["ρ=-0.5", "#2ECC71"],
+              ["ρ=0",    COLORS.primary],
+              ["ρ=0.5",  COLORS.accent],
+              ["ρ=1",    COLORS.danger],
+            ].map(([key, clr]) => (
+              <Line key={key} type="monotone" dataKey={key} name={key}
+                stroke={clr} strokeWidth={1.8} dot={false} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* リアルタイム計算 */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <Calculator size={14} color={color} /> 現在の設定でポートフォリオを計算
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label style={STYLES.label}>相関係数 ρ: {rho.toFixed(2)}</label>
+          <input type="range" min={-100} max={100} value={rhoSlider}
+            onChange={(e) => setRhoSlider(Number(e.target.value))}
+            style={{ width: "100%", accentColor: color }} />
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label style={STYLES.label}>資産A比率: {wASlider}%（資産B: {100 - wASlider}%）</label>
+          <input type="range" min={0} max={100} step={5} value={wASlider}
+            onChange={(e) => setWASlider(Number(e.target.value))}
+            style={{ width: "100%", accentColor: color }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <ResultCard label="PFリターン" value={pfRet.toFixed(2)} unit="%" color={COLORS.secondary} />
+          <ResultCard label="PFリスク"   value={pfRisk.toFixed(2)} unit="%" color={COLORS.danger}   large />
+          <ResultCard label="ρ"          value={rho.toFixed(2)}    unit=""  color={color} />
+        </div>
+        <div style={{ marginTop: 8, fontSize: 12, color: COLORS.textLight, textAlign: "center" }}>
+          {rho <= -0.8 && pfRisk < 1
+            ? "⚡ ほぼリスクゼロ！完全逆相関に近い状態です"
+            : rho === 1
+            ? "⚠ ρ=1：分散効果なし"
+            : `ρ=${rho.toFixed(2)}：単純加重平均リスク${(wA*sigA+wB*sigB).toFixed(2)}% → PF${pfRisk.toFixed(2)}%（${((wA*sigA+wB*sigB) - pfRisk).toFixed(2)}%削減）`}
+        </div>
+      </div>
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "ρ=−1で特定比率（wA=σB/(σA+σB)）にするとリスクがゼロ",
+        "ρ=+1：分散効果なし、リスクは加重平均に等しい",
+        "20〜30銘柄で非システマティックリスクの大部分を消去可能",
+        "残るのはシステマティックリスク（市場リスク・βで計測）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width: "100%", marginBottom: 12,
+        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPFA: !s._quizPFA }))}>
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
+      </button>
+      {state._quizPFA && <QuizComponent quizzes={PORTFOLIO_QUIZZES.A} tabId="portfolio" sectionId="A" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションB: 効率的フロンティア ---
+function PortfolioSectionB({ color, state, setState }) {
+  const rf = 0.02;
+  const efData = generateEfficientFrontier(0.08, 0.03, 0.18, 0.06, 40)
+    .filter((d) => d.rho === 0)
+    .map((d) => ({ sig: d.sig, ret: d.ret, sr: parseFloat(((d.ret - rf * 100) / d.sig).toFixed(3)) }));
+
+  // 最小分散点・接点PF
+  const minVar = efData.reduce((m, d) => d.sig < m.sig ? d : m, efData[0]);
+  const maxSR  = efData.reduce((m, d) => d.sr > m.sr  ? d : m, efData[0]);
+
+  // CMLデータ（rf〜接点PFを延長）
+  const cmlData = [
+    { sig: 0,         ret: rf * 100 },
+    { sig: maxSR.sig, ret: maxSR.ret },
+    { sig: maxSR.sig * 1.8, ret: rf * 100 + (maxSR.ret - rf * 100) * 1.8 },
+  ];
+
+  const done = state.progress.portfolio?.B;
+
+  return (
+    <div>
+      <InfoBox title="効率的フロンティアとCML" color={color}>
+        <strong>効率的フロンティア</strong>：同じリスクで最大リターンのポートフォリオ集合<br />
+        <strong>最小分散ポートフォリオ</strong>：フロンティア上でリスク最小の点<br />
+        <strong>接点ポートフォリオ</strong>：CMLとフロンティアの接点 = シャープレシオ最大<br />
+        <strong>CML（資本市場線）</strong>：リスクフリー資産と接点PFを結ぶ直線
+      </InfoBox>
+
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <TrendingUp size={15} color={color} /> 効率的フロンティア + CML
+        </div>
+        <ResponsiveContainer width="100%" height={240}>
+          <LineChart margin={{ top: 10, right: 20, left: -10, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+            <XAxis type="number" dataKey="sig" name="リスク" unit="%" tick={{ fontSize: 9 }}
+              domain={[0, 25]} label={{ value: "リスク(%)", position: "insideBottom", offset: -4, fontSize: 10 }} />
+            <YAxis type="number" dataKey="ret" name="リターン" unit="%" tick={{ fontSize: 9 }}
+              domain={[1, 10]} label={{ value: "期待R(%)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+            <Tooltip formatter={(v) => `${v}%`} />
+            <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} verticalAlign="top" />
+            <Line data={efData} type="monotone" dataKey="ret" name="効率的フロンティア"
+              stroke={color} strokeWidth={2.5} dot={false} />
+            <Line data={cmlData} type="linear" dataKey="ret" name="CML（資本市場線）"
+              stroke={COLORS.secondary} strokeWidth={2} strokeDasharray="6 3" dot={false} />
+            {/* 最小分散点 */}
+            <Line data={[minVar]} type="linear" dataKey="ret" name={`最小分散点(σ=${minVar.sig}%)`}
+              stroke={COLORS.primary} strokeWidth={0} dot={{ r: 7, fill: COLORS.primary }} />
+            {/* 接点PF */}
+            <Line data={[maxSR]} type="linear" dataKey="ret" name={`接点PF(SR=${maxSR.sr})`}
+              stroke={COLORS.accent} strokeWidth={0} dot={{ r: 7, fill: COLORS.accent }} />
+          </LineChart>
+        </ResponsiveContainer>
+        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+          <span style={STYLES.badge(COLORS.primary)}>● 最小分散: σ={minVar.sig}%, R={minVar.ret}%</span>
+          <span style={STYLES.badge(COLORS.accent)}>● 接点PF: SR={maxSR.sr}, R={maxSR.ret}%</span>
+          <span style={STYLES.badge(COLORS.secondary)}>--- CML（Rf={rf*100}%）</span>
+        </div>
+      </div>
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "CMLの傾き = 市場PFのシャープレシオ（最大値）",
+        "接点PFより右のCML上の点 = リスクフリー資産借入+接点PF投資（レバレッジ）",
+        "SML（証券市場線）はCAPMで個別資産のβとリターンを表す別の直線",
+        "効率的フロンティアは凹型（上方に凸）の曲線",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width: "100%", marginBottom: 12,
+        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPFB: !s._quizPFB }))}>
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（4問）"}
+      </button>
+      {state._quizPFB && <QuizComponent quizzes={PORTFOLIO_QUIZZES.B} tabId="portfolio" sectionId="B" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションC: CAPM ---
+function PortfolioSectionC({ color, state, setState }) {
+  const [rfSlider, setRfSlider] = useState(2);
+  const [rmSlider, setRmSlider] = useState(8);
+
+  const smlData = generateSML(rfSlider / 100, rmSlider / 100);
+
+  const done = state.progress.portfolio?.C;
+
+  return (
+    <div>
+      <InfoBox title="CAPM（資本資産評価モデル）" color={color}>
+        <strong>E(Ri) = Rf + βi × [E(Rm) − Rf]</strong><br />
+        [E(Rm)−Rf]：マーケット・リスクプレミアム<br />
+        β＞1：市場より変動大　β=1：市場と同じ　β＜1：変動小　β=0：Rfと同じ<br />
+        非システマティックリスクは分散投資で消去できるため、CAPMはβのみで報酬を決定
+      </InfoBox>
+
+      <FormulaCard {...FORMULA_DATA.capm} color={color} />
+
+      {/* SMLグラフ（インタラクティブ） */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <TrendingUp size={15} color={color} /> SML（証券市場線）インタラクティブ
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+          <div>
+            <label style={STYLES.label}>Rf（リスクフリー）: {rfSlider}%</label>
+            <input type="range" min={0} max={5} step={0.5} value={rfSlider}
+              onChange={(e) => setRfSlider(Number(e.target.value))}
+              style={{ width: "100%", accentColor: color }} />
+          </div>
+          <div>
+            <label style={STYLES.label}>E(Rm)（市場リターン）: {rmSlider}%</label>
+            <input type="range" min={4} max={15} step={0.5} value={rmSlider}
+              onChange={(e) => setRmSlider(Number(e.target.value))}
+              style={{ width: "100%", accentColor: color }} />
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={smlData} margin={{ top: 4, right: 20, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+            <XAxis dataKey="beta" tick={{ fontSize: 9 }}
+              label={{ value: "β（ベータ）", position: "insideBottom", offset: -4, fontSize: 10 }} />
+            <YAxis tick={{ fontSize: 9 }} unit="%"
+              label={{ value: "期待R(%)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+            <Tooltip formatter={(v) => `${v}%`} labelFormatter={(l) => `β=${l}`} />
+            <ReferenceLine x={0} stroke={COLORS.textMuted} />
+            <ReferenceLine x={1} stroke={COLORS.primary} strokeDasharray="4 2"
+              label={{ value: "β=1 市場", position: "insideTopRight", fontSize: 9 }} />
+            <Line type="linear" dataKey="er" name="SML" stroke={color} strokeWidth={2.5} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          <span style={STYLES.badge(color)}>Rf={rfSlider}%</span>
+          <span style={STYLES.badge(COLORS.primary)}>市場プレミアム={rmSlider - rfSlider}%</span>
+          <span style={STYLES.badge(COLORS.secondary)}>β=1.5 → E(R)={(rfSlider + 1.5*(rmSlider - rfSlider)).toFixed(1)}%</span>
+        </div>
+      </div>
+
+      {/* CAPM電卓 */}
+      <CalcComponent
+        formulaName="CAPM期待リターン計算機"
+        accentColor={color}
+        inputs={[
+          { label: "Rf（無リスク利子率）", key: "rf", unit: "%", defaultValue: "2" },
+          { label: "β（ベータ）",          key: "beta", defaultValue: "1.2" },
+          { label: "E(Rm)（市場リターン）", key: "rm", unit: "%", defaultValue: "8" },
+        ]}
+        calculate={({ rf, beta, rm }) => {
+          const er  = rf + beta * (rm - rf);
+          const mrp = rm - rf;
+          return {
+            results: [
+              { label: "期待リターン E(Ri)", value: er.toFixed(2),  unit: "%", color },
+              { label: "市場プレミアム",     value: mrp.toFixed(2), unit: "%", color: COLORS.secondary },
+            ],
+            steps: [
+              `E(Ri) = Rf + β × [E(Rm) − Rf]`,
+              `= ${rf}% + ${beta} × (${rm}% − ${rf}%)`,
+              `= ${rf}% + ${beta} × ${mrp.toFixed(2)}%`,
+              `= ${rf}% + ${(beta * mrp).toFixed(2)}% = ${er.toFixed(2)}%`,
+            ],
+          };
+        }}
+      />
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "β=0：リスクフリーレートと同じ期待リターン（市場リスクなし）",
+        "β<0：市場と逆方向（ゴールドなど）・希少",
+        "非システマティックリスクはβに含まれないため、CAPMは補償しない",
+        "SMLは個別資産（β）、CMLは分散済みPF（σ）の効率性を示す",
+        "αがプラス → CAPMの予測リターンを超えた超過リターン（腕前の証拠）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width: "100%", marginBottom: 12,
+        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPFC: !s._quizPFC }))}>
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
+      </button>
+      {state._quizPFC && <QuizComponent quizzes={PORTFOLIO_QUIZZES.C} tabId="portfolio" sectionId="C" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションD: パフォーマンス評価指標 ---
+function PortfolioSectionD({ color, state, setState }) {
+  const done = state.progress.portfolio?.D;
+
+  return (
+    <div>
+      <InfoBox title="4つのパフォーマンス評価指標" color={color}>
+        <strong>シャープレシオ</strong>：(Rp−Rf)/σp　全リスク1単位あたりの超過リターン<br />
+        <strong>トレイナーレシオ</strong>：(Rp−Rf)/β　市場リスク1単位あたりの超過リターン<br />
+        <strong>ジェンセンのα</strong>：Rp−[Rf+β(Rm−Rf)]　CAPMを超えた超過リターン<br />
+        <strong>情報レシオ(IR)</strong>：(Rp−Rb)/TE　ベンチマーク超過リターン÷追跡誤差
+      </InfoBox>
+
+      {/* 4指標電卓 */}
+      <CalcComponent
+        formulaName="パフォーマンス指標 一括計算機"
+        accentColor={color}
+        inputs={[
+          { label: "ポートフォリオR Rp", key: "rp", unit: "%", defaultValue: "14" },
+          { label: "リスクフリーR Rf",   key: "rf", unit: "%", defaultValue: "2"  },
+          { label: "市場リターン Rm",    key: "rm", unit: "%", defaultValue: "10" },
+          { label: "ベータ β",           key: "beta",          defaultValue: "1.3" },
+          { label: "標準偏差 σp",        key: "sigma", unit: "%", defaultValue: "18" },
+          { label: "ベンチマークR Rb",   key: "rb",  unit: "%", defaultValue: "11" },
+          { label: "追跡誤差 TE",        key: "te",  unit: "%", defaultValue: "4"  },
+        ]}
+        calculate={({ rp, rf, rm, beta, sigma, rb, te }) => {
+          const sr    = (rp - rf) / sigma;
+          const tr    = (rp - rf) / beta;
+          const alpha = rp - (rf + beta * (rm - rf));
+          const ir    = (rp - rb) / te;
+          return {
+            results: [
+              { label: "シャープレシオ",    value: sr.toFixed(3),    unit: "", color: COLORS.primary },
+              { label: "トレイナーレシオ",  value: tr.toFixed(3),    unit: "", color },
+              { label: "ジェンセンのα",    value: alpha.toFixed(2), unit: "%", color: alpha >= 0 ? COLORS.secondary : COLORS.danger },
+              { label: "情報レシオ(IR)",   value: ir.toFixed(3),    unit: "", color: COLORS.accent },
+            ],
+            steps: [
+              `シャープ = (${rp}−${rf}) / ${sigma} = ${sr.toFixed(3)}`,
+              `トレイナー = (${rp}−${rf}) / ${beta} = ${tr.toFixed(3)}`,
+              `CAPM期待R = ${rf}+${beta}×(${rm}−${rf}) = ${(rf + beta*(rm-rf)).toFixed(2)}%`,
+              `ジェンセンα = ${rp} − ${(rf + beta*(rm-rf)).toFixed(2)} = ${alpha.toFixed(2)}%`,
+              `IR = (${rp}−${rb}) / ${te} = ${ir.toFixed(3)}`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { rp, rf, rm, beta, sigma, rb, te } = vals;
+          const metrics = [
+            { name: "シャープ", value: parseFloat(((rp-rf)/sigma).toFixed(3)) },
+            { name: "トレイナー", value: parseFloat(((rp-rf)/beta).toFixed(3)) },
+            { name: "α(%)", value: parseFloat((rp-(rf+beta*(rm-rf))).toFixed(2)) },
+            { name: "IR", value: parseFloat(((rp-rb)/te).toFixed(3)) },
+          ];
+          return (
+            <ChartCard title="パフォーマンス指標比較" color={color} height={160}>
+              <BarChart data={metrics} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip />
+                <ReferenceLine y={0} stroke={COLORS.danger} />
+                <Bar dataKey="value" name="値" radius={[4,4,0,0]}
+                  fill={color} />
+              </BarChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      {/* シャープvsトレイナー比較 */}
+      <InfoBox title="シャープ vs トレイナー — 使い分け" color={COLORS.primary}>
+        <strong>シャープレシオ</strong>：分散されていないPFの評価に適切（σ=全リスク）<br />
+        <strong>トレイナーレシオ</strong>：完全に分散済みPFの評価に適切（β=市場リスクのみ）<br />
+        → 個別投資家のPF全体評価はシャープ、投資信託など部分的に保有する場合はトレイナー
+      </InfoBox>
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "ジェンセンのα > 0 → CAPM予測を上回った（運用が優秀）",
+        "情報レシオ > 0.5 → アクティブ運用として優秀",
+        "シャープ: 分母はσ（全リスク）, トレイナー: 分母はβ（市場リスク）",
+        "IR: ベンチマーク超過リターン÷トラッキングエラー",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width: "100%", marginBottom: 12,
+        background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPFD: !s._quizPFD }))}>
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
+      </button>
+      {state._quizPFD && <QuizComponent quizzes={[...PORTFOLIO_QUIZZES.C.slice(4), ...PORTFOLIO_QUIZZES.D]} tabId="portfolio" sectionId="D" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- ③ポートフォリオ理論タブ本体 ---
+const PF_SECTIONS = [
+  { id: "A", label: "A: 分散効果" },
+  { id: "B", label: "B: 効率的FT" },
+  { id: "C", label: "C: CAPM" },
+  { id: "D", label: "D: 評価指標" },
+];
+
+function PortfolioTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = COLORS.highlight;
+
+  const renderSection = () => {
+    switch (section) {
+      case "A": return <PortfolioSectionA color={color} state={state} setState={setState} />;
+      case "B": return <PortfolioSectionB color={color} state={state} setState={setState} />;
+      case "C": return <PortfolioSectionC color={color} state={state} setState={setState} />;
+      case "D": return <PortfolioSectionD color={color} state={state} setState={setState} />;
+      default:  return null;
+    }
+  };
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="ポートフォリオ理論"
+        subtitle="分散投資・効率的フロンティア・CAPM・評価指標"
+        color={color}
+        icon={TrendingUp}
+      />
+      <SectionTab sections={PF_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="portfolio" sections={PF_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+      {renderSection()}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -4522,6 +4978,10 @@ export default function ABCExamApp() {
       case "basics":
         return (
           <BasicsTab state={state} setState={setState} />
+        );
+      case "portfolio":
+        return (
+          <PortfolioTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
