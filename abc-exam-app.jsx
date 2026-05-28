@@ -15,7 +15,7 @@
 フェーズ11: ④金融商品タブ               [✅]
 フェーズ12: ⑤ケーススタディタブ          [✅]
 フェーズ13: ⑥苦手分析タブ               [✅]
-フェーズ14: AI機能（モック）統合         [ ]
+フェーズ14: AI機能（モック）統合         [✅]
 フェーズ15: 仕上げ・模擬試験・結合       [ ]
 ========================================
 */
@@ -5752,7 +5752,279 @@ const ANALYSIS_SECTIONS = [
   { id: "A", label: "正答率分析" },
   { id: "B", label: "計算特訓" },
   { id: "C", label: "忘却曲線" },
+  { id: "D", label: "AI解説" },
 ];
+
+// ============================================================
+// フェーズ14: AI機能（モック）統合
+// ============================================================
+
+const TAB_DISPLAY = {
+  ethics:    "倫理・顧客本位",
+  basics:    "資産運用の基礎",
+  portfolio: "ポートフォリオ理論",
+  products:  "金融商品",
+  casestudy: "ケーススタディ",
+};
+
+const MOCK_AI_DATA = {
+  explanation: {
+    sharpe_ratio:         "シャープレシオはポートフォリオの効率性を測る指標です。リスク（標準偏差）1単位あたり、どれだけ超過リターン（リターン−無リスク利子率）を獲得できたかを示します。数値が高いほど効率的なポートフォリオです。例：SR=1.0 はリスク1%あたり1%の超過リターンを意味します。",
+    capm:                 "CAPMは個々の資産の期待リターンを説明するモデルです。投資家はシステマティックリスク（β）に対してのみ報酬を要求するという考え方に基づきます。非システマティックリスクは分散投資で消去できるため、市場は補償しないとされます。公式：E(Ri) = Rf + β×(Rm−Rf)。",
+    duration:             "デュレーションは債券の金利感応度を表します。『平均的に何年後にお金が戻ってくるか』という概念です。クーポンが小さい・残存期間が長いほどデュレーションが長くなり、金利変動の影響を受けやすくなります。修正デュレーション×金利変化率≒価格変化率（マイナス符号に注意）。",
+    portfolio_risk:       "ポートフォリオリスクは個別資産のリスクの単純合計より小さくなります（分散効果）。相関係数ρが低いほど分散効果が大きく、ρ=−1では理論上リスクをゼロにできます。2資産の場合：σp=√(w₁²σ₁²+2ρw₁w₂σ₁σ₂+w₂²σ₂²)。",
+    ddm:                  "DDM（配当割引モデル）は株式の理論価格を将来の配当の現在価値合計として求めます。定率成長モデルでは P=D₁/(r−g)。分母が小さいほど（rとgが近いほど）株価は高くなります。成長率gが期待収益率rを上回ると成立しません。",
+    pv:                   "現在価値（PV）は『将来のお金を今の価値に換算』した金額です。割引率が高いほど・期間が長いほど現在価値は小さくなります。PV=FV/(1+r)^n。年金や債券のキャッシュフロー評価に広く使われます。",
+    fd_principle:         "フィデューシャリーデューティー（FD）とは、顧客の最善の利益を追求する義務のことです。7原則（顧客利益優先・利益相反管理・手数料透明性・重要情報提供・適切なサービス・従業員意識向上・定期的見直し）を業務全体で実践することが求められます。",
+    efficient_frontier:   "効率的フロンティアは、同じリスク水準で最大リターン（または同じリターンで最小リスク）を実現するポートフォリオの集合です。その接線（CML）と無リスク資産の組み合わせが最適なポートフォリオとなります（トービンの分離定理）。",
+    nisa:                 "新NISA（2024年〜）は年間360万円まで非課税投資が可能です。つみたて投資枠（120万/年）と成長投資枠（240万/年）の2本立て。生涯上限1,800万円。売却枠の再利用が可能。損益通算・損失の繰越控除は不可。",
+    ideco:                "iDeCoは掛金が全額所得控除になる私的年金制度です。拠出限度額は職業により異なります（会社員：月2.3万/5.5万、自営業：月6.8万など）。60歳以降に受け取り、受取時も控除あり（退職所得控除・公的年金等控除）。途中解約は原則不可。",
+    default:              "この概念の理解には、まず基本的な定義から始めて、具体的な数値例で確認するのが効果的です。電卓機能を使って実際に計算してみましょう。",
+  },
+  compare: [
+    {
+      id:    "sharpe_vs_treynor",
+      title: "シャープ vs トレイナー",
+      left:  { name: "シャープレシオ", key: "(Rp−Rf)/σp", desc: "全リスク（σ）で除算。未分散ポートフォリオの評価向き。" },
+      right: { name: "トレイナーレシオ", key: "(Rp−Rf)/β", desc: "市場リスク（β）で除算。完全分散ポートフォリオの評価向き。" },
+      note:  "試験では『どちらが適切か』を職業/状況で判断する問題が頻出。個人投資家→シャープ、機関投資家（完全分散）→トレイナー。",
+    },
+    {
+      id:    "index_vs_active",
+      title: "インデックス vs アクティブ",
+      left:  { name: "インデックスファンド", key: "低コスト・市場平均追随", desc: "信託報酬0.1%前後。市場平均を上回ることを目指さない。長期では大半のアクティブを上回る実績。" },
+      right: { name: "アクティブファンド", key: "高コスト・超過収益狙い", desc: "信託報酬1〜2%程度。市場平均超過（α）を狙う。長期的にはコスト差が不利に働きやすい。" },
+      note:  "効率的市場仮説：市場価格はすべての情報を反映しているため、継続的な超過収益は困難とされる。コスト差は複利で大きな差に。",
+    },
+    {
+      id:    "nisa_vs_ideco",
+      title: "NISA vs iDeCo",
+      left:  { name: "新NISA", key: "非課税運用・いつでも引出", desc: "運用益非課税。いつでも引き出せる。掛金控除なし。教育費・住宅購入など流動性重視に向く。" },
+      right: { name: "iDeCo", key: "掛金控除・60歳まで拘束", desc: "掛金が全額所得控除。60歳まで引き出し不可。老後専用の長期積立に最適。節税効果が大きい。" },
+      note:  "どちらを優先するか？→ まず節税効果の高いiDeCoを上限まで活用し、次にNISAで残りを運用するのが基本戦略。",
+    },
+    {
+      id:    "arith_vs_geo",
+      title: "算術平均 vs 幾何平均",
+      left:  { name: "算術平均", key: "(r₁+r₂+…+rₙ)/n", desc: "各期リターンの単純平均。過去の実績分析・期待値計算に使用。将来予測には不適。" },
+      right: { name: "幾何平均", key: "ⁿ√((1+r₁)(1+r₂)…(1+rₙ))−1", desc: "複利での実際の成長率。将来の資産成長予測に使用。常に算術平均以下。" },
+      note:  "試験頻出：将来の資産成長率→幾何平均、各期リターンの統計分析→算術平均。「どちらを使うべきか」問題に注意。",
+    },
+    {
+      id:    "systematic_vs_unsystematic",
+      title: "システマティック vs 非システマティック",
+      left:  { name: "システマティックリスク", key: "市場全体に影響・分散不可", desc: "金利変動・景気後退・地政学リスクなど。β（ベータ）で表される。CAPMで報酬される。" },
+      right: { name: "非システマティックリスク", key: "個別企業固有・分散で消去可", desc: "企業の不祥事・業績悪化など。銘柄数増加で低減（15〜20銘柄で大部分消去）。報酬されない。" },
+      note:  "CAPM の核心：非システマティックリスクは分散投資で消去できるため、市場はシステマティックリスク（β）のみを報酬する。",
+    },
+  ],
+};
+
+// --- AIMockPanel: 折りたたみ式AI解説パネル ---
+function AIMockPanel({ topicKey, type = "explanation", label = "AI解説", color = COLORS.highlight }) {
+  const [open, setOpen] = useState(false);
+  const text = MOCK_AI_DATA[type]?.[topicKey] || MOCK_AI_DATA[type]?.default || "";
+  if (!text) return null;
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display:    "flex",
+          alignItems: "center",
+          gap:        6,
+          background: open ? `${color}18` : "transparent",
+          border:     `1.5px solid ${open ? color : COLORS.border}`,
+          borderRadius: 10,
+          padding:    "7px 14px",
+          cursor:     "pointer",
+          fontSize:   12,
+          fontWeight: 700,
+          color:      open ? color : COLORS.textLight,
+          fontFamily: "'Noto Sans JP', sans-serif",
+          transition: "all 0.18s ease",
+          width:      "100%",
+          textAlign:  "left",
+        }}
+      >
+        <span style={{ fontSize: 14 }}>🤖</span>
+        {label}
+        <span style={{ marginLeft: "auto", fontSize: 10 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{
+          background:   `${color}0A`,
+          border:       `1px solid ${color}30`,
+          borderRadius: "0 0 10px 10px",
+          padding:      "12px 14px",
+          fontSize:     13,
+          color:        COLORS.text,
+          lineHeight:   1.7,
+        }}>
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- AICompareCard: 概念比較パネル ---
+function AICompareCard({ item }) {
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 14 }}>
+      <p style={{ fontWeight: 800, fontSize: 14, color: COLORS.highlight, margin: "0 0 10px" }}>
+        🔁 {item.title}
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+        <div style={{ background: `${COLORS.primary}10`, borderRadius: 10, padding: 10, border: `1px solid ${COLORS.primary}30` }}>
+          <p style={{ fontWeight: 700, fontSize: 12, color: COLORS.primary, margin: "0 0 3px" }}>{item.left.name}</p>
+          <p style={{ fontSize: 11, color: COLORS.textLight, fontFamily: "monospace", margin: "0 0 4px" }}>{item.left.key}</p>
+          <p style={{ fontSize: 11, color: COLORS.text, margin: 0, lineHeight: 1.5 }}>{item.left.desc}</p>
+        </div>
+        <div style={{ background: `${COLORS.secondary}10`, borderRadius: 10, padding: 10, border: `1px solid ${COLORS.secondary}30` }}>
+          <p style={{ fontWeight: 700, fontSize: 12, color: COLORS.secondary, margin: "0 0 3px" }}>{item.right.name}</p>
+          <p style={{ fontSize: 11, color: COLORS.textLight, fontFamily: "monospace", margin: "0 0 4px" }}>{item.right.key}</p>
+          <p style={{ fontSize: 11, color: COLORS.text, margin: 0, lineHeight: 1.5 }}>{item.right.desc}</p>
+        </div>
+      </div>
+      <div style={{ background: `${COLORS.accent}12`, borderRadius: 8, padding: "8px 12px" }}>
+        <p style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.6, margin: 0 }}>
+          <span style={{ fontWeight: 700, color: COLORS.accent }}>試験ポイント：</span>{item.note}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// --- AIReviewWidget: ホーム画面向けパーソナライズ提案 ---
+function AIReviewWidget({ state }) {
+  const { testHistory } = state;
+  const [open, setOpen] = useState(false);
+  if (testHistory.length < 5) return null;
+
+  const tabStats = {};
+  testHistory.forEach((h) => {
+    if (!tabStats[h.tab]) tabStats[h.tab] = { correct: 0, total: 0 };
+    tabStats[h.tab].total++;
+    if (h.correct) tabStats[h.tab].correct++;
+  });
+  const sorted = Object.entries(tabStats)
+    .map(([tab, s]) => ({ tab, rate: s.correct / s.total, total: s.total }))
+    .filter((t) => t.total >= 3)
+    .sort((a, b) => a.rate - b.rate);
+
+  const weakTab  = sorted[0];
+  const calcOnes = testHistory.filter((h) => h.isCalc);
+  const calcRate = calcOnes.length > 0 ? calcOnes.filter((h) => h.correct).length / calcOnes.length : null;
+
+  const explKey =
+    weakTab?.tab === "portfolio" ? "capm" :
+    weakTab?.tab === "basics"    ? "pv"   :
+    weakTab?.tab === "products"  ? "duration" :
+    weakTab?.tab === "ethics"    ? "fd_principle" :
+    "default";
+
+  const topKeywords = (() => {
+    const wm = {};
+    testHistory.filter((h) => !h.correct && h.keyword).forEach((h) => { wm[h.keyword] = (wm[h.keyword] || 0) + 1; });
+    return Object.entries(wm).sort(([,a],[,b]) => b - a).slice(0, 3).map(([k]) => k);
+  })();
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12, background: `${COLORS.highlight}0A`, border: `1.5px solid ${COLORS.highlight}33` }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display:    "flex",
+          alignItems: "center",
+          gap:        8,
+          background: "none",
+          border:     "none",
+          cursor:     "pointer",
+          width:      "100%",
+          padding:    0,
+          fontFamily: "'Noto Sans JP', sans-serif",
+        }}
+      >
+        <span style={{ fontSize: 18 }}>🤖</span>
+        <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.highlight, flex: 1, textAlign: "left" }}>
+          今日のAI学習提案
+        </span>
+        <ChevronRight size={16} color={COLORS.highlight} style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 12 }}>
+          {weakTab && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 13, color: COLORS.text }}>最も正答率が低い分野:</span>
+              <span style={{ ...STYLES.badge(COLORS.danger), fontWeight: 700 }}>
+                {TAB_DISPLAY[weakTab.tab] || weakTab.tab}（{Math.round(weakTab.rate * 100)}%）
+              </span>
+            </div>
+          )}
+          {calcRate !== null && calcRate < 0.6 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 13, color: COLORS.text }}>計算問題正答率:</span>
+              <span style={{ ...STYLES.badge(COLORS.accent), fontWeight: 700 }}>
+                {Math.round(calcRate * 100)}% → 計算特訓タブで練習を！
+              </span>
+            </div>
+          )}
+          {topKeywords.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <p style={{ fontSize: 12, color: COLORS.textLight, margin: "0 0 6px" }}>頻出の間違いキーワード:</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {topKeywords.map((kw) => (
+                  <span key={kw} style={STYLES.badge(COLORS.primary)}>{kw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{ background: `${COLORS.highlight}10`, borderRadius: 10, padding: "10px 12px" }}>
+            <p style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.65, margin: 0 }}>
+              {MOCK_AI_DATA.explanation[explKey]}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- AnalysisSectionD: AI解説・比較パネル集 ---
+function AnalysisSectionD() {
+  const topics = [
+    { key: "capm",           label: "CAPM（資本資産評価モデル）" },
+    { key: "sharpe_ratio",   label: "シャープレシオ" },
+    { key: "portfolio_risk", label: "ポートフォリオリスクと分散効果" },
+    { key: "efficient_frontier", label: "効率的フロンティア・CML" },
+    { key: "duration",       label: "デュレーション" },
+    { key: "ddm",            label: "DDM（配当割引モデル）" },
+    { key: "fd_principle",   label: "フィデューシャリーデューティー" },
+    { key: "nisa",           label: "新NISA" },
+    { key: "ideco",          label: "iDeCo" },
+  ];
+
+  return (
+    <div style={{ padding: "0 14px 24px" }}>
+      <InfoBox title="💡 AI解説の使い方" color={COLORS.highlight}>
+        各トピックをタップするとAI風の解説が展開します。
+        「比較で理解」セクションでは試験頻出の概念比較をまとめて確認できます。
+      </InfoBox>
+
+      <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "14px 0 10px" }}>📚 トピック別AI解説</p>
+      {topics.map((t) => (
+        <AIMockPanel key={t.key} topicKey={t.key} label={`${t.label}を解説`} />
+      ))}
+
+      <p style={{ fontWeight: 700, fontSize: 14, color: COLORS.text, margin: "20px 0 10px" }}>🔁 比較で理解する</p>
+      {MOCK_AI_DATA.compare.map((item) => (
+        <AICompareCard key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
 
 // --- AnalysisTab ---
 function AnalysisTab({ state, setState }) {
@@ -5764,6 +6036,7 @@ function AnalysisTab({ state, setState }) {
       case "A": return <AnalysisSectionA state={state} />;
       case "B": return <AnalysisSectionB state={state} setState={setState} />;
       case "C": return <AnalysisSectionC state={state} setState={setState} />;
+      case "D": return <AnalysisSectionD />;
       default:  return null;
     }
   };
@@ -6171,7 +6444,10 @@ function HomeTab({ state, setState, onTabChange }) {
         </div>
       )}
 
-      {/* ⑥ 試験概要（折りたたみ） */}
+      {/* ⑥ AI学習提案 */}
+      <AIReviewWidget state={state} />
+
+      {/* ⑦ 試験概要（折りたたみ） */}
       <div style={{ ...STYLES.card, marginBottom: 12 }}>
         <button
           onClick={() => setShowExamInfo((s) => !s)}
