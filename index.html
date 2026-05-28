@@ -20,75 +20,79 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #error { color: #E74C3C; padding: 24px; text-align: center; font-family: sans-serif; }
   </style>
+
+  <!-- importmap: bare module specifier → CDN URL に解決 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react":             "https://esm.sh/react@18",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
+      "react-dom/client":  "https://esm.sh/react-dom@18/client",
+      "recharts":          "https://esm.sh/recharts@2",
+      "lucide-react":      "https://esm.sh/lucide-react@0.460.0"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="root">
     <div id="loading">
       <div class="spinner"></div>
       <p>アプリを読み込み中...</p>
-      <p style="font-size:12px;color:#7F8C8D">初回は30秒ほどかかる場合があります</p>
+      <p style="font-size:12px;color:#7F8C8D">初回は20〜30秒ほどかかる場合があります</p>
     </div>
   </div>
 
+  <!-- Babel standalone をグローバルとして読み込む（同期・ブロッキング） -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <script type="module">
-    const ESM = "https://esm.sh";
-    const DEPS = {
-      "react/jsx-runtime": `${ESM}/react@18/jsx-runtime`,
-      "react-dom/client":  `${ESM}/react-dom@18/client`,
-      "react":             `${ESM}/react@18`,
-      "recharts":          `${ESM}/recharts@2`,
-      "lucide-react":      `${ESM}/lucide-react`,
-    };
+    // 動的スクリプト注入エラーをキャッチ
+    window.addEventListener("error", (e) => {
+      const el = document.getElementById("root");
+      if (el && el.querySelector("#loading")) {
+        el.innerHTML = `<div style="padding:24px;font-family:sans-serif;color:#E74C3C;text-align:center">
+          <p style="font-size:18px;font-weight:bold;margin-bottom:8px">⚠️ 実行エラー</p>
+          <p style="font-size:13px">${e.message}</p>
+          <p style="font-size:12px;margin-top:12px;color:#7F8C8D">ページを再読み込みしてください</p>
+        </div>`;
+      }
+    }, true);
 
     async function boot() {
-      // Babel を esm.sh から読み込む
-      const { default: Babel } = await import(`${ESM}/@babel/standalone`);
-
       // JSX ソースを取得
       const res = await fetch("./abc-exam-app.jsx");
-      if (!res.ok) throw new Error(`JSX の取得に失敗: ${res.status}`);
+      if (!res.ok) throw new Error(`ファイル取得失敗: ${res.status}`);
       const src = await res.text();
 
-      // JSX → JS 変換
+      // JSX → JS 変換（automatic runtime で react/jsx-runtime を使う）
       const { code } = Babel.transform(src, {
         filename: "app.jsx",
         presets: [["react", { runtime: "automatic" }]],
       });
 
-      // import "xxx" → import "https://esm.sh/xxx" に書き換え
-      let rewritten = code;
-      for (const [bare, url] of Object.entries(DEPS)) {
-        // ダブルクォート・シングルクォート両対応
-        rewritten = rewritten
-          .replace(new RegExp(`from "${bare.replace("/", "\\/")}"`,"g"), `from "${url}"`)
-          .replace(new RegExp(`from '${bare.replace("/", "\\/")}' `, "g"), `from '${url}' `);
-      }
+      // export default を除去してマウントコードを末尾に追加
+      // importmap が有効なモジュールスクリプトとして DOM に注入する
+      const appCode = code.replace(/\bexport\s+default\s+/, "") + `
 
-      // Blob URL として動的インポート
-      const blob = new Blob([rewritten], { type: "application/javascript" });
-      const blobUrl = URL.createObjectURL(blob);
-
-      const [{ default: App }, { createRoot }] = await Promise.all([
-        import(blobUrl),
-        import(`${ESM}/react-dom@18/client`),
-      ]);
-      URL.revokeObjectURL(blobUrl);
-
-      const { createElement } = await import(`${ESM}/react@18`);
-      createRoot(document.getElementById("root")).render(createElement(App));
+import { createElement } from "react";
+import { createRoot }    from "react-dom/client";
+createRoot(document.getElementById("root")).render(createElement(ABCExamApp));
+`;
+      const tag = document.createElement("script");
+      tag.type = "module";
+      tag.textContent = appCode;
+      document.head.appendChild(tag);
     }
 
     boot().catch(err => {
       console.error(err);
       document.getElementById("root").innerHTML =
-        `<div id="error">
+        `<div style="padding:24px;font-family:sans-serif;color:#E74C3C;text-align:center">
           <p style="font-size:18px;font-weight:bold;margin-bottom:8px">⚠️ 読み込みエラー</p>
           <p style="font-size:13px">${err.message}</p>
-          <p style="font-size:12px;margin-top:12px;color:#7F8C8D">
-            ページを再読み込みするか、しばらく待ってからお試しください。
-          </p>
+          <p style="font-size:12px;margin-top:12px;color:#7F8C8D">ページを再読み込みしてください</p>
         </div>`;
     });
   </script>
