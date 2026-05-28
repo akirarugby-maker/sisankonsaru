@@ -37,6 +37,7 @@ const LucideReact = (() => {
     Activity:    mk('M22 12h-4l-3 9L9 3l-3 9H2'),
   };
 })();
+const { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } = LucideReact;
 
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
