@@ -12,7 +12,7 @@
 フェーズ8:  ②資産運用の基礎タブ 前半     [✅]
 フェーズ9:  ②資産運用の基礎タブ 後半     [✅]
 フェーズ10: ③ポートフォリオ理論タブ      [✅]
-フェーズ11: ④金融商品タブ               [ ]
+フェーズ11: ④金融商品タブ               [✅]
 フェーズ12: ⑤ケーススタディタブ          [ ]
 フェーズ13: ⑥苦手分析タブ               [ ]
 フェーズ14: AI機能（モック）統合         [ ]
@@ -4462,6 +4462,424 @@ function PortfolioTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ11: ④金融商品タブ
+// ============================================================
+
+// --- セクションA: 株式投資 ---
+function ProductsSectionA({ color, state, setState }) {
+  const done = state.progress.products?.A;
+  return (
+    <div>
+      <InfoBox title="株式の主要評価指標" color={color}>
+        <strong>PER</strong> = 株価 / EPS　（低いほど割安・業種比較が重要）<br />
+        <strong>PBR</strong> = 株価 / BPS　（1倍割れ = 解散価値以下）<br />
+        <strong>ROE</strong> = 純利益 / 自己資本　（デュポン: 純利益率×総資産回転率×財務レバレッジ）<br />
+        <strong>DDM定率成長</strong>：P = D1 / (r − g)
+      </InfoBox>
+
+      {/* 株式指標電卓 */}
+      <CalcComponent
+        formulaName="PER・PBR・配当利回り計算機"
+        accentColor={color}
+        inputs={[
+          { label: "株価",         key: "price",  unit: "円", defaultValue: "2000" },
+          { label: "EPS（1株利益）",key: "eps",   unit: "円", defaultValue: "150"  },
+          { label: "BPS（1株純資産）",key:"bps",  unit: "円", defaultValue: "1200" },
+          { label: "1株配当",      key: "div",    unit: "円", defaultValue: "40"   },
+        ]}
+        calculate={({ price, eps, bps, div }) => {
+          const per = eps > 0 ? price / eps : null;
+          const pbr = bps > 0 ? price / bps : null;
+          const dy  = price > 0 ? (div / price) * 100 : null;
+          return {
+            results: [
+              { label: "PER",     value: per?.toFixed(1) ?? "−", unit: "倍", color },
+              { label: "PBR",     value: pbr?.toFixed(2) ?? "−", unit: "倍", color: COLORS.secondary },
+              { label: "配当利回り",value: dy?.toFixed(2)  ?? "−", unit: "%",  color: COLORS.accent },
+            ],
+            steps: [
+              `PER = ${price} / ${eps} = ${per?.toFixed(1)}倍`,
+              `PBR = ${price} / ${bps} = ${pbr?.toFixed(2)}倍 ${pbr < 1 ? "（解散価値以下）" : ""}`,
+              `配当利回り = ${div} / ${price} × 100 = ${dy?.toFixed(2)}%`,
+            ],
+          };
+        }}
+      />
+
+      {/* DDM電卓 */}
+      <CalcComponent
+        formulaName="DDM（配当割引モデル）理論株価"
+        accentColor={COLORS.secondary}
+        inputs={[
+          { label: "来期配当 D1",  key: "d1", unit: "円", defaultValue: "100" },
+          { label: "割引率 r",     key: "r",  unit: "%",  defaultValue: "8"   },
+          { label: "成長率 g",     key: "g",  unit: "%",  defaultValue: "3"   },
+        ]}
+        calculate={({ d1, r, g }) => {
+          if (r <= g) return { error: "r > g が必要です（割引率 > 成長率）" };
+          const p = d1 / ((r - g) / 100);
+          return {
+            results: [
+              { label: "理論株価", value: p.toFixed(0), unit: "円", color: COLORS.secondary },
+            ],
+            steps: [
+              `P = D1 / (r − g) = ${d1} / (${r}% − ${g}%)`,
+              `= ${d1} / ${((r - g) / 100).toFixed(2)} = ${p.toFixed(0)}円`,
+              `r−g が小さいほど（成長率が割引率に近いほど）株価は高くなる`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { d1, r } = vals;
+          const data = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((g) => ({
+            g: `${g}%`,
+            price: r > g ? Math.round(d1 / ((r - g) / 100)) : null,
+          })).filter((d) => d.price !== null && d.price < 20000);
+          return (
+            <ChartCard title="成長率 g の変化と理論株価" color={COLORS.secondary} height={160}>
+              <BarChart data={data} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="g" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 9 }} unit="円" />
+                <Tooltip formatter={(v) => `${v}円`} />
+                <Bar dataKey="price" name="理論株価" fill={COLORS.secondary} radius={[4,4,0,0]} />
+              </BarChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "PBR < 1：解散価値以下だが、構造的問題がある場合も",
+        "ROEデュポン分解：純利益率×総資産回転率×財務レバレッジ",
+        "DDM：r > g が必須条件。gがrに近づくほど理論株価は急騰",
+        "グロース株（高PER・高成長期待）vs バリュー株（低PER・割安）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width:"100%", marginBottom:12,
+        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPRA: !s._quizPRA }))}>
+        {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（6問）"}
+      </button>
+      {state._quizPRA && <QuizComponent quizzes={PRODUCTS_QUIZZES.A} tabId="products" sectionId="A" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションB: 債券投資 ---
+function ProductsSectionB({ color, state, setState }) {
+  const done = state.progress.products?.B;
+
+  // 金利と債券価格の逆相関グラフ
+  const bondPriceData = (() => {
+    const coupon = 3, face = 100, n = 10;
+    return [1, 2, 3, 4, 5, 6, 7, 8].map((r) => {
+      const rate = r / 100;
+      const pv = coupon * (1 - Math.pow(1 + rate, -n)) / rate + face * Math.pow(1 + rate, -n);
+      return { rate: `${r}%`, price: parseFloat(pv.toFixed(2)) };
+    });
+  })();
+
+  return (
+    <div>
+      <InfoBox title="債券の基本と金利の逆相関" color={color}>
+        <strong>債券価格</strong> = Σ クーポン/(1+r)^t + 額面/(1+r)^n<br />
+        <strong>金利↑ → 債券価格↓</strong>（逆相関）<br />
+        <strong>デュレーション</strong>：キャッシュフローの加重平均残存期間（≠残存期間）<br />
+        <strong>修正デュレーション</strong>：ΔP/P ≈ −修正D × Δr
+      </InfoBox>
+
+      {/* 金利と価格グラフ */}
+      <ChartCard title="金利変化と債券価格の関係（クーポン3%・10年・額面100円）" color={color} height={180}>
+        <LineChart data={bondPriceData} margin={{ top: 4, right: 20, left: -10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+          <XAxis dataKey="rate" tick={{ fontSize: 10 }} label={{ value: "市場金利", position: "insideBottom", offset: -2, fontSize: 10 }} />
+          <YAxis tick={{ fontSize: 9 }} unit="円" domain={[60, 130]} />
+          <Tooltip formatter={(v) => `${v}円`} />
+          <ReferenceLine y={100} stroke={COLORS.textMuted} strokeDasharray="3 3" label={{ value: "額面100円", position: "insideRight", fontSize: 9 }} />
+          <Line type="monotone" dataKey="price" name="債券価格" stroke={color} strokeWidth={2.5} dot={{ r: 4, fill: color }} />
+        </LineChart>
+      </ChartCard>
+
+      {/* デュレーション電卓 */}
+      <CalcComponent
+        formulaName="修正デュレーション 価格変動計算"
+        accentColor={color}
+        inputs={[
+          { label: "修正デュレーション", key: "dur",  unit: "年", defaultValue: "7" },
+          { label: "金利変化 Δr",       key: "dr",   unit: "%",  defaultValue: "0.5" },
+          { label: "債券価格（現在）",   key: "p0",   unit: "円", defaultValue: "105" },
+        ]}
+        calculate={({ dur, dr, p0 }) => {
+          const changeRate = -dur * (dr / 100);
+          const newPrice   = p0 * (1 + changeRate);
+          return {
+            results: [
+              { label: "価格変化率",   value: (changeRate * 100).toFixed(3), unit: "%", color },
+              { label: "変化後価格",   value: newPrice.toFixed(2),           unit: "円", color: COLORS.secondary },
+            ],
+            steps: [
+              `ΔP/P ≈ −修正D × Δr = −${dur} × ${dr/100} = ${(changeRate*100).toFixed(3)}%`,
+              `価格変化 = ${p0} × ${(changeRate*100).toFixed(3)}% = ${(p0*changeRate).toFixed(2)}円`,
+              `変化後価格 = ${p0} + ${(p0*changeRate).toFixed(2)} = ${newPrice.toFixed(2)}円`,
+              `デュレーションが長い → 金利変動の影響が大きい`,
+            ],
+          };
+        }}
+      />
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "デュレーション ≠ 残存期間（キャッシュフローの加重平均残存期間）",
+        "クーポン低い・残存期間長い → デュレーション長い → 金利感応度大",
+        "修正デュレーション × 金利変化 = 価格変化率（マイナス符号に注意）",
+        "YTM（最終利回り）はクーポン収入＋償還差益/損を含む年率利回り",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width:"100%", marginBottom:12,
+        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPRB: !s._quizPRB }))}>
+        {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（4問）"}
+      </button>
+      {state._quizPRB && <QuizComponent quizzes={PRODUCTS_QUIZZES.B} tabId="products" sectionId="B" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションC: 外国証券・為替 ---
+function ProductsSectionC({ color, state, setState }) {
+  const done = state.progress.products?.C;
+  return (
+    <div>
+      <InfoBox title="外国証券投資と為替リスク" color={color}>
+        <strong>円換算リターン</strong>：R円 = (1+R外貨)(1+R為替) − 1 ≈ R外貨 + R為替<br />
+        円高（R為替 &lt; 0）→ 外貨建て資産の円換算リターンを押し下げる<br />
+        <strong>カバー付きIRP</strong>：F/S = (1+r国内)/(1+r外国)　→ ヘッジコスト≒金利差<br />
+        <strong>アンカバードIRP</strong>：高金利通貨は将来的に下落する傾向
+      </InfoBox>
+
+      {/* 為替リターン電卓 */}
+      <CalcComponent
+        formulaName="円換算リターン計算機"
+        accentColor={color}
+        inputs={[
+          { label: "外貨建てリターン", key: "rf",  unit: "%", defaultValue: "8"  },
+          { label: "為替変動率",       key: "rex", unit: "%", defaultValue: "-3" },
+        ]}
+        calculate={({ rf, rex }) => {
+          const exact  = ((1 + rf/100) * (1 + rex/100) - 1) * 100;
+          const approx = rf + rex;
+          return {
+            results: [
+              { label: "円換算R（正確）", value: exact.toFixed(3),  unit: "%", color },
+              { label: "近似値",          value: approx.toFixed(2), unit: "%", color: COLORS.secondary },
+            ],
+            steps: [
+              `正確：(1 + ${rf/100})(1 + ${rex/100}) − 1 = ${exact.toFixed(3)}%`,
+              `近似：${rf}% + (${rex}%) = ${approx.toFixed(2)}%`,
+              `誤差：${(exact - approx).toFixed(3)}%（交差項 R外貨×R為替）`,
+              rex < 0 ? `円高のため外貨建てリターンが目減りしています` : `円安のため外貨建てリターンが上乗せされています`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { rf } = vals;
+          const data = [-15,-10,-5,0,5,10,15].map((rex) => ({
+            rex: `${rex}%`,
+            exact: parseFloat(((1+rf/100)*(1+rex/100)-1)*100).toFixed(2),
+          }));
+          return (
+            <ChartCard title="為替変動と円換算リターン" color={color} height={150}>
+              <BarChart data={data} margin={{ top:4, right:8, left:-10, bottom:0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="rex" tick={{ fontSize:9 }} />
+                <YAxis tick={{ fontSize:9 }} unit="%" />
+                <Tooltip formatter={(v) => `${v}%`} />
+                <ReferenceLine y={0} stroke={COLORS.danger} />
+                <Bar dataKey="exact" name="円換算R" radius={[4,4,0,0]}
+                  fill={color} />
+              </BarChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "円高（為替マイナス）→ 外貨建て資産の円換算リターン低下",
+        "ヘッジコスト ≒ 国内金利 − 外国金利（カバー付き金利平価）",
+        "高金利通貨は将来下落する傾向（アンカバードIRP）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width:"100%", marginBottom:12,
+        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPRC: !s._quizPRC }))}>
+        {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
+      </button>
+      {state._quizPRC && <QuizComponent quizzes={PRODUCTS_QUIZZES.C} tabId="products" sectionId="C" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションD: 投資信託 ---
+function ProductsSectionD({ color, state, setState }) {
+  const done = state.progress.products?.D;
+  const costData = [
+    { name: "インデックス（低）", 購入時: 0, 信託報酬: 0.1, 留保額: 0 },
+    { name: "インデックス（中）", 購入時: 0.5, 信託報酬: 0.5, 留保額: 0.1 },
+    { name: "アクティブ（典型）", 購入時: 2.0, 信託報酬: 1.5, 留保額: 0.3 },
+  ];
+  return (
+    <div>
+      <InfoBox title="投資信託のコスト構造" color={color}>
+        <strong>基準価額</strong> = 純資産総額 / 受益権総口数<br />
+        <strong>購入時手数料</strong>：0〜3%程度（ノーロードも増加）<br />
+        <strong>信託報酬</strong>：年0.1〜2%程度（インデックスが有利）<br />
+        <strong>信託財産留保額</strong>：解約時コスト（残存投資家を保護）
+      </InfoBox>
+
+      {/* コスト比較グラフ */}
+      <ChartCard title="インデックス vs アクティブ コスト比較（年率%）" color={color} height={180}>
+        <BarChart data={costData} margin={{ top:4, right:8, left:-10, bottom:40 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+          <XAxis dataKey="name" tick={{ fontSize:9 }} angle={-12} textAnchor="end" />
+          <YAxis tick={{ fontSize:9 }} unit="%" />
+          <Tooltip formatter={(v) => `${v}%`} />
+          <Legend iconSize={10} wrapperStyle={{ fontSize:10 }} verticalAlign="top" />
+          <Bar dataKey="購入時"  stackId="a" fill={COLORS.primary}   radius={[0,0,0,0]} />
+          <Bar dataKey="信託報酬" stackId="a" fill={color}           radius={[0,0,0,0]} />
+          <Bar dataKey="留保額"  stackId="a" fill={COLORS.accent}    radius={[4,4,0,0]} />
+        </BarChart>
+      </ChartCard>
+
+      {[
+        { title: "インデックスファンド", color: COLORS.secondary, items: ["低コスト（信託報酬0.05〜0.5%）", "市場平均（ベンチマーク）を追跡", "長期的に市場を「超える」ことは目指さない", "効率的市場仮説：市場価格は情報を織り込み済み"] },
+        { title: "アクティブファンド",   color: COLORS.highlight, items: ["高コスト（信託報酬1〜2%超）", "市場平均以上のリターンを目指す", "長期では過半数が市場平均に負ける（コスト差が主因）", "運用者の腕前とコストの両方に注目"] },
+        { title: "ETF（上場投信）",      color: COLORS.primary,   items: ["取引所でリアルタイム売買", "信託報酬が低い傾向（指数連動が多い）", "1日1回基準価額ではなく市場価格で取引", "分配金の取り扱いは商品によって異なる"] },
+      ].map((item) => (
+        <div key={item.title} style={{ ...STYLES.card, borderLeft: `4px solid ${item.color}`, marginBottom:10 }}>
+          <div style={{ fontSize:13, fontWeight:800, color:item.color, marginBottom:6 }}>{item.title}</div>
+          {item.items.map((it) => (
+            <div key={it} style={{ fontSize:12, color:COLORS.text, marginBottom:3, display:"flex", gap:6 }}>
+              <span style={{ color:item.color, fontWeight:700 }}>•</span>{it}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "インデックスファンドは市場平均を「超える」ことは目指さない（頻出ひっかけ）",
+        "長期では過半のアクティブが市場平均以下（コスト差が複利で拡大）",
+        "ETF：1日1回基準価額ではなくリアルタイム市場価格で売買",
+        "信託財産留保額は解約時にかかるコスト（残存投資家保護）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width:"100%", marginBottom:12,
+        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPRD: !s._quizPRD }))}>
+        {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
+      </button>
+      {state._quizPRD && <QuizComponent quizzes={PRODUCTS_QUIZZES.D} tabId="products" sectionId="D" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- セクションE: オルタナティブ・ESG ---
+function ProductsSectionE({ color, state, setState }) {
+  const done = state.progress.products?.E;
+  const altData = [
+    { name: "REIT",   corr: 0.5,  ret: 4.0, risk: 17.5 },
+    { name: "ヘッジF", corr: 0.3,  ret: 5.0, risk: 12.0 },
+    { name: "PE",     corr: 0.4,  ret: 8.0, risk: 20.0 },
+    { name: "コモディティ", corr: 0.1, ret: 3.0, risk: 18.0 },
+    { name: "インフラ", corr: 0.2, ret: 4.5, risk: 10.0 },
+  ];
+  return (
+    <div>
+      <div style={{ ...STYLES.card, marginBottom:12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize:14, color }}>
+          <DollarSign size={15} color={color} /> オルタナティブ投資の特性
+        </div>
+        <div style={{ fontSize:12, color:COLORS.textLight, marginBottom:10 }}>
+          伝統的資産（株・債券）との相関係数（低いほど分散効果大）
+        </div>
+        {altData.map((a) => (
+          <div key={a.name} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+            <span style={{ fontSize:12, fontWeight:700, minWidth:70, color:COLORS.text }}>{a.name}</span>
+            <div style={{ flex:1, height:8, background:COLORS.border, borderRadius:6, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${a.corr*100}%`, background:
+                a.corr < 0.2 ? COLORS.secondary : a.corr < 0.4 ? COLORS.accent : COLORS.danger,
+                borderRadius:6 }} />
+            </div>
+            <span style={{ fontSize:11, color:COLORS.textLight, minWidth:50 }}>ρ≈{a.corr}</span>
+            <span style={{ ...STYLES.badge(color), fontSize:10 }}>R:{a.ret}%</span>
+          </div>
+        ))}
+      </div>
+
+      <InfoBox title="ESG投資 5つのアプローチ" color={COLORS.secondary}>
+        ①<strong>ネガティブスクリーニング</strong>：問題企業を除外（タバコ・武器等）<br />
+        ②<strong>ポジティブスクリーニング</strong>：ESG優良企業を積極選択<br />
+        ③<strong>ESGインテグレーション</strong>：財務分析に非財務情報を統合<br />
+        ④<strong>エンゲージメント</strong>：企業との対話で改善を促進<br />
+        ⑤<strong>インパクト投資</strong>：財務リターン＋社会的成果を同時追求
+      </InfoBox>
+
+      <ExamTipCard color={COLORS.accent} tips={[
+        "オルタナティブ：伝統資産との低相関 → 分散効果。流動性リスクが課題",
+        "REIT：収益の90%超分配で法人課税実質免除・東証上場で売買容易",
+        "ポジティブスクリーニング（優良選択）≠ ネガティブスクリーニング（問題除外）",
+        "インパクト投資：リターン＋社会的インパクトの両立（ESGの最上位概念）",
+      ]} />
+
+      <button style={{ ...(done ? STYLES.btnSecondary : STYLES.btnPrimary), width:"100%", marginBottom:12,
+        background: done ? `linear-gradient(135deg,${COLORS.secondary},#3DAA60)` : `linear-gradient(135deg,${color},${color}BB)` }}
+        onClick={() => setState((s) => ({ ...s, _quizPRE: !s._quizPRE }))}>
+        {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
+      </button>
+      {state._quizPRE && <QuizComponent quizzes={PRODUCTS_QUIZZES.E} tabId="products" sectionId="E" accentColor={color} state={state} setState={setState} />}
+    </div>
+  );
+}
+
+// --- ④金融商品タブ本体 ---
+const PRODUCTS_SECTIONS = [
+  { id: "A", label: "A: 株式" },
+  { id: "B", label: "B: 債券" },
+  { id: "C", label: "C: 外国証券" },
+  { id: "D", label: "D: 投資信託" },
+  { id: "E", label: "E: オルタナ" },
+];
+
+function ProductsTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = "#E67E22";
+
+  const renderSection = () => {
+    switch (section) {
+      case "A": return <ProductsSectionA color={color} state={state} setState={setState} />;
+      case "B": return <ProductsSectionB color={color} state={state} setState={setState} />;
+      case "C": return <ProductsSectionC color={color} state={state} setState={setState} />;
+      case "D": return <ProductsSectionD color={color} state={state} setState={setState} />;
+      case "E": return <ProductsSectionE color={color} state={state} setState={setState} />;
+      default:  return null;
+    }
+  };
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="金融商品"
+        subtitle="株式・債券・外国証券・投資信託・オルタナティブ"
+        color={color}
+        icon={DollarSign}
+      />
+      <SectionTab sections={PRODUCTS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="products" sections={PRODUCTS_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+      {renderSection()}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -4982,6 +5400,10 @@ export default function ABCExamApp() {
       case "portfolio":
         return (
           <PortfolioTab state={state} setState={setState} />
+        );
+      case "products":
+        return (
+          <ProductsTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
