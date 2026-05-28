@@ -6,11 +6,11 @@
   <title>ABC資産形成コンサルタント 試験対策アプリ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #fff; }
+    body { background: #fff; font-family: sans-serif; }
     #loading {
       display: flex; align-items: center; justify-content: center;
       min-height: 100vh; flex-direction: column; gap: 16px;
-      font-family: sans-serif; color: #4A90D9; font-size: 15px;
+      color: #4A90D9; font-size: 15px;
     }
     .spinner {
       width: 44px; height: 44px;
@@ -20,22 +20,79 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #err {
+      display: none;
+      padding: 24px; color: #E74C3C; text-align: center;
+      background: #fff0f0; border: 2px solid #E74C3C;
+      border-radius: 12px; margin: 20px; font-size: 13px;
+      line-height: 1.7; white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
   <div id="root">
     <div id="loading">
       <div class="spinner"></div>
-      <p>読み込み中...</p>
+      <p id="status">ライブラリを読み込み中 (1/3)...</p>
     </div>
+    <div id="err"></div>
   </div>
 
-  <!-- 依存ライブラリ（UMD・unpkg から読み込み） -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/recharts@2.15.3/umd/Recharts.js"></script>
+  <!-- エラーを画面に表示するハンドラ（DevTools不要） -->
+  <script>
+    function showErr(msg) {
+      var e = document.getElementById('err');
+      var l = document.getElementById('loading');
+      if (l) l.style.display = 'none';
+      e.style.display = 'block';
+      e.textContent = '⚠️ エラー\n' + msg + '\n\nページを再読み込みしてください。';
+    }
+    window.onerror = function(msg, src, line) {
+      showErr(msg + '\n(' + (src||'').split('/').pop() + ':' + line + ')');
+      return true;
+    };
+  </script>
 
-  <!-- アプリ本体（JSX事前変換済み・依存はすべてグローバル変数） -->
-  <script src="./abc-exam-app.js"></script>
+  <!-- React -->
+  <script crossorigin
+    src="https://unpkg.com/react@18/umd/react.production.min.js"
+    onerror="showErr('React の読み込みに失敗しました。ネット接続を確認してください。')">
+  </script>
+
+  <script>document.getElementById('status').textContent = 'ライブラリを読み込み中 (2/3)...';</script>
+
+  <!-- ReactDOM -->
+  <script crossorigin
+    src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    onerror="showErr('ReactDOM の読み込みに失敗しました。')">
+  </script>
+
+  <script>document.getElementById('status').textContent = 'ライブラリを読み込み中 (3/3)...';</script>
+
+  <!-- Recharts -->
+  <script
+    src="https://unpkg.com/recharts@2/umd/Recharts.js"
+    onerror="showErr('Recharts の読み込みに失敗しました。')">
+  </script>
+
+  <!-- 依存確認 -->
+  <script>
+    (function() {
+      var missing = [];
+      if (!window.React)    missing.push('React');
+      if (!window.ReactDOM) missing.push('ReactDOM');
+      if (!window.Recharts) missing.push('Recharts');
+      if (missing.length) {
+        showErr('以下のライブラリが読み込まれませんでした:\n' + missing.join(', '));
+      } else {
+        document.getElementById('status').textContent = 'アプリを起動中...';
+      }
+    })();
+  </script>
+
+  <!-- アプリ本体 -->
+  <script src="./abc-exam-app.js"
+    onerror="showErr('アプリファイルの読み込みに失敗しました。')">
+  </script>
 </body>
 </html>
