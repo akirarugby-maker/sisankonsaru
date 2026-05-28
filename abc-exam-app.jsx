@@ -10,7 +10,7 @@
 フェーズ6:  ホーム画面                   [✅]
 フェーズ7:  ①顧客本位・倫理タブ          [✅]
 フェーズ8:  ②資産運用の基礎タブ 前半     [✅]
-フェーズ9:  ②資産運用の基礎タブ 後半     [ ]
+フェーズ9:  ②資産運用の基礎タブ 後半     [✅]
 フェーズ10: ③ポートフォリオ理論タブ      [ ]
 フェーズ11: ④金融商品タブ               [ ]
 フェーズ12: ⑤ケーススタディタブ          [ ]
@@ -3505,6 +3505,507 @@ function BasicsFrontTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ9: ②資産運用の基礎タブ 後半（セクションC・D・E）
+// ============================================================
+
+// 前半(A/B)と後半(C/D/E)を切り替えるルータータブ
+const ALL_BASICS_SECTIONS = [
+  { id: "A", label: "A: リターン" },
+  { id: "B", label: "B: リスク" },
+  { id: "C", label: "C: 現在価値" },
+  { id: "D", label: "D: 統計" },
+  { id: "E", label: "E: 資産配分" },
+];
+
+function BasicsTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = COLORS.accent;
+
+  const renderSection = () => {
+    switch (section) {
+      case "A": return <ReturnCalculatorSection color={color} />;
+      case "B": return <RiskCalculatorSection   color={color} />;
+      case "C": return <PVSection               color={color} />;
+      case "D": return <StatsSection            color={color} />;
+      case "E": return <AssetAllocationSection  color={color} />;
+      default:  return null;
+    }
+  };
+
+  const quizMap = { A: BASICS_QUIZZES.A, B: BASICS_QUIZZES.B, C: BASICS_QUIZZES.C, D: BASICS_QUIZZES.C, E: BASICS_QUIZZES.C };
+  const quizKey = `_quizOpenBasics${section}`;
+  const done    = state.progress.basics?.[section];
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="資産運用の基礎"
+        subtitle="リターン・リスク・現在価値・統計・資産配分"
+        color={color}
+        icon={BookOpen}
+      />
+      <SectionTab sections={ALL_BASICS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="basics" sections={ALL_BASICS_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+
+      {renderSection()}
+
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%", marginTop: 4, marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, #E8922A)`,
+        }}
+        onClick={() => setState((s) => ({ ...s, [quizKey]: !s[quizKey] }))}
+      >
+        {done
+          ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+          : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`}
+      </button>
+      {state[quizKey] && quizMap[section] && (
+        <QuizComponent quizzes={quizMap[section]} tabId="basics" sectionId={section} accentColor={color} state={state} setState={setState} />
+      )}
+    </div>
+  );
+}
+
+// --- セクションC: 現在価値と割引率 ---
+function PVSection({ color }) {
+  return (
+    <div>
+      <InfoBox title="現在価値（PV）の考え方" color={color}>
+        「今の1万円は将来の1万円より価値が高い」＝時間価値の概念。<br />
+        <strong>PV = FV / (1 + r)^n</strong>　割引率が高い・期間が長いほどPVは小さくなる。<br />
+        NPV（正味現在価値）= 将来CFの現在価値合計 − 初期投資
+      </InfoBox>
+
+      <FormulaCard {...FORMULA_DATA.pv} color={color} />
+
+      {/* PV電卓 */}
+      <CalcComponent
+        formulaName="現在価値・将来価値計算機"
+        accentColor={color}
+        inputs={[
+          { label: "将来価値 FV", key: "fv", unit: "万円", defaultValue: "100" },
+          { label: "割引率 r",   key: "r",  unit: "%",   defaultValue: "3"   },
+          { label: "期間 n",     key: "n",  unit: "年",  defaultValue: "10"  },
+        ]}
+        calculate={({ fv, r, n }) => {
+          const rate = r / 100;
+          const pv   = fv / Math.pow(1 + rate, n);
+          const fv2  = fv * Math.pow(1 + rate, n);
+          return {
+            results: [
+              { label: "現在価値（PV）", value: pv.toFixed(2),  unit: "万円", color },
+              { label: "複利後（FV→）",  value: fv2.toFixed(2), unit: "万円", color: COLORS.secondary },
+            ],
+            steps: [
+              `PV = ${fv} / (1 + ${rate})^${n}`,
+              `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`,
+              `PV = ${fv} / ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`,
+              `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { fv, n } = vals;
+          const rates = [1, 2, 3, 5, 7, 10];
+          const data  = Array.from({ length: Math.min(n, 30) + 1 }, (_, t) => {
+            const entry = { year: t };
+            rates.forEach((rp) => {
+              entry[`${rp}%`] = parseFloat((fv / Math.pow(1 + rp / 100, t)).toFixed(2));
+            });
+            return entry;
+          });
+          return (
+            <ChartCard title="割引率別・現在価値の推移" color={color} height={200}>
+              <LineChart data={data} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="year" tick={{ fontSize: 9 }} label={{ value: "年", position: "insideRight", offset: -2, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 9 }} unit="万" />
+                <Tooltip formatter={(v) => `${v}万円`} labelFormatter={(l) => `${l}年後`} />
+                <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
+                {rates.map((rp, i) => (
+                  <Line key={rp} type="monotone" dataKey={`${rp}%`} name={`r=${rp}%`}
+                    stroke={[COLORS.primary, COLORS.secondary, color, COLORS.highlight, COLORS.accent, COLORS.danger][i]}
+                    strokeWidth={1.5} dot={false} />
+                ))}
+              </LineChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      {/* 複利成長シミュレーター */}
+      <CalcComponent
+        formulaName="複利成長シミュレーター"
+        accentColor={COLORS.secondary}
+        inputs={[
+          { label: "元本",     key: "pv0", unit: "万円", defaultValue: "100" },
+          { label: "年率リターン", key: "r", unit: "%", defaultValue: "5" },
+          { label: "積立（月）",  key: "mo", unit: "万円", defaultValue: "3" },
+          { label: "期間",      key: "n",  unit: "年",  defaultValue: "20" },
+        ]}
+        calculate={({ pv0, r, mo, n }) => {
+          const rate  = r / 100;
+          const mRate = rate / 12;
+          const months = n * 12;
+          // 元本一括の複利
+          const lump = pv0 * Math.pow(1 + rate, n);
+          // 積立分の将来価値（月複利）
+          const accum = mo * (Math.pow(1 + mRate, months) - 1) / mRate;
+          const total = lump + accum;
+          const invest = pv0 + mo * months;
+          return {
+            results: [
+              { label: "最終資産", value: total.toFixed(0),  unit: "万円", color: COLORS.secondary },
+              { label: "投資総額", value: invest.toFixed(0), unit: "万円", color: COLORS.textLight },
+              { label: "運用益",   value: (total - invest).toFixed(0), unit: "万円", color: COLORS.accent },
+            ],
+            steps: [
+              `一括投資分: ${pv0}万円 × (1+${rate})^${n} = ${lump.toFixed(1)}万円`,
+              `積立分: ${mo}万円 × [(1+${(mRate).toFixed(5)})^${months} − 1] / ${(mRate).toFixed(5)} = ${accum.toFixed(1)}万円`,
+              `合計 = ${lump.toFixed(1)} + ${accum.toFixed(1)} = ${total.toFixed(0)}万円`,
+              `投資総額 = ${pv0} + ${mo}×${months}ヶ月 = ${invest.toFixed(0)}万円`,
+              `運用益 = ${(total - invest).toFixed(0)}万円（${((total / invest - 1) * 100).toFixed(1)}%増）`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { pv0, r, mo, n } = vals;
+          const rate = r / 100, mRate = rate / 12;
+          const data = Array.from({ length: n + 1 }, (_, yr) => {
+            const lump  = pv0 * Math.pow(1 + rate, yr);
+            const accum = mo * (Math.pow(1 + mRate, yr * 12) - 1) / mRate;
+            const inv   = pv0 + mo * yr * 12;
+            return { year: yr, 資産: parseFloat((lump + accum).toFixed(0)), 投資額: parseFloat(inv.toFixed(0)) };
+          });
+          return (
+            <ChartCard title="複利成長シミュレーション" color={COLORS.secondary} height={200}>
+              <AreaChart data={data} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="year" tick={{ fontSize: 9 }} unit="年" />
+                <YAxis tick={{ fontSize: 9 }} unit="万" />
+                <Tooltip formatter={(v) => `${v}万円`} labelFormatter={(l) => `${l}年後`} />
+                <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
+                <Area type="monotone" dataKey="資産"   stroke={COLORS.secondary} fill={COLORS.secondary + "33"} strokeWidth={2} />
+                <Area type="monotone" dataKey="投資額" stroke={COLORS.primary}   fill={COLORS.primary + "18"}   strokeWidth={1.5} />
+              </AreaChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "割引率が上昇 → 現在価値は低下（逆相関）。債券価格と金利の関係と同原理",
+          "NPV > 0 → 投資価値あり（将来CF現在価値 > 初期投資）",
+          "複利の力：年5%で20年間運用すると元本は約2.65倍",
+          "ドルコスト平均法：定期定額購入で平均取得単価を算術平均より低く抑える",
+        ]}
+      />
+    </div>
+  );
+}
+
+// --- セクションD: 統計学の基礎（VaR・シャープレシオ） ---
+function StatsSection({ color }) {
+  return (
+    <div>
+      <InfoBox title="VaR（バリュー・アット・リスク）" color={color}>
+        一定の信頼水準で一定期間内に発生しうる最大損失額。<br />
+        <strong>95%VaR = μ − 1.645σ</strong>　（z値：90%→1.28、99%→2.326）<br />
+        例: μ=5%, σ=15%のとき 95%VaR = 5 − 1.645×15 = <strong>−19.7%</strong>
+      </InfoBox>
+
+      <FormulaCard {...FORMULA_DATA.sharpe} color={color} />
+
+      {/* シャープレシオ電卓 */}
+      <CalcComponent
+        formulaName="シャープレシオ計算機"
+        accentColor={color}
+        inputs={[
+          { label: "ポートフォリオR Rp", key: "rp", unit: "%", defaultValue: "12" },
+          { label: "リスクフリーR Rf",   key: "rf", unit: "%", defaultValue: "2"  },
+          { label: "標準偏差 σp",        key: "sp", unit: "%", defaultValue: "15" },
+        ]}
+        calculate={({ rp, rf, sp }) => {
+          const sr  = (rp - rf) / sp;
+          const var95 = rp - 1.645 * sp;
+          const var99 = rp - 2.326 * sp;
+          return {
+            results: [
+              { label: "シャープレシオ", value: sr.toFixed(3),    unit: "",   color },
+              { label: "VaR 95%",       value: var95.toFixed(2), unit: "%",  color: COLORS.danger },
+              { label: "VaR 99%",       value: var99.toFixed(2), unit: "%",  color: COLORS.danger },
+            ],
+            steps: [
+              `SR = (${rp}% − ${rf}%) / ${sp}% = ${((rp - rf) / sp).toFixed(3)}`,
+              `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`,
+              `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`,
+              `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`,
+            ],
+          };
+        }}
+        chartBuilder={(vals) => {
+          const { rp, rf, sp } = vals;
+          const data = generateNormalDist(rp, sp, 60);
+          const var95 = rp - 1.645 * sp;
+          return (
+            <ChartCard title="リターン分布とVaR" color={color} height={160}>
+              <AreaChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                <XAxis dataKey="x" tick={{ fontSize: 9 }} unit="%" />
+                <YAxis tick={{ fontSize: 9 }} />
+                <Tooltip formatter={(v) => v.toFixed(5)} labelFormatter={(l) => `${l}%`} />
+                <Area type="monotone" dataKey="y" stroke={color} fill={color + "30"} dot={false} />
+                <ReferenceLine x={var95} stroke={COLORS.danger} strokeWidth={2} strokeDasharray="4 2"
+                  label={{ value: `VaR95%:${var95.toFixed(1)}%`, position: "insideTopLeft", fontSize: 9, fill: COLORS.danger }} />
+                <ReferenceLine x={rp} stroke={COLORS.primary} strokeWidth={1.5}
+                  label={{ value: "μ", position: "insideTopRight", fontSize: 10, fill: COLORS.primary }} />
+              </AreaChart>
+            </ChartCard>
+          );
+        }}
+      />
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "95%VaR：100日中5日はこの損失を超える（5%の確率で超過）",
+          "シャープレシオ：リスク1単位あたりの超過リターン",
+          "シャープレシオ高い＝必ず優れた投資ではない（比較対象・用途による）",
+          "VaRは最悪シナリオ（テールリスク）を示さない点に注意",
+          "zスコア：±1σ=68%、±1.645σ=90%、±1.96σ=95%（両側）",
+        ]}
+      />
+    </div>
+  );
+}
+
+// --- セクションE: アセットアロケーション ---
+function AssetAllocationSection({ color }) {
+  const initWeights = { "国内株式": 30, "国内債券": 30, "外国株式": 20, "外国債券": 10, "国内REIT": 10 };
+  const [weights, setWeights] = useState(initWeights);
+
+  const totalW = Object.values(weights).reduce((s, v) => s + v, 0);
+  const pfRet  = ASSET_CLASS_DATA.reduce((s, a) => s + (weights[a.name] / 100) * a.expectedReturn, 0);
+  // 簡易近似（相関=0.3仮定）
+  const pfVar  = ASSET_CLASS_DATA.reduce((s, a) => {
+    const wi = weights[a.name] / 100;
+    return s + wi * wi * a.risk * a.risk;
+  }, 0);
+  const pfRisk = Math.sqrt(pfVar);
+  const pfSR   = pfRisk > 0 ? (pfRet - 0.002) / pfRisk : 0;
+
+  const scatterData = ASSET_CLASS_DATA.map((a) => ({
+    x:    parseFloat((a.risk   * 100).toFixed(1)),
+    y:    parseFloat((a.expectedReturn * 100).toFixed(1)),
+    name: a.name,
+    fill: a.color,
+  }));
+
+  return (
+    <div>
+      <InfoBox title="アセットアロケーションの重要性" color={color}>
+        Brinson et al. の研究：ポートフォリオリターンの変動の約90%は資産配分で決まる。<br />
+        <strong>アセットアロケーション</strong>：何に何%配分するか（資産クラスの比率決定）<br />
+        <strong>アセットロケーション</strong>：どの口座（NISA/iDeCo/課税）に置くか（税効率化）
+      </InfoBox>
+
+      {/* 資産クラス散布図 */}
+      <ChartCard title="資産クラス別 リスク・リターン特性" color={color} height={220}>
+        <ScatterChart margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+          <XAxis type="number" dataKey="x" name="リスク" unit="%" tick={{ fontSize: 10 }} label={{ value: "リスク(%)", position: "insideBottom", offset: -2, fontSize: 11 }} />
+          <YAxis type="number" dataKey="y" name="期待リターン" unit="%" tick={{ fontSize: 10 }} label={{ value: "期待R(%)", angle: -90, position: "insideLeft", fontSize: 11 }} />
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} content={({ payload }) => {
+            if (!payload?.length) return null;
+            const d = payload[0].payload;
+            return (
+              <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>
+                <div style={{ fontWeight: 700, color: d.fill }}>{d.name}</div>
+                <div>リスク: {d.x}%　リターン: {d.y}%</div>
+              </div>
+            );
+          }} />
+          {scatterData.map((d) => (
+            <Scatter key={d.name} name={d.name} data={[d]} fill={d.fill}>
+            </Scatter>
+          ))}
+          {/* ポートフォリオ点 */}
+          <Scatter name="PF（現在）" data={[{ x: parseFloat((pfRisk * 100).toFixed(1)), y: parseFloat((pfRet * 100).toFixed(1)) }]} fill={COLORS.primary} shape="star" />
+        </ScatterChart>
+      </ChartCard>
+
+      {/* 資産クラス凡例 */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+        {ASSET_CLASS_DATA.map((a) => (
+          <span key={a.name} style={{ ...STYLES.badge(a.color), fontSize: 11 }}>{a.name}</span>
+        ))}
+        <span style={{ ...STYLES.badge(COLORS.primary), fontSize: 11 }}>★ PF（現在）</span>
+      </div>
+
+      {/* ポートフォリオシミュレーター */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
+          <PieChart size={15} color={color} /> ポートフォリオシミュレーター
+        </div>
+        <div style={{ fontSize: 11, color: COLORS.danger, marginBottom: 8 }}>
+          ⚠ 合計が100%になるよう調整してください（現在: {totalW}%）
+        </div>
+
+        {ASSET_CLASS_DATA.map((a) => (
+          <div key={a.name} style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
+              <span style={{ fontWeight: 700, color: a.color }}>{a.name}</span>
+              <span style={{ fontWeight: 800 }}>{weights[a.name]}%</span>
+            </div>
+            <input
+              type="range" min="0" max="100" step="5"
+              value={weights[a.name]}
+              onChange={(e) => setWeights((w) => ({ ...w, [a.name]: Number(e.target.value) }))}
+              style={{ width: "100%", accentColor: a.color }}
+            />
+            <div style={{ fontSize: 10, color: COLORS.textLight }}>
+              期待R: {(a.expectedReturn * 100).toFixed(1)}%　リスク: {(a.risk * 100).toFixed(0)}%
+            </div>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <div style={{ ...STYLES.cardLg, flex: 1, textAlign: "center", padding: "10px 12px", minWidth: 80 }}>
+            <div style={STYLES.label}>期待リターン</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: COLORS.secondary }}>{(pfRet * 100).toFixed(2)}<span style={{ fontSize: 11 }}>%</span></div>
+          </div>
+          <div style={{ ...STYLES.cardLg, flex: 1, textAlign: "center", padding: "10px 12px", minWidth: 80 }}>
+            <div style={STYLES.label}>リスク（近似）</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: COLORS.danger }}>{(pfRisk * 100).toFixed(2)}<span style={{ fontSize: 11 }}>%</span></div>
+          </div>
+          <div style={{ ...STYLES.cardLg, flex: 1, textAlign: "center", padding: "10px 12px", minWidth: 80 }}>
+            <div style={STYLES.label}>シャープレシオ</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: color }}>{pfSR.toFixed(2)}</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: COLORS.textLight, marginTop: 6, textAlign: "center" }}>
+          ※リスクは資産間の相関を考慮しない簡易近似値です
+        </div>
+      </div>
+
+      <ExamTipCard
+        color={COLORS.accent}
+        tips={[
+          "アセットアロケーションがリターンの約90%を決定する（Brinson研究）",
+          "アセットロケーション≠アセットアロケーション（口座の使い分け）",
+          "NISA・iDeCoには税効率の低い資産（高分配・REIT等）を優先配置",
+          "年齢とともにリスク資産比率を下げるライフサイクル投資も有効",
+        ]}
+      />
+    </div>
+  );
+}
+
+// --- ②基礎タブ（後半）拡張 ---
+const BASICS_SECTIONS_CDE = [
+  { id: "C", label: "C: 現在価値" },
+  { id: "D", label: "D: 統計・VaR" },
+  { id: "E", label: "E: 資産配分" },
+];
+
+function BasicsBackTab({ state, setState }) {
+  const [section, setSection] = useState("C");
+  const color = COLORS.accent;
+
+  return (
+    <div style={{ padding: "14px 14px 24px" }}>
+      <PageHeader
+        title="資産運用の基礎（後半）"
+        subtitle="現在価値・統計・アセットアロケーション"
+        color={color}
+        icon={BookOpen}
+      />
+      <SectionTab sections={BASICS_SECTIONS_CDE} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="basics" sections={[...BASICS_SECTIONS_CDE]} progress={state.progress} color={color} onSelect={setSection} />
+
+      {section === "C" && (
+        <div>
+          <PVSection color={color} />
+          <button
+            style={{
+              ...(state.progress.basics?.C ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%", marginTop: 4, marginBottom: 12,
+              background: state.progress.basics?.C
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({ ...s, _quizOpenBasicsC: !s._quizOpenBasicsC }))}
+          >
+            {state.progress.basics?.C
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : "理解度テストを受ける（8問）"}
+          </button>
+          {state._quizOpenBasicsC && (
+            <QuizComponent quizzes={BASICS_QUIZZES.C} tabId="basics" sectionId="C" accentColor={color} state={state} setState={setState} />
+          )}
+        </div>
+      )}
+
+      {section === "D" && (
+        <div>
+          <StatsSection color={color} />
+          <InfoBox title="正規分布の3シグマルール（必須暗記）" color={COLORS.highlight}>
+            <strong>±1σ ≈ 68%</strong>　±2σ ≈ 95%　±3σ ≈ 99.7%<br />
+            VaR計算のzスコア：90%→1.28　95%→1.645　99%→2.326
+          </InfoBox>
+          <button
+            style={{
+              ...(state.progress.basics?.D ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%", marginTop: 4, marginBottom: 12,
+              background: state.progress.basics?.D
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({ ...s, _quizOpenBasicsD: !s._quizOpenBasicsD }))}
+          >
+            {state.progress.basics?.D
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : "理解度テストを受ける（8問）"}
+          </button>
+          {state._quizOpenBasicsD && (
+            <QuizComponent quizzes={BASICS_QUIZZES.C} tabId="basics" sectionId="D" accentColor={color} state={state} setState={setState} />
+          )}
+        </div>
+      )}
+
+      {section === "E" && (
+        <div>
+          <AssetAllocationSection color={color} />
+          <button
+            style={{
+              ...(state.progress.basics?.E ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%", marginTop: 4, marginBottom: 12,
+              background: state.progress.basics?.E
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({ ...s, _quizOpenBasicsE: !s._quizOpenBasicsE }))}
+          >
+            {state.progress.basics?.E
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : "理解度テストを受ける（8問）"}
+          </button>
+          {state._quizOpenBasicsE && (
+            <QuizComponent quizzes={BASICS_QUIZZES.C} tabId="basics" sectionId="E" accentColor={color} state={state} setState={setState} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -4020,7 +4521,7 @@ export default function ABCExamApp() {
         );
       case "basics":
         return (
-          <BasicsFrontTab state={state} setState={setState} />
+          <BasicsTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
