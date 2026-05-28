@@ -7,7 +7,7 @@
 フェーズ3:  倫理・基礎データ定義          [✅]
 フェーズ4:  PF・金融商品データ            [✅]
 フェーズ5:  共通コンポーネント            [✅]
-フェーズ6:  ホーム画面                   [ ]
+フェーズ6:  ホーム画面                   [✅]
 フェーズ7:  ①顧客本位・倫理タブ          [ ]
 フェーズ8:  ②資産運用の基礎タブ 前半     [ ]
 フェーズ9:  ②資産運用の基礎タブ 後半     [ ]
@@ -2845,7 +2845,65 @@ function PlaceholderTab({ tab }) {
 // ============================================================
 // ホーム画面（フェーズ6で詳細実装・ここは骨格のみ）
 // ============================================================
+// ============================================================
+// フェーズ6: ホーム画面（完全実装）
+// ============================================================
+
+// 全クイズから計算問題のみ抽出してランダム出題
+const ALL_CALC_QUIZZES = [
+  ...BASICS_QUIZZES.A.filter((q) => q.isCalc),
+  ...BASICS_QUIZZES.B.filter((q) => q.isCalc),
+  ...BASICS_QUIZZES.C.filter((q) => q.isCalc),
+  ...PORTFOLIO_QUIZZES.A.filter((q) => q.isCalc),
+  ...PORTFOLIO_QUIZZES.C.filter((q) => q.isCalc),
+  ...PRODUCTS_QUIZZES.A.filter((q) => q.isCalc),
+  ...PRODUCTS_QUIZZES.B.filter((q) => q.isCalc),
+];
+
+// 進捗リングSVG
+function ProgressRing({ pct, size = 72, stroke = 7, color = COLORS.primary }) {
+  const r   = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash  = (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={COLORS.border} strokeWidth={stroke} />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke={color} strokeWidth={stroke}
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{ transition: "stroke-dasharray 0.5s ease" }}
+      />
+    </svg>
+  );
+}
+
+// 計算正答率グラフデータ
+function buildCalcChartData(testHistory) {
+  const byKeyword = {};
+  testHistory.filter((h) => h.isCalc).forEach((h) => {
+    if (!byKeyword[h.keyword]) byKeyword[h.keyword] = { total: 0, correct: 0 };
+    byKeyword[h.keyword].total++;
+    if (h.correct) byKeyword[h.keyword].correct++;
+  });
+  return Object.entries(byKeyword)
+    .map(([kw, { total, correct }]) => ({
+      name: kw.length > 8 ? kw.slice(0, 8) + "…" : kw,
+      rate: Math.round((correct / total) * 100),
+    }))
+    .sort((a, b) => a.rate - b.rate)
+    .slice(0, 6);
+}
+
 function HomeTab({ state, setState, onTabChange }) {
+  const [calcQuiz, setCalcQuiz]     = useState(() => {
+    const picks = ALL_CALC_QUIZZES;
+    return picks[Math.floor(Math.random() * picks.length)] ?? null;
+  });
+  const [showExamInfo, setShowExamInfo] = useState(false);
+  const [todayAnswered, setTodayAnswered] = useState(false);
+
   const daysLeft = (() => {
     if (!state.examDate) return null;
     const diff = new Date(state.examDate) - new Date();
@@ -2856,217 +2914,372 @@ function HomeTab({ state, setState, onTabChange }) {
     (acc, sec) => acc + Object.keys(sec).length, 0
   );
   const doneSections = Object.entries(state.progress).reduce(
-    (acc, [tab, secs]) =>
-      acc + Object.values(secs).filter(Boolean).length,
+    (acc, [, secs]) => acc + Object.values(secs).filter(Boolean).length,
     0
   );
   const progressPct = Math.round((doneSections / totalSections) * 100);
 
+  const daysColor = daysLeft === null
+    ? COLORS.primary
+    : daysLeft <= 7 ? COLORS.danger : daysLeft <= 30 ? COLORS.accent : COLORS.secondary;
+
+  const calcChartData = buildCalcChartData(state.testHistory);
+
+  const refreshCalcQuiz = () => {
+    const next = ALL_CALC_QUIZZES[Math.floor(Math.random() * ALL_CALC_QUIZZES.length)];
+    setCalcQuiz(next);
+    setTodayAnswered(false);
+  };
+
   return (
-    <div style={{ padding: "16px 16px 24px" }}>
-      {/* タイトルバナー */}
+    <div style={{ padding: "14px 14px 24px" }}>
+
+      {/* ① 検索窓 */}
+      <SearchBar onNavigate={onTabChange} />
+
+      {/* ② タイトルバナー＋進捗リング */}
       <div
         style={{
-          background:   `linear-gradient(135deg, ${COLORS.primary}, #357ABD)`,
-          borderRadius: 20,
-          padding:      "20px 20px 16px",
-          marginBottom: 16,
+          background:   `linear-gradient(135deg, ${COLORS.primary} 0%, #2471b5 100%)`,
+          borderRadius: 22,
+          padding:      "18px 20px",
+          marginBottom: 12,
           color:        "#fff",
+          display:      "flex",
+          gap:          16,
+          alignItems:   "center",
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>
-          💹 試験勉強アプリ
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, opacity: 0.8, marginBottom: 3 }}>
+            💹 試験勉強アプリ
+          </div>
+          <div style={{ fontSize: 19, fontWeight: 900, lineHeight: 1.35 }}>
+            資産形成コンサルタント<br />
+            <span style={{ fontSize: 15 }}>（ABC）資格試験</span>
+          </div>
+          <div style={{ fontSize: 11, marginTop: 6, opacity: 0.75 }}>
+            日本証券アナリスト協会 ／ CBT方式
+          </div>
         </div>
-        <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.3 }}>
-          資産形成コンサルタント<br />（ABC）資格試験
-        </div>
-        <div style={{ fontSize: 12, marginTop: 8, opacity: 0.8 }}>
-          日本証券アナリスト協会 ／ CBT方式 ／ 4肢択一40問
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <ProgressRing pct={progressPct} size={72} color="#fff" />
+          <div
+            style={{
+              position:       "absolute",
+              inset:          0,
+              display:        "flex",
+              flexDirection:  "column",
+              alignItems:     "center",
+              justifyContent: "center",
+            }}
+          >
+            <span style={{ fontSize: 18, fontWeight: 900 }}>{progressPct}</span>
+            <span style={{ fontSize: 9, opacity: 0.8 }}>%</span>
+          </div>
         </div>
       </div>
 
-      {/* 受験日設定 */}
+      {/* ③ 受験日カウントダウン */}
       <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={STYLES.sectionTitle}>
-          <Award size={18} color={COLORS.accent} /> 目標受験日
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <Award size={16} color={COLORS.accent} />
+          <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.text }}>目標受験日</span>
+          <span style={{ fontSize: 11, color: COLORS.textLight, marginLeft: "auto" }}>CBT方式・通年受験</span>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <input
             type="date"
             value={state.examDate}
-            onChange={(e) =>
-              setState((s) => ({ ...s, examDate: e.target.value }))
-            }
-            style={{ ...STYLES.input, width: 160 }}
+            onChange={(e) => setState((s) => ({ ...s, examDate: e.target.value }))}
+            style={{ ...STYLES.input, width: 155, fontSize: 13 }}
           />
           {daysLeft !== null && (
-            <span
-              style={{
-                ...STYLES.badge(
-                  daysLeft <= 7
-                    ? COLORS.danger
-                    : daysLeft <= 30
-                    ? COLORS.accent
-                    : COLORS.secondary
-                ),
-                fontSize: 15,
-                fontWeight: 900,
-              }}
-            >
-              残り {daysLeft} 日
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* 学習進捗 */}
-      <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={STYLES.sectionTitle}>
-          <BarChart2 size={18} color={COLORS.primary} /> 学習進捗
-        </div>
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              height:       10,
-              background:   COLORS.border,
-              borderRadius: 10,
-              overflow:     "hidden",
-            }}
-          >
             <div
               style={{
-                height:       "100%",
-                width:        `${progressPct}%`,
-                background:   `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`,
-                borderRadius: 10,
-                transition:   "width 0.4s ease",
+                background:   daysColor + "18",
+                border:       `2px solid ${daysColor}`,
+                borderRadius: 12,
+                padding:      "6px 14px",
+                textAlign:    "center",
               }}
-            />
-          </div>
+            >
+              <div style={{ fontSize: 20, fontWeight: 900, color: daysColor, lineHeight: 1 }}>
+                {daysLeft > 0 ? daysLeft : 0}
+              </div>
+              <div style={{ fontSize: 10, color: daysColor, fontWeight: 700 }}>
+                {daysLeft > 0 ? "日後" : "本日"}
+              </div>
+            </div>
+          )}
+          {!state.examDate && (
+            <span style={{ fontSize: 12, color: COLORS.textLight }}>日付を設定してください</span>
+          )}
+        </div>
+        {daysLeft !== null && daysLeft <= 30 && daysLeft > 0 && (
           <div
             style={{
-              fontSize:   12,
-              color:      COLORS.textLight,
-              marginTop:  4,
-              textAlign:  "right",
+              marginTop:    8,
+              padding:      "7px 10px",
+              background:   COLORS.accent + "12",
+              borderRadius: 8,
+              fontSize:     12,
+              color:        COLORS.accent,
+              fontWeight:   600,
             }}
           >
-            {doneSections} / {totalSections} セクション完了（{progressPct}%）
+            ⚡ 残り{daysLeft}日！1日あたり{Math.ceil(40 / daysLeft * 10) / 10}問ペースで演習を！
           </div>
+        )}
+      </div>
+
+      {/* ④ 学習進捗 */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <BarChart2 size={16} color={COLORS.primary} />
+            <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.text }}>学習進捗</span>
+          </div>
+          <span style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 600 }}>
+            {doneSections}/{totalSections} 完了
+          </span>
         </div>
 
-        {/* タブ別進捗リスト */}
-        {TABS.filter((t) => t.id !== "home").map((tab) => {
+        {/* プログレスバー */}
+        <div style={{ height: 8, background: COLORS.border, borderRadius: 8, marginBottom: 12, overflow: "hidden" }}>
+          <div
+            style={{
+              height:       "100%",
+              width:        `${progressPct}%`,
+              background:   `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`,
+              borderRadius: 8,
+              transition:   "width 0.5s ease",
+            }}
+          />
+        </div>
+
+        {/* タブ別進捗 */}
+        {TABS.filter((t) => t.id !== "home").map((tab, idx) => {
           const secs  = state.progress[tab.id] || {};
           const keys  = Object.keys(secs);
           const done  = Object.values(secs).filter(Boolean).length;
-          const color = tab.color;
+          const all   = keys.length;
+          const pct   = all > 0 ? Math.round((done / all) * 100) : 0;
           return (
             <div
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               style={{
-                display:       "flex",
-                alignItems:    "center",
-                gap:           10,
-                padding:       "7px 0",
-                borderBottom:  `1px solid ${COLORS.border}`,
-                cursor:        "pointer",
+                display:      "flex",
+                alignItems:   "center",
+                gap:          8,
+                padding:      "8px 0",
+                borderBottom: idx < 5 ? `1px solid ${COLORS.border}` : "none",
+                cursor:       "pointer",
               }}
             >
-              <tab.icon size={15} color={color} />
-              <span
+              <div
                 style={{
-                  flex:       1,
-                  fontSize:   13,
-                  fontWeight: 600,
-                  color:      COLORS.text,
+                  width:          28,
+                  height:         28,
+                  borderRadius:   8,
+                  background:     tab.color + "18",
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  flexShrink:     0,
                 }}
               >
-                {tab.label}
-              </span>
-              <div style={{ display: "flex", gap: 4 }}>
+                <tab.icon size={14} color={tab.color} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.text, marginBottom: 3 }}>
+                  {tab.label}
+                </div>
+                <div style={{ height: 4, background: COLORS.border, borderRadius: 4, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height:       "100%",
+                      width:        `${pct}%`,
+                      background:   tab.color,
+                      borderRadius: 4,
+                      transition:   "width 0.4s ease",
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
                 {keys.map((k) => (
                   <div
                     key={k}
                     style={{
-                      width:        18,
-                      height:       18,
-                      borderRadius: 6,
-                      background:   secs[k] ? color : COLORS.border,
-                      display:      "flex",
-                      alignItems:   "center",
+                      width:          14,
+                      height:         14,
+                      borderRadius:   4,
+                      background:     secs[k] ? tab.color : COLORS.border,
+                      display:        "flex",
+                      alignItems:     "center",
                       justifyContent: "center",
                     }}
                   >
-                    {secs[k] && <Check size={11} color="#fff" />}
+                    {secs[k] && <Check size={9} color="#fff" />}
                   </div>
                 ))}
               </div>
               <span
                 style={{
-                  fontSize:   12,
-                  color:      done === keys.length ? COLORS.secondary : COLORS.textLight,
+                  fontSize:   11,
                   fontWeight: 700,
-                  minWidth:   36,
+                  color:      done === all ? COLORS.secondary : COLORS.textLight,
+                  minWidth:   28,
                   textAlign:  "right",
                 }}
               >
-                {done}/{keys.length}
+                {done}/{all}
               </span>
-              <ChevronRight size={14} color={COLORS.textMuted} />
+              <ChevronRight size={13} color={COLORS.textMuted} />
             </div>
           );
         })}
-      </div>
 
-      {/* 試験概要カード */}
-      <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={STYLES.sectionTitle}>
-          <BookOpen size={18} color={COLORS.primary} /> 試験概要
-        </div>
-        {[
-          ["正式名称", "資産形成コンサルタント（ABC）資格試験"],
-          ["主催",     "日本証券アナリスト協会"],
-          ["試験方式", "CBT（コンピュータ試験）・全国約300会場"],
-          ["出題形式", "4肢択一・40問"],
-          ["試験時間", "60分"],
-          ["合格基準", "60点以上（100点満点換算）"],
-          ["受験料",   "9,900円（一般）"],
-          ["受験資格", "特になし"],
-          ["有効期限", "無期限（更新不要）"],
-          ["難易度",   "FP2〜1級レベル"],
-        ].map(([k, v]) => (
-          <div
-            key={k}
-            style={{
-              display:      "flex",
-              gap:          8,
-              padding:      "5px 0",
-              borderBottom: `1px solid ${COLORS.border}`,
-              fontSize:     13,
-            }}
-          >
-            <span style={{ color: COLORS.textLight, minWidth: 80, fontWeight: 600 }}>
-              {k}
-            </span>
-            <span style={{ color: COLORS.text }}>{v}</span>
+        {/* 計算問題正答率グラフ（履歴がある場合のみ） */}
+        {calcChartData.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.highlight, marginBottom: 8 }}>
+              計算問題 正答率（苦手順）
+            </div>
+            <ResponsiveContainer width="100%" height={120}>
+              <BarChart data={calcChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                <Tooltip formatter={(v) => `${v}%`} />
+                <Bar dataKey="rate" fill={COLORS.highlight} radius={[4, 4, 0, 0]} />
+                <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        ))}
+        )}
+
+        {/* リセットボタン */}
+        <button
+          style={{ ...STYLES.btnOutline, width: "100%", marginTop: 12, fontSize: 12 }}
+          onClick={() => {
+            if (window.confirm("学習進捗・テスト履歴をすべてリセットしますか？")) {
+              setState(INITIAL_STATE);
+            }
+          }}
+        >
+          <RefreshCw size={12} style={{ marginRight: 5 }} /> 進捗をリセット
+        </button>
       </div>
 
-      {/* クイックリセット */}
-      <button
-        style={{ ...STYLES.btnOutline, width: "100%", marginTop: 4 }}
-        onClick={() => {
-          if (window.confirm("学習進捗をリセットしますか？（テスト履歴も削除されます）")) {
-            setState(INITIAL_STATE);
-          }
-        }}
-      >
-        <RefreshCw size={13} style={{ marginRight: 6 }} />
-        進捗をリセット
-      </button>
+      {/* ⑤ 今日の計算練習 */}
+      {calcQuiz && (
+        <div style={{ marginBottom: 12 }}>
+          <MiniCalcCard
+            quiz={calcQuiz}
+            onAnswer={(correct) => {
+              setTodayAnswered(true);
+              setState((s) => ({
+                ...s,
+                calcHistory: [...s.calcHistory, {
+                  date:    new Date().toISOString(),
+                  formula: calcQuiz.keyword,
+                  correct,
+                  timeSpent: 0,
+                }],
+              }));
+            }}
+          />
+          <button
+            style={{ ...STYLES.btnOutline, width: "100%", marginTop: 6, fontSize: 12 }}
+            onClick={refreshCalcQuiz}
+          >
+            <RefreshCw size={12} style={{ marginRight: 5 }} /> 別の問題を出す
+          </button>
+        </div>
+      )}
+
+      {/* ⑥ 試験概要（折りたたみ） */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <button
+          onClick={() => setShowExamInfo((s) => !s)}
+          style={{
+            width:          "100%",
+            background:     "none",
+            border:         "none",
+            cursor:         "pointer",
+            display:        "flex",
+            alignItems:     "center",
+            gap:            8,
+            padding:        0,
+            fontFamily:     "'Noto Sans JP', sans-serif",
+          }}
+        >
+          <BookOpen size={16} color={COLORS.primary} />
+          <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.text, flex: 1, textAlign: "left" }}>
+            試験概要
+          </span>
+          <ChevronRight
+            size={16}
+            color={COLORS.textMuted}
+            style={{ transform: showExamInfo ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}
+          />
+        </button>
+
+        {showExamInfo && (
+          <div style={{ marginTop: 12 }}>
+            {[
+              ["正式名称", "資産形成コンサルタント（ABC）資格試験"],
+              ["主催",     "日本証券アナリスト協会"],
+              ["試験方式", "CBT（コンピュータ試験）・全国約300会場"],
+              ["出題形式", "4肢択一・40問"],
+              ["試験時間", "60分"],
+              ["合格基準", "60点以上（100点満点換算）"],
+              ["受験料",   "9,900円（一般）"],
+              ["受験資格", "特になし"],
+              ["有効期限", "無期限（更新不要）"],
+              ["難易度",   "FP2〜1級レベル＋金融資産運用の深掘り"],
+            ].map(([k, v]) => (
+              <div
+                key={k}
+                style={{
+                  display:      "flex",
+                  gap:          8,
+                  padding:      "5px 0",
+                  borderBottom: `1px solid ${COLORS.border}`,
+                  fontSize:     13,
+                }}
+              >
+                <span style={{ color: COLORS.textLight, minWidth: 72, fontWeight: 600, fontSize: 12 }}>{k}</span>
+                <span style={{ color: COLORS.text, fontSize: 13 }}>{v}</span>
+              </div>
+            ))}
+
+            {/* 出題比率 */}
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 6 }}>
+                出題分野と比率（目安）
+              </div>
+              {[
+                { label: "顧客本位・倫理",    pct: 20, color: COLORS.secondary },
+                { label: "資産運用の基礎",    pct: 25, color: COLORS.accent },
+                { label: "ポートフォリオ理論", pct: 25, color: COLORS.highlight },
+                { label: "金融商品",          pct: 20, color: "#E67E22" },
+                { label: "ケーススタディ",    pct: 10, color: "#16A085" },
+              ].map((item) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: COLORS.text, minWidth: 110 }}>{item.label}</span>
+                  <div style={{ flex: 1, height: 6, background: COLORS.border, borderRadius: 6, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${item.pct * 4}%`, background: item.color, borderRadius: 6 }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: item.color, fontWeight: 700, minWidth: 28 }}>{item.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
