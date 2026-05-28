@@ -13,7 +13,7 @@
 フェーズ9:  ②資産運用の基礎タブ 後半     [✅]
 フェーズ10: ③ポートフォリオ理論タブ      [✅]
 フェーズ11: ④金融商品タブ               [✅]
-フェーズ12: ⑤ケーススタディタブ          [ ]
+フェーズ12: ⑤ケーススタディタブ          [✅]
 フェーズ13: ⑥苦手分析タブ               [ ]
 フェーズ14: AI機能（モック）統合         [ ]
 フェーズ15: 仕上げ・模擬試験・結合       [ ]
@@ -4880,6 +4880,342 @@ function ProductsTab({ state, setState }) {
   );
 }
 
+// ============================================================
+// フェーズ12: ⑤ケーススタディタブ
+// ============================================================
+
+// --- ケース問題コンポーネント ---
+function CaseQuizBlock({ cs, state, setState }) {
+  const [qIdx,     setQIdx]     = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [answered, setAnswered] = useState(false);
+  const [score,    setScore]    = useState(0);
+  const [done,     setDone]     = useState(false);
+
+  const q     = cs.questions[qIdx];
+  const total = cs.questions.length;
+
+  const handleSelect = (i) => {
+    if (answered) return;
+    setSelected(i);
+    setAnswered(true);
+    if (i === q.answer) setScore((s) => s + 1);
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 >= total) {
+      setDone(true);
+      setState((s) => ({
+        ...s,
+        progress: {
+          ...s.progress,
+          casestudy: {
+            ...s.progress.casestudy,
+            [cs.id === "case01" ? "A" : "B"]: score + (selected === q.answer ? 1 : 0) >= Math.ceil(total * 0.6),
+          },
+        },
+        testHistory: [
+          ...s.testHistory,
+          ...cs.questions.map((cq, i) => ({
+            date:     new Date().toISOString(),
+            tab:      "casestudy",
+            section:  cs.id,
+            question: `${cs.id}-q${i}`,
+            correct:  i === qIdx ? selected === q.answer : false,
+            keyword:  cq.choices[cq.answer].slice(0, 12),
+            isCalc:   false,
+          })),
+        ],
+      }));
+      return;
+    }
+    setQIdx((i) => i + 1);
+    setSelected(null);
+    setAnswered(false);
+  };
+
+  const handleRetry = () => {
+    setQIdx(0); setSelected(null); setAnswered(false);
+    setScore(0); setDone(false);
+  };
+
+  if (done) {
+    const pct    = Math.round((score / total) * 100);
+    const passed = pct >= 60;
+    return (
+      <div style={{ ...STYLES.card, textAlign:"center", marginTop:12 }}>
+        <div style={{ fontSize:36, marginBottom:6 }}>{passed ? "🎉" : "📚"}</div>
+        <div style={{ fontSize:22, fontWeight:900, color: passed ? COLORS.secondary : COLORS.accent }}>
+          {score}/{total} 正解 — {pct}点
+        </div>
+        <div style={{ ...STYLES.badge(passed ? COLORS.secondary : COLORS.accent), fontSize:13, margin:"8px auto" }}>
+          {passed ? "ケースクリア！" : "再挑戦してみましょう"}
+        </div>
+        <button style={{ ...STYLES.btnOutline, marginTop:10 }} onClick={handleRetry}>
+          もう一度
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...STYLES.card, marginTop:12 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:COLORS.textLight, marginBottom:6 }}>
+        <span style={{ fontWeight:700, color:cs.color }}>問 {qIdx+1} / {total}</span>
+        <span>正解 {score}問</span>
+      </div>
+      <div style={{ height:4, background:COLORS.border, borderRadius:4, marginBottom:12, overflow:"hidden" }}>
+        <div style={{ height:"100%", width:`${(qIdx/total)*100}%`, background:cs.color, borderRadius:4 }} />
+      </div>
+
+      <div style={{ fontSize:13, fontWeight:700, color:COLORS.text, lineHeight:1.8, marginBottom:12,
+        padding:"10px 12px", background:cs.color+"0A", borderRadius:10, border:`1px solid ${cs.color}22` }}>
+        {q.q}
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+        {q.choices.map((choice, i) => {
+          let bg = "#fff", border = `1.5px solid ${COLORS.border}`, col = COLORS.text;
+          if (answered) {
+            if (i === q.answer)                 { bg = COLORS.secondary+"18"; border = `2px solid ${COLORS.secondary}`; col = COLORS.secondary; }
+            else if (i === selected)             { bg = COLORS.danger+"12";   border = `2px solid ${COLORS.danger}`;    col = COLORS.danger; }
+          }
+          return (
+            <button key={i} onClick={() => handleSelect(i)}
+              style={{ background:bg, border, borderRadius:12, padding:"10px 14px",
+                textAlign:"left", cursor:answered?"default":"pointer",
+                display:"flex", gap:10, alignItems:"flex-start",
+                fontFamily:"'Noto Sans JP', sans-serif" }}>
+              <span style={{ minWidth:22, height:22, borderRadius:"50%",
+                background: answered && i===q.answer ? COLORS.secondary : answered && i===selected ? COLORS.danger : cs.color+"33",
+                color: answered && (i===q.answer||i===selected) ? "#fff" : cs.color,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:11, fontWeight:800, flexShrink:0 }}>
+                {answered && i===q.answer ? "○" : answered && i===selected ? "✗" : ["①","②","③","④"][i]}
+              </span>
+              <span style={{ fontSize:13, color:col, lineHeight:1.6 }}>{choice}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {answered && (
+        <div style={{ marginTop:12, padding:"10px 12px",
+          background:(selected===q.answer?COLORS.secondary:COLORS.danger)+"10",
+          border:`1px solid ${(selected===q.answer?COLORS.secondary:COLORS.danger)}33`,
+          borderRadius:10 }}>
+          <div style={{ fontSize:12, fontWeight:800,
+            color:selected===q.answer?COLORS.secondary:COLORS.danger, marginBottom:4 }}>
+            {selected===q.answer ? "✓ 正解！" : "✗ 不正解"}
+          </div>
+          <div style={{ fontSize:13, color:COLORS.text, lineHeight:1.7 }}>{q.explanation}</div>
+        </div>
+      )}
+      {answered && (
+        <button style={{ ...STYLES.btnPrimary, width:"100%", marginTop:10,
+          background:`linear-gradient(135deg,${cs.color},${cs.color}BB)` }} onClick={handleNext}>
+          {qIdx+1 >= total ? "結果を見る" : "次の問題"} <ChevronRight size={14} style={{marginLeft:4}} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- 資産配分シミュレーター（ケーススタディ内） ---
+function CaseSimulator() {
+  const profiles = [
+    { id: "young",  label: "30代・積立中心",   weights: { "国内株式":35, "外国株式":30, "国内債券":15, "外国債券":10, "国内REIT":10 } },
+    { id: "mid",    label: "50代・バランス重視", weights: { "国内株式":25, "外国株式":20, "国内債券":30, "外国債券":15, "国内REIT":10 } },
+    { id: "retire", label: "60代・守り重視",    weights: { "国内株式":15, "外国株式":10, "国内債券":45, "外国債券":20, "国内REIT":10 } },
+  ];
+  const [selected, setSelected] = useState("young");
+  const [weights,  setWeights]  = useState(profiles[0].weights);
+
+  const applyProfile = (id) => {
+    setSelected(id);
+    setWeights({ ...profiles.find((p) => p.id === id).weights });
+  };
+
+  const totalW  = Object.values(weights).reduce((s, v) => s + v, 0);
+  const pfRet   = ASSET_CLASS_DATA.reduce((s, a) => s + (weights[a.name]/100) * a.expectedReturn, 0);
+  const pfRisk  = Math.sqrt(ASSET_CLASS_DATA.reduce((s, a) => s + (weights[a.name]/100)**2 * a.risk**2, 0));
+  const pfSR    = pfRisk > 0 ? (pfRet - 0.002) / pfRisk : 0;
+
+  // 時系列シミュレーション（100万円・30年）
+  const simData = Array.from({ length: 31 }, (_, yr) => ({
+    year: yr,
+    "期待値":       Math.round(100 * Math.pow(1 + pfRet, yr)),
+    "楽観（+1σ）": Math.round(100 * Math.pow(1 + pfRet + pfRisk, yr)),
+    "悲観（−1σ）": Math.round(100 * Math.pow(1 + Math.max(pfRet - pfRisk, -0.3), yr)),
+  }));
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom:12 }}>
+      <div style={{ ...STYLES.sectionTitle, fontSize:14, color:"#16A085" }}>
+        <Activity size={15} color="#16A085" /> 資産配分シミュレーター
+      </div>
+
+      {/* プロファイルボタン */}
+      <div style={{ display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" }}>
+        {profiles.map((p) => (
+          <button key={p.id} onClick={() => applyProfile(p.id)}
+            style={{
+              flex:1, minWidth:90,
+              background:   selected===p.id ? "#16A085" : "transparent",
+              color:        selected===p.id ? "#fff" : COLORS.textLight,
+              border:       `1.5px solid ${selected===p.id ? "#16A085" : COLORS.border}`,
+              borderRadius: 10, padding:"7px 4px", cursor:"pointer",
+              fontSize:11, fontWeight:700, fontFamily:"'Noto Sans JP',sans-serif",
+              transition:"all 0.15s ease",
+            }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* スライダー */}
+      {ASSET_CLASS_DATA.map((a) => (
+        <div key={a.name} style={{ marginBottom:8 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, marginBottom:2 }}>
+            <span style={{ fontWeight:700, color:a.color }}>{a.name}</span>
+            <span style={{ fontWeight:800 }}>{weights[a.name]}%</span>
+          </div>
+          <input type="range" min={0} max={80} step={5} value={weights[a.name]}
+            onChange={(e) => { setSelected(""); setWeights((w) => ({...w, [a.name]: Number(e.target.value)})); }}
+            style={{ width:"100%", accentColor:a.color }} />
+        </div>
+      ))}
+      <div style={{ fontSize:11, color: totalW===100 ? COLORS.secondary : COLORS.danger,
+        fontWeight:700, textAlign:"center", marginBottom:10 }}>
+        合計: {totalW}% {totalW!==100 && "← 100%に調整してください"}
+      </div>
+
+      {/* 指標 */}
+      <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+        <div style={{ ...STYLES.cardLg, flex:1, textAlign:"center", padding:"10px 6px" }}>
+          <div style={STYLES.label}>期待リターン</div>
+          <div style={{ fontSize:18, fontWeight:900, color:COLORS.secondary }}>{(pfRet*100).toFixed(2)}<span style={{fontSize:10}}>%</span></div>
+        </div>
+        <div style={{ ...STYLES.cardLg, flex:1, textAlign:"center", padding:"10px 6px" }}>
+          <div style={STYLES.label}>リスク</div>
+          <div style={{ fontSize:18, fontWeight:900, color:COLORS.danger }}>{(pfRisk*100).toFixed(2)}<span style={{fontSize:10}}>%</span></div>
+        </div>
+        <div style={{ ...STYLES.cardLg, flex:1, textAlign:"center", padding:"10px 6px" }}>
+          <div style={STYLES.label}>シャープ</div>
+          <div style={{ fontSize:18, fontWeight:900, color:"#16A085" }}>{pfSR.toFixed(2)}</div>
+        </div>
+      </div>
+
+      {/* 30年シミュレーション */}
+      <div style={{ fontSize:12, fontWeight:700, color:"#16A085", marginBottom:6 }}>
+        100万円 投資した場合の30年間シミュレーション
+      </div>
+      <ResponsiveContainer width="100%" height={180}>
+        <AreaChart data={simData} margin={{ top:4, right:8, left:-10, bottom:0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+          <XAxis dataKey="year" tick={{fontSize:9}} unit="年" />
+          <YAxis tick={{fontSize:9}} unit="万" />
+          <Tooltip formatter={(v) => `${v}万円`} labelFormatter={(l) => `${l}年後`} />
+          <Legend iconSize={10} wrapperStyle={{fontSize:10}} />
+          <Area type="monotone" dataKey="楽観（+1σ）" stroke={COLORS.secondary} fill={COLORS.secondary+"18"} strokeWidth={1.5} />
+          <Area type="monotone" dataKey="期待値"       stroke="#16A085"          fill={"#16A085"+"25"}         strokeWidth={2} />
+          <Area type="monotone" dataKey="悲観（−1σ）" stroke={COLORS.danger}    fill={COLORS.danger+"10"}     strokeWidth={1.5} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// --- ⑤ケーススタディタブ本体 ---
+const CASE_STUDY_SECTIONS = [
+  { id: "A", label: "30代夫婦" },
+  { id: "B", label: "60代退職者" },
+  { id: "C", label: "シミュレーター" },
+];
+
+function CaseStudyTab({ state, setState }) {
+  const [section, setSection] = useState("A");
+  const color = "#16A085";
+
+  return (
+    <div style={{ padding:"14px 14px 24px" }}>
+      <PageHeader
+        title="ケーススタディ"
+        subtitle="実践的な顧客対応・資産配分シミュレーション"
+        color={color}
+        icon={Activity}
+      />
+      <SectionTab sections={CASE_STUDY_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
+      <SectionProgress tabId="casestudy" sections={CASE_STUDY_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+
+      {(section === "A" || section === "B") && (() => {
+        const cs = CASE_STUDIES[section === "A" ? 0 : 1];
+        return (
+          <div>
+            {/* シナリオカード */}
+            <div style={{ ...STYLES.cardLg, borderLeft:`4px solid ${cs.color}`, marginBottom:12 }}>
+              <div style={{ fontSize:15, fontWeight:900, color:cs.color, marginBottom:8 }}>
+                📋 {cs.title}
+              </div>
+              <div style={{ fontSize:13, color:COLORS.text, lineHeight:1.8, marginBottom:10 }}>
+                {cs.scenario}
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                {cs.tags.map((tag) => (
+                  <span key={tag} style={STYLES.badge(cs.color)}>{tag}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* ポイント解説 */}
+            {section === "A" && (
+              <InfoBox title="解答のポイント" color={cs.color}>
+                <strong>リスク許容度</strong>：30代・長期投資可・安定収入 → やや高め設定可<br />
+                <strong>NISA活用</strong>：新NISAで流動性確保（教育費にも対応）<br />
+                <strong>iDeCo活用</strong>：所得控除で節税しながら老後資金を積立<br />
+                <strong>住宅ローン</strong>：金利が低い場合、繰上返済より投資を優先する選択肢も<br />
+                <strong>教育費</strong>：18年後から必要 → 株式比率高めで長期運用可
+              </InfoBox>
+            )}
+            {section === "B" && (
+              <InfoBox title="解答のポイント" color={cs.color}>
+                <strong>取り崩しフェーズ</strong>：年金開始まで2〜3年分の生活費を流動資産で確保<br />
+                <strong>不足額</strong>：月10万円（30万−20万）× 12ヶ月 = 年120万円不足<br />
+                <strong>長寿リスク</strong>：90歳まで28年間、インフレ考慮なしで3,360万円必要<br />
+                <strong>インフレ対策</strong>：株式・REIT・物価連動債を一部組み入れる<br />
+                <strong>定率取り崩し</strong>：定率（資産の何%）取り崩しは長寿リスクに強い
+              </InfoBox>
+            )}
+
+            {/* 設問 */}
+            <CaseQuizBlock cs={cs} state={state} setState={setState} />
+          </div>
+        );
+      })()}
+
+      {section === "C" && (
+        <div>
+          <InfoBox title="資産配分シミュレーターの使い方" color={color}>
+            年代別プロファイルを選択するか、スライダーで自由に資産配分を設定。<br />
+            期待リターン・リスク・シャープレシオをリアルタイムで確認し、<br />
+            30年間の資産成長シミュレーションをグラフで確認できます。
+          </InfoBox>
+          <CaseSimulator />
+
+          {/* 試験向けポイント */}
+          <ExamTipCard color={COLORS.accent} tips={[
+            "退職後は「取り崩しフェーズ」：流動性確保 + 中リスク分散が基本",
+            "定率取り崩し（毎年資産の4%等）は長寿リスクに対応しやすい",
+            "ライフサイクル投資：年齢とともにリスク資産比率を下げる",
+            "インフレリスク：現金・固定利率資産の実質価値低下に注意",
+            "4%ルール：年間生活費の25倍の資産があれば30年取り崩し可（米国研究）",
+          ]} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlaceholderTab({ tab }) {
   const Icon = tab.icon;
   return (
@@ -5404,6 +5740,10 @@ export default function ABCExamApp() {
       case "products":
         return (
           <ProductsTab state={state} setState={setState} />
+        );
+      case "casestudy":
+        return (
+          <CaseStudyTab state={state} setState={setState} />
         );
       default: {
         const tab = TABS.find((t) => t.id === activeTab);
