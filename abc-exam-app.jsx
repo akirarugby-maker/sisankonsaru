@@ -163,12 +163,19 @@ const INITIAL_PROGRESS = {
   analysis:  { analyzed: false },
 };
 
+// 教本章別進捗（第1章・第2章の新規クイズ用）
+const INITIAL_CHAP_PROGRESS = {
+  ch1: { A: false },
+  ch2: { A: false },
+};
+
 const INITIAL_STATE = {
-  examDate:     "",
-  progress:     INITIAL_PROGRESS,
-  testHistory:  [],
-  calcHistory:  [],
-  reviewStatus: {},
+  examDate:      "",
+  progress:      INITIAL_PROGRESS,
+  chapProgress:  INITIAL_CHAP_PROGRESS,
+  testHistory:   [],
+  calcHistory:   [],
+  reviewStatus:  {},
 };
 
 const STORAGE_KEY = "abc-exam-app-data";
@@ -181,7 +188,8 @@ function loadState() {
     return {
       ...INITIAL_STATE,
       ...saved,
-      progress: { ...INITIAL_PROGRESS, ...saved.progress },
+      progress:     { ...INITIAL_PROGRESS,      ...saved.progress },
+      chapProgress: { ...INITIAL_CHAP_PROGRESS, ...saved.chapProgress },
     };
   } catch {
     return INITIAL_STATE;
@@ -247,6 +255,46 @@ const TABS = [
     short: "分析",
   },
 ];
+
+// ============================================================
+// 教本 章別メタデータ（第1章〜第12章 + 補論2・補論3）
+// ============================================================
+const CHAPTERS_META = [
+  { id: "ch1",   num: "第1章",  title: "顧客と信頼関係を築く",    subtitle: "行動経済学・フィデューシャリー",   color: "#16A085", tabId: "ethics",    sections: { A: "行動経済学" } },
+  { id: "ch2",   num: "第2章",  title: "新しい資産運用のあり方",  subtitle: "ゴールベース・ファンドラップ",      color: "#4A90D9", tabId: "ethics",    sections: { A: "ゴールベース" } },
+  { id: "ch3",   num: "第3章",  title: "資産運用と税制",          subtitle: "NISA・iDeCo・税制優遇",           color: "#E67E22", tabId: "ethics",    sections: { A: "税制・口座" } },
+  { id: "ch4",   num: "第4章",  title: "資産運用の基礎",          subtitle: "リターン・リスク・統計",           color: "#9B59B6", tabId: "basics",    sections: { A: "期待リターン", B: "リスク計算" } },
+  { id: "ch5",   num: "第5章",  title: "資産形成の実務",          subtitle: "現在価値・積立・長期投資",         color: "#3498DB", tabId: "basics",    sections: { A: "時間価値", B: "積立実務", C: "長期戦略" } },
+  { id: "ch6",   num: "第6章",  title: "財務諸表の活用",          subtitle: "PER・PBR・ROE・財務分析",         color: "#27AE60", tabId: "basics",    sections: { A: "財務分析" } },
+  { id: "ch7",   num: "第7章",  title: "ポートフォリオ理論",      subtitle: "相関係数・分散効果・効率的PF",     color: "#8E44AD", tabId: "portfolio", sections: { A: "分散効果", B: "市場線" } },
+  { id: "ch8",   num: "第8章",  title: "CAPM・評価モデル",        subtitle: "ベータ・シャープ・情報レシオ",     color: "#C0392B", tabId: "portfolio", sections: { A: "CAPM", B: "評価指標" } },
+  { id: "ch9",   num: "第9章",  title: "株式投資",                subtitle: "PER・PBR・配当割引モデル",        color: "#2ECC71", tabId: "products",  sections: { A: "株式評価" } },
+  { id: "ch10",  num: "第10章", title: "債券投資",                subtitle: "金利・デュレーション・イールド",   color: "#E74C3C", tabId: "products",  sections: { A: "債券分析" } },
+  { id: "ch11",  num: "第11章", title: "外国投資・外国株式",      subtitle: "為替・外貨建て資産",               color: "#1ABC9C", tabId: "products",  sections: { A: "外国投資" } },
+  { id: "ch12",  num: "第12章", title: "投資信託",                subtitle: "アクティブ・パッシブ・ESG",        color: "#F39C12", tabId: "products",  sections: { A: "投資信託" } },
+  { id: "supp2", num: "補論2",  title: "デリバティブ取引",        subtitle: "先物・オプション・スワップ",       color: "#E74C3C", tabId: null,        sections: { A: "デリバティブ" } },
+  { id: "supp3", num: "補論3",  title: "オルタナティブ投資",      subtitle: "REIT・ヘッジファンド・不動産",     color: "#95A5A6", tabId: "products",  sections: { A: "オルタナティブ" } },
+];
+
+// 全章の進捗を統合して返すヘルパー
+function computeAllChapProgress(progress, chapProgress) {
+  return {
+    ch1:   { A: chapProgress?.ch1?.A ?? false },
+    ch2:   { A: chapProgress?.ch2?.A ?? false },
+    ch3:   { A: progress.ethics?.C   ?? false },
+    ch4:   { A: progress.basics?.A   ?? false,  B: progress.basics?.B ?? false },
+    ch5:   { A: progress.basics?.C   ?? false,  B: progress.basics?.D ?? false, C: progress.basics?.E ?? false },
+    ch6:   { A: false },
+    ch7:   { A: progress.portfolio?.A ?? false, B: progress.portfolio?.B ?? false },
+    ch8:   { A: progress.portfolio?.C ?? false, B: progress.portfolio?.D ?? false },
+    ch9:   { A: progress.products?.A  ?? false },
+    ch10:  { A: progress.products?.B  ?? false },
+    ch11:  { A: progress.products?.C  ?? false },
+    ch12:  { A: progress.products?.D  ?? false },
+    supp2: { A: false },
+    supp3: { A: progress.products?.E  ?? false },
+  };
+}
 
 // ============================================================
 // ナビゲーションバー
@@ -1091,6 +1139,252 @@ const TAX_ADVANTAGE_DATA = {
     ],
   },
 };
+
+// ============================================================
+// 第1章 行動経済学クイズ（CH1_QUIZZES）
+// ============================================================
+const CH1_QUIZZES = [
+  {
+    id: "ch1-beh-1",
+    q: "「損失回避バイアス」の説明として最も適切なものはどれか？",
+    choices: [
+      "利益を得る喜びより、損失に感じる痛みの方が大きく感じる心理傾向",
+      "損失が生じたときに直ちに損切りする合理的な行動傾向",
+      "リスクを回避して安全資産だけに投資する行動傾向",
+      "過去の損失を取り戻すため積極的にリスクを取る傾向",
+    ],
+    answer: 0,
+    explanation: "損失回避バイアスはKahneman & Tverskyが提唱。同額でも「損失」の痛みは「利益」の喜びの約2倍に感じられる。塩漬け株を売れない心理がその典型。",
+    keyword: "損失回避バイアス",
+  },
+  {
+    id: "ch1-beh-2",
+    q: "「ヒューリスティック」の説明として正しいものはどれか？",
+    choices: [
+      "複雑な数式を用いて最適解を導く意思決定プロセス",
+      "直感や経験則による、省力化した素早い判断プロセス",
+      "複数の専門家の意見を平均して判断する手法",
+      "統計的手法に基づいた客観的な意思決定方法",
+    ],
+    answer: 1,
+    explanation: "ヒューリスティックとは経験則による省力化された思考プロセス。迅速な判断を可能にするが、系統的な偏り（バイアス）を生みやすい。",
+    keyword: "ヒューリスティック",
+  },
+  {
+    id: "ch1-beh-3",
+    q: "「サンクコスト効果（埋没費用の誤謬）」として最も適切な説明はどれか？",
+    choices: [
+      "将来の利益を見込んで合理的に投資を続ける行動",
+      "回収できない過去のコストに引きずられ、非合理的な意思決定をしてしまう傾向",
+      "取引コストを最小化するために売買を最適化する行動",
+      "損失が出ている資産を早期に手放す傾向",
+    ],
+    answer: 1,
+    explanation: "サンクコスト（埋没費用）は既に回収できない過去のコスト。合理的には無視すべきだが「もったいない」と感じて損失を出し続けることがある（例：塩漬け株の放置）。",
+    keyword: "サンクコスト効果",
+  },
+  {
+    id: "ch1-beh-4",
+    q: "「ナッジ理論」の説明として正しいものはどれか？",
+    choices: [
+      "強制・罰則によって人々の行動を望ましい方向に変える政策手法",
+      "税制優遇によって特定の行動を促進する制度設計",
+      "強制せず、選択肢の提示方法や環境設計によって行動を望ましい方向へ誘導する手法",
+      "情報開示を義務付けることで合理的な意思決定を促す規制手法",
+    ],
+    answer: 2,
+    explanation: "ナッジ（nudge＝そっと押す）はThaler & Sunsteinが提唱。自由を制限せずに望ましい行動を促す設計（例：年金の自動加入opt-out）が金融アドバイスに応用されている。",
+    keyword: "ナッジ理論",
+  },
+  {
+    id: "ch1-beh-5",
+    q: "「確証バイアス（コンファーメーション・バイアス）」とはどのような心理傾向か？",
+    choices: [
+      "自分の信念を裏付ける情報のみ集め、矛盾する情報を無視する傾向",
+      "他人の行動・意見に影響されて自分の判断が歪む傾向",
+      "新しい情報より古い情報を重視する傾向",
+      "確実な情報だけに基づいて意思決定する傾向",
+    ],
+    answer: 0,
+    explanation: "確証バイアスは自分が正しいと思う方向の情報ばかり集め、反証となる情報を見落とす傾向。投資では「この株はいずれ上がる」と思い込み不都合な情報を無視することが典型例。",
+    keyword: "確証バイアス",
+  },
+  {
+    id: "ch1-beh-6",
+    q: "「アンカリング効果」の説明として正しいものはどれか？",
+    choices: [
+      "長期投資において基準価額を固定して運用する手法",
+      "最初に提示された数値・情報（アンカー）が後の判断に過度に影響を与える傾向",
+      "投資判断を特定の時点に固定して変えないようにする傾向",
+      "リスクを分散するために投資先を多様化する原則",
+    ],
+    answer: 1,
+    explanation: "アンカリングとは最初に見た数値が後の判断の「基準点（アンカー）」になる現象。「株価が以前1万円だったから今の5000円は安い」という歪んだ判断がその典型。",
+    keyword: "アンカリング効果",
+  },
+  {
+    id: "ch1-beh-7",
+    q: "「現状維持バイアス（ステータスクオ・バイアス）」の説明として最も適切なものはどれか？",
+    choices: [
+      "現在の投資ポートフォリオが最適であるという合理的な判断",
+      "市場の現状を維持するための規制当局の介入方針",
+      "新しい情報が出ても変化を避け、現在の状態を維持しようとする心理的傾向",
+      "インデックス投資によって市場平均を維持しようとする投資戦略",
+    ],
+    answer: 2,
+    explanation: "現状維持バイアスは変化を嫌う心理傾向。年金の自動加入制度（opt-out）はこのバイアスを活用したナッジの代表例。放置型の非合理的投資行動の一因となる。",
+    keyword: "現状維持バイアス",
+  },
+  {
+    id: "ch1-beh-8",
+    q: "「メンタルアカウンティング（心理的会計）」の説明として正しいものはどれか？",
+    choices: [
+      "企業の財務会計を心理学的観点から分析する手法",
+      "同じ金額でも出所や用途によって価値を異なって感じ、別々に管理する心理傾向",
+      "将来の収入を現在価値に割り引いて考える合理的な意思決定プロセス",
+      "投資の損益を月次でメンタルヘルス的に管理する手法",
+    ],
+    answer: 1,
+    explanation: "メンタルアカウンティング（Thaler提唱）とはお金を「ボーナス口座」「生活費口座」などに心理的に仕分けする傾向。同額でも臨時収入の方が使いやすく感じるのはこのため。",
+    keyword: "メンタルアカウンティング",
+  },
+  {
+    id: "ch1-beh-9",
+    q: "「過信バイアス（オーバーコンフィデンス）」とはどのような傾向か？",
+    choices: [
+      "リスクを適切に評価できず、常に安全側に偏る傾向",
+      "過去の実績だけに基づいて将来を予測する傾向",
+      "自分の能力・予測精度・知識を実際よりも過大評価する傾向",
+      "専門家の意見を過度に信頼する傾向",
+    ],
+    answer: 2,
+    explanation: "過信バイアスは個人投資家に最も多く見られるバイアスの一つ。「自分は市場平均を上回れる」と思い込み、過度な売買・集中投資につながりやすい。",
+    keyword: "過信バイアス",
+  },
+  {
+    id: "ch1-beh-10",
+    q: "「後知恵バイアス（ヒンドサイト・バイアス）」の説明として正しいものはどれか？",
+    choices: [
+      "過去の失敗を忘れて同じ投資を繰り返す傾向",
+      "事後的に「そうなると分かっていた」と思い込み、予測精度を過大評価する傾向",
+      "将来の市場変動を正確に予測できるという確信",
+      "過去データを後から解析して投資判断を改善する手法",
+    ],
+    answer: 1,
+    explanation: "後知恵バイアスとは「あのとき分かっていた」と事後的に思い込む傾向。過去の運用結果の自己評価が歪み、過信バイアスをさらに強化する可能性がある。",
+    keyword: "後知恵バイアス",
+  },
+];
+
+// ============================================================
+// 第2章 ゴールベース資産管理クイズ（CH2_QUIZZES）
+// ============================================================
+const CH2_QUIZZES = [
+  {
+    id: "ch2-gb-1",
+    q: "「ゴールベース資産管理」の説明として最も適切なものはどれか？",
+    choices: [
+      "市場ベンチマークの上回りを目標とした運用アプローチ",
+      "顧客ごとのライフゴール（人生の目標）の実現を中心に据えた資産管理アプローチ",
+      "リターン最大化を唯一の目的として運用する手法",
+      "短期的な資産増加を目指す積極的な運用手法",
+    ],
+    answer: 1,
+    explanation: "ゴールベース資産管理（Goal-Based Investing）は「老後資金確保」「教育資金準備」などの具体的なライフゴールを基準に資産配分や運用計画を立てるアプローチ。",
+    keyword: "ゴールベース資産管理",
+  },
+  {
+    id: "ch2-gb-2",
+    q: "ゴールベース資産管理の基本プロセスとして正しい順序はどれか？",
+    choices: [
+      "リスク評価 → ゴール設定 → 運用開始 → 定期報告",
+      "ゴール設定 → 実現シナリオ設定 → 投資の選択・実行 → 継続的レビュー",
+      "市場分析 → ポートフォリオ構築 → ゴール設定 → 成果評価",
+      "KYC（顧客把握） → 投資信託選択 → 購入 → 保有",
+    ],
+    answer: 1,
+    explanation: "ゴールベースのプロセスは①ゴール設定→②実現シナリオ設定（優先順位付け）→③投資選択・実行→④継続的レビューの4ステップ。継続的なレビューが特に重要。",
+    keyword: "ゴールベースプロセス",
+  },
+  {
+    id: "ch2-gb-3",
+    q: "「ファンドラップ」の説明として正しいものはどれか？",
+    choices: [
+      "一つの投資信託を長期保有する「買いっぱなし」型の投資サービス",
+      "複数の投資信託を組み合わせ、運用から報告まで一括して提供する投資一任サービス",
+      "投資家が自分でファンドを選ぶセルフ型の資産運用プラットフォーム",
+      "外国為替を活用した高リターン型の特定金融商品",
+    ],
+    answer: 1,
+    explanation: "ファンドラップは複数の投資信託をラップ（包み込む）した投資一任サービス。運用プロセス全体を金融機関に委任でき、ゴールベース管理の実践ツールとして拡大している。",
+    keyword: "ファンドラップ",
+  },
+  {
+    id: "ch2-gb-4",
+    q: "ゴールベース管理における「ライフステージ」の考え方として正しいものはどれか？",
+    choices: [
+      "すべてのライフステージで同一の積極的な運用戦略を取ることが望ましい",
+      "現役期は資産の積立・成長を重視し、退職後は取崩し・安定を重視する運用に移行する",
+      "退職期こそリスク資産の比率を高めて資産を増やすべき期間である",
+      "ライフステージに関わらず市場環境だけに基づいて資産配分を変更する",
+    ],
+    answer: 1,
+    explanation: "現役期（蓄積期）は長期・積立・分散で資産を積み上げ、退職後（取崩し期）は資産の取崩しペースと安定運用を重視する。コアとサテライトに分けた設計が重要。",
+    keyword: "ライフステージ別管理",
+  },
+  {
+    id: "ch2-gb-5",
+    q: "ゴール設定において「必達ゴール（need）」と「理想ゴール（want）」を区別する理由はどれか？",
+    choices: [
+      "税制上の優遇を最大化するため",
+      "運用コストを削減するため",
+      "ゴールによってリスク許容度と最適な運用戦略が異なるため",
+      "金融機関の手数料収入を最大化するため",
+    ],
+    answer: 2,
+    explanation: "「必達ゴール」（老後の生活費など）は資産不足が許されないので低リスク運用が適切。「理想ゴール」（豪華旅行など）は未達でも致命的でないのでリスクを取れる。",
+    keyword: "ゴール優先順位付け",
+  },
+  {
+    id: "ch2-gb-6",
+    q: "「継続的レビュー」がゴールベース資産管理で重要な理由として最も適切なものはどれか？",
+    choices: [
+      "金融機関が手数料を定期的に徴収するために必要な手続きだから",
+      "税務申告のために年次の取引確認が法律で義務付けられているから",
+      "ライフイベントや市場環境の変化に応じてゴールや投資計画を見直すため",
+      "投資信託の基準価額を月次で確認するための定期作業だから",
+    ],
+    answer: 2,
+    explanation: "ゴールベース管理は一度設定すれば終わりではない。結婚・出産・転職などのライフイベントや市場変化に応じてゴールの優先順位・実現シナリオ・資産配分を継続的に見直す。",
+    keyword: "継続的レビュー",
+  },
+  {
+    id: "ch2-gb-7",
+    q: "「投資一任サービス」の説明として正しいものはどれか？",
+    choices: [
+      "顧客が金融機関に対し、すべての金融取引の代行を委任するサービス",
+      "金融機関が顧客の同意なく自由に投資判断を行えるサービス",
+      "事前に合意した運用方針に基づき、金融機関が個別の投資判断を委任されるサービス",
+      "ロボアドバイザーが完全自動で資産を運用するAIサービス",
+    ],
+    answer: 2,
+    explanation: "投資一任サービスは事前に合意した方針（投資政策書）の範囲内で、金融機関（投資顧問）が顧客に代わって具体的な売買判断を行う。ファンドラップはその代表的な形態。",
+    keyword: "投資一任サービス",
+  },
+  {
+    id: "ch2-gb-8",
+    q: "「長期・積立・分散」投資の説明として最も正しいものはどれか？",
+    choices: [
+      "短期間で大きな利益を得るための投機的な投資手法",
+      "時間・銘柄・地域・資産クラスを分散させながら長期的に積み立て続けることでリスクを低減する投資手法",
+      "長期間保有することで元本が必ず増える投資手法",
+      "分散投資によってリスクをゼロにできる投資手法",
+    ],
+    answer: 1,
+    explanation: "「長期・積立・分散」は金融庁も推奨する資産形成の基本方針。ドルコスト平均法による積立効果、時間分散・地域分散・アセットクラス分散によるリスク低減が期待される。",
+    keyword: "長期積立分散投資",
+  },
+];
 
 // --- 倫理タブ クイズデータ ---
 const ETHICS_QUIZZES = {
@@ -2271,12 +2565,13 @@ const CASE_STUDIES = [
 
 // --- QuizComponent: 4択テストコンポーネント ---
 function QuizComponent({
-  quizzes,          // 問題配列
-  tabId,            // "ethics" | "basics" etc.
-  sectionId,        // "A" | "B" etc.
+  quizzes,                        // 問題配列
+  tabId,                          // "ethics" | "ch1" etc.
+  sectionId,                      // "A" | "B" etc.
   accentColor,
   state,
   setState,
+  progressField = "progress",     // "progress" | "chapProgress"
 }) {
   const [idx, setIdx]           = useState(0);
   const [selected, setSelected] = useState(null);  // 選択肢インデックス
@@ -2304,9 +2599,9 @@ function QuizComponent({
       if (allCorrect / quizzes.length >= 0.6) {
         setState((s) => ({
           ...s,
-          progress: {
-            ...s.progress,
-            [tabId]: { ...s.progress[tabId], [sectionId]: true },
+          [progressField]: {
+            ...s[progressField],
+            [tabId]: { ...(s[progressField]?.[tabId] ?? {}), [sectionId]: true },
           },
           testHistory: [
             ...s.testHistory,
@@ -2819,18 +3114,30 @@ function SearchBar({ onNavigate }) {
 const ETHICS_SECTIONS = [
   { id: "A", label: "A: FD原則" },
   { id: "B", label: "B: 信頼関係" },
-  { id: "C", label: "C: 新潮流" },
+  { id: "C", label: "C: 税制" },
+  { id: "D", label: "D: 行動経済学" },
+  { id: "E", label: "E: ゴールベース" },
 ];
 
 function EthicsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = COLORS.secondary;
 
+  // D・EセクションはchapProgressから進捗を取得
+  const combinedProgress = {
+    ...state.progress,
+    ethics: {
+      ...state.progress.ethics,
+      D: state.chapProgress?.ch1?.A ?? false,
+      E: state.chapProgress?.ch2?.A ?? false,
+    },
+  };
+
   return (
     <div style={{ padding: "14px 14px 24px" }}>
       <PageHeader
         title="顧客本位・倫理"
-        subtitle="フィデューシャリーデューティー・信頼関係・新潮流"
+        subtitle="フィデューシャリー・税制・行動経済学・ゴールベース"
         color={color}
         icon={Shield}
       />
@@ -2844,7 +3151,7 @@ function EthicsTab({ state, setState }) {
       <SectionProgress
         tabId="ethics"
         sections={ETHICS_SECTIONS}
-        progress={state.progress}
+        progress={combinedProgress}
         color={color}
         onSelect={setSection}
       />
@@ -2852,6 +3159,8 @@ function EthicsTab({ state, setState }) {
       {section === "A" && <EthicsSectionA color={color} state={state} setState={setState} />}
       {section === "B" && <EthicsSectionB color={color} state={state} setState={setState} />}
       {section === "C" && <EthicsSectionC color={color} state={state} setState={setState} />}
+      {section === "D" && <EthicsSectionD color={color} state={state} setState={setState} />}
+      {section === "E" && <EthicsSectionE color={color} state={state} setState={setState} />}
     </div>
   );
 }
@@ -3501,6 +3810,124 @@ function BasicsFrontTab({ state, setState }) {
             <QuizComponent quizzes={BASICS_QUIZZES.B} tabId="basics" sectionId="B" accentColor={color} state={state} setState={setState} />
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// セクションD: 行動経済学（第1章）
+// ============================================================
+function EthicsSectionD({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.ch1?.A ?? false;
+  return (
+    <div>
+      <InfoBox title="行動経済学とは" color={color}>
+        人間が常に合理的に行動するとは限らないことを前提に、心理・感情・認知のバイアスが
+        意思決定に与える影響を研究する学問。ABC試験の第1章で重要テーマ。<br /><br />
+        <strong>主要な概念：</strong>損失回避バイアス／ヒューリスティック／サンクコスト効果／
+        ナッジ理論／確証バイアス／アンカリング効果／現状維持バイアス
+      </InfoBox>
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 10 }}>主要バイアス早見表</div>
+        {[
+          { name: "損失回避バイアス",   desc: "損失の痛み＞利益の喜び（約2倍）" },
+          { name: "ヒューリスティック", desc: "直感・経験則による省力化判断" },
+          { name: "サンクコスト効果",   desc: "回収不能コストに引きずられる" },
+          { name: "ナッジ理論",         desc: "強制せず望ましい行動へ誘導" },
+          { name: "確証バイアス",       desc: "自説を裏付ける情報だけ集める" },
+          { name: "アンカリング効果",   desc: "最初の情報が判断の基準になる" },
+          { name: "現状維持バイアス",   desc: "変化を嫌い現状を維持しようとする" },
+          { name: "メンタルアカウンティング", desc: "お金を心理的に別々に管理する" },
+          { name: "過信バイアス",       desc: "自分の能力を過大評価する" },
+          { name: "後知恵バイアス",     desc: "事後的に「分かっていた」と思い込む" },
+        ].map((item) => (
+          <div key={item.name} style={{ display: "flex", gap: 8, padding: "7px 0", borderBottom: `1px solid ${COLORS.border}`, alignItems: "flex-start" }}>
+            <div style={{ minWidth: 6, height: 6, borderRadius: "50%", background: color, marginTop: 6, flexShrink: 0 }} />
+            <div>
+              <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.text }}>{item.name}</span>
+              <span style={{ fontSize: 12, color: COLORS.textLight }}> — {item.desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {done ? (
+        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}` }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
+          <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションD 完了！</div>
+        </div>
+      ) : showQuiz ? (
+        <QuizComponent
+          quizzes={CH1_QUIZZES}
+          tabId="ch1"
+          sectionId="A"
+          accentColor={color}
+          state={state}
+          setState={setState}
+          progressField="chapProgress"
+        />
+      ) : (
+        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
+          行動経済学 確認テスト（10問）を開始
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// セクションE: ゴールベース資産管理（第2章）
+// ============================================================
+function EthicsSectionE({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.ch2?.A ?? false;
+  return (
+    <div>
+      <InfoBox title="ゴールベース資産管理とは" color={color}>
+        顧客の「老後資金確保」「教育資金準備」などの具体的なライフゴールを中心に
+        資産配分や運用計画を立てるアプローチ。ABC試験の第2章の核心テーマ。<br /><br />
+        <strong>プロセス：</strong>①ゴール設定 → ②実現シナリオ設定（優先順位付け）→
+        ③投資の選択・実行 → ④継続的レビュー
+      </InfoBox>
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 10 }}>重要キーワード</div>
+        {[
+          { name: "ファンドラップ",       desc: "複数の投信を一括管理する投資一任サービス" },
+          { name: "投資一任サービス",     desc: "事前合意の方針で金融機関が売買判断を代行" },
+          { name: "必達ゴール（need）",   desc: "老後生活費など必ず達成すべき目標→低リスク運用" },
+          { name: "理想ゴール（want）",   desc: "豪華旅行など未達でも致命的でない目標→リスクOK" },
+          { name: "継続的レビュー",       desc: "ライフイベントや市場変化に応じた計画見直し" },
+          { name: "長期・積立・分散",     desc: "金融庁推奨の資産形成基本方針" },
+        ].map((item) => (
+          <div key={item.name} style={{ display: "flex", gap: 8, padding: "7px 0", borderBottom: `1px solid ${COLORS.border}`, alignItems: "flex-start" }}>
+            <div style={{ minWidth: 6, height: 6, borderRadius: "50%", background: color, marginTop: 6, flexShrink: 0 }} />
+            <div>
+              <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.text }}>{item.name}</span>
+              <span style={{ fontSize: 12, color: COLORS.textLight }}> — {item.desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {done ? (
+        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}` }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
+          <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションE 完了！</div>
+        </div>
+      ) : showQuiz ? (
+        <QuizComponent
+          quizzes={CH2_QUIZZES}
+          tabId="ch2"
+          sectionId="A"
+          accentColor={color}
+          state={state}
+          setState={setState}
+          progressField="chapProgress"
+        />
+      ) : (
+        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
+          ゴールベース 確認テスト（8問）を開始
+        </button>
       )}
     </div>
   );
@@ -6489,14 +6916,11 @@ function HomeTab({ state, setState, onTabChange }) {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   })();
 
-  const totalSections = Object.values(INITIAL_PROGRESS).reduce(
-    (acc, sec) => acc + Object.keys(sec).length, 0
-  );
-  const doneSections = Object.entries(state.progress).reduce(
-    (acc, [, secs]) => acc + Object.values(secs).filter(Boolean).length,
-    0
-  );
-  const progressPct = Math.round((doneSections / totalSections) * 100);
+  // 章別進捗でリング表示を計算
+  const _chapAll  = computeAllChapProgress(state.progress, state.chapProgress);
+  const totalSections = CHAPTERS_META.reduce((a, ch) => a + Object.keys(_chapAll[ch.id] ?? {}).length, 0);
+  const doneSections  = CHAPTERS_META.reduce((a, ch) => a + Object.values(_chapAll[ch.id] ?? {}).filter(Boolean).length, 0);
+  const progressPct   = totalSections > 0 ? Math.round((doneSections / totalSections) * 100) : 0;
 
   const daysColor = daysLeft === null
     ? COLORS.primary
@@ -6612,145 +7036,149 @@ function HomeTab({ state, setState, onTabChange }) {
         )}
       </div>
 
-      {/* ④ 学習進捗 */}
-      <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <BarChart2 size={16} color={COLORS.primary} />
-            <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.text }}>学習進捗</span>
-          </div>
-          <span style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 600 }}>
-            {doneSections}/{totalSections} 完了
-          </span>
-        </div>
+      {/* ④ 学習進捗（教本章別） */}
+      {(() => {
+        const allChapProg = computeAllChapProgress(state.progress, state.chapProgress);
+        const chapSections = CHAPTERS_META.map((ch) => {
+          const secs = allChapProg[ch.id] ?? {};
+          const done = Object.values(secs).filter(Boolean).length;
+          const all  = Object.keys(secs).length;
+          return { ...ch, secs, done, all };
+        });
+        const totalChapSecs = chapSections.reduce((a, c) => a + c.all, 0);
+        const doneChapSecs  = chapSections.reduce((a, c) => a + c.done, 0);
+        const chapPct = totalChapSecs > 0 ? Math.round((doneChapSecs / totalChapSecs) * 100) : 0;
 
-        {/* プログレスバー */}
-        <div style={{ height: 8, background: COLORS.border, borderRadius: 8, marginBottom: 12, overflow: "hidden" }}>
-          <div
-            style={{
-              height:       "100%",
-              width:        `${progressPct}%`,
-              background:   `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`,
-              borderRadius: 8,
-              transition:   "width 0.5s ease",
-            }}
-          />
-        </div>
-
-        {/* タブ別進捗 */}
-        {TABS.filter((t) => t.id !== "home").map((tab, idx) => {
-          const secs  = state.progress[tab.id] || {};
-          const keys  = Object.keys(secs);
-          const done  = Object.values(secs).filter(Boolean).length;
-          const all   = keys.length;
-          const pct   = all > 0 ? Math.round((done / all) * 100) : 0;
-          return (
-            <div
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              style={{
-                display:      "flex",
-                alignItems:   "center",
-                gap:          8,
-                padding:      "8px 0",
-                borderBottom: idx < 5 ? `1px solid ${COLORS.border}` : "none",
-                cursor:       "pointer",
-              }}
-            >
-              <div
-                style={{
-                  width:          28,
-                  height:         28,
-                  borderRadius:   8,
-                  background:     tab.color + "18",
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "center",
-                  flexShrink:     0,
-                }}
-              >
-                <tab.icon size={14} color={tab.color} />
+        return (
+          <div style={{ ...STYLES.card, marginBottom: 12 }}>
+            {/* ヘッダー */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <BarChart2 size={16} color={COLORS.primary} />
+                <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.text }}>教本別学習進捗</span>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.text, marginBottom: 3 }}>
-                  {tab.label}
-                </div>
-                <div style={{ height: 4, background: COLORS.border, borderRadius: 4, overflow: "hidden" }}>
+              <span style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 600 }}>
+                {doneChapSecs}/{totalChapSecs} 完了
+              </span>
+            </div>
+
+            {/* 全体プログレスバー */}
+            <div style={{ height: 8, background: COLORS.border, borderRadius: 8, marginBottom: 14, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${chapPct}%`, background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.secondary})`, borderRadius: 8, transition: "width 0.5s ease" }} />
+            </div>
+
+            {/* 章別リスト */}
+            {chapSections.map((ch, idx) => {
+              const isLast = idx === chapSections.length - 1;
+              const pct    = ch.all > 0 ? Math.round((ch.done / ch.all) * 100) : 0;
+              const allDone = ch.done === ch.all;
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => ch.tabId && onTabChange(ch.tabId)}
+                  style={{
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          8,
+                    padding:      "9px 0",
+                    borderBottom: isLast ? "none" : `1px solid ${COLORS.border}`,
+                    cursor:       ch.tabId ? "pointer" : "default",
+                    opacity:      ch.tabId ? 1 : 0.6,
+                  }}
+                >
+                  {/* 章番号バッジ */}
                   <div
                     style={{
-                      height:       "100%",
-                      width:        `${pct}%`,
-                      background:   tab.color,
-                      borderRadius: 4,
-                      transition:   "width 0.4s ease",
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-                {keys.map((k) => (
-                  <div
-                    key={k}
-                    style={{
-                      width:          14,
-                      height:         14,
-                      borderRadius:   4,
-                      background:     secs[k] ? tab.color : COLORS.border,
+                      minWidth:       44,
+                      height:         28,
+                      borderRadius:   8,
+                      background:     ch.color + "20",
+                      border:         `1.5px solid ${ch.color}50`,
                       display:        "flex",
                       alignItems:     "center",
                       justifyContent: "center",
+                      flexShrink:     0,
                     }}
                   >
-                    {secs[k] && <Check size={9} color="#fff" />}
+                    <span style={{ fontSize: 10, fontWeight: 800, color: ch.color }}>{ch.num}</span>
                   </div>
-                ))}
+
+                  {/* タイトル + プログレスバー */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "80%" }}>
+                        {ch.title}
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: allDone ? COLORS.secondary : COLORS.textLight, flexShrink: 0, marginLeft: 4 }}>
+                        {ch.done}/{ch.all}
+                      </span>
+                    </div>
+                    <div style={{ height: 4, background: COLORS.border, borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: allDone ? COLORS.secondary : ch.color, borderRadius: 4, transition: "width 0.4s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 9, color: COLORS.textMuted, marginTop: 2 }}>{ch.subtitle}</div>
+                  </div>
+
+                  {/* セクション完了マス */}
+                  <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+                    {Object.entries(ch.secs).map(([k, v]) => (
+                      <div
+                        key={k}
+                        style={{
+                          width:          14,
+                          height:         14,
+                          borderRadius:   4,
+                          background:     v ? (allDone ? COLORS.secondary : ch.color) : COLORS.border,
+                          display:        "flex",
+                          alignItems:     "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {v && <Check size={9} color="#fff" />}
+                      </div>
+                    ))}
+                  </div>
+
+                  {ch.tabId
+                    ? <ChevronRight size={13} color={COLORS.textMuted} />
+                    : <span style={{ fontSize: 9, color: COLORS.textMuted, minWidth: 13 }}>Phase2↑</span>
+                  }
+                </div>
+              );
+            })}
+
+            {/* 計算問題正答率グラフ */}
+            {calcChartData.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.highlight, marginBottom: 8 }}>
+                  計算問題 正答率（苦手順）
+                </div>
+                <ResponsiveContainer width="100%" height={120}>
+                  <BarChart data={calcChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(v) => `${v}%`} />
+                    <Bar dataKey="rate" fill={COLORS.highlight} radius={[4, 4, 0, 0]} />
+                    <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <span
-                style={{
-                  fontSize:   11,
-                  fontWeight: 700,
-                  color:      done === all ? COLORS.secondary : COLORS.textLight,
-                  minWidth:   28,
-                  textAlign:  "right",
-                }}
-              >
-                {done}/{all}
-              </span>
-              <ChevronRight size={13} color={COLORS.textMuted} />
-            </div>
-          );
-        })}
+            )}
 
-        {/* 計算問題正答率グラフ（履歴がある場合のみ） */}
-        {calcChartData.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.highlight, marginBottom: 8 }}>
-              計算問題 正答率（苦手順）
-            </div>
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={calcChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v) => `${v}%`} />
-                <Bar dataKey="rate" fill={COLORS.highlight} radius={[4, 4, 0, 0]} />
-                <ReferenceLine y={60} stroke={COLORS.danger} strokeDasharray="4 2" />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* リセットボタン */}
+            <button
+              style={{ ...STYLES.btnOutline, width: "100%", marginTop: 12, fontSize: 12 }}
+              onClick={() => {
+                if (window.confirm("学習進捗・テスト履歴をすべてリセットしますか？")) {
+                  setState(INITIAL_STATE);
+                }
+              }}
+            >
+              <RefreshCw size={12} style={{ marginRight: 5 }} /> 進捗をリセット
+            </button>
           </div>
-        )}
-
-        {/* リセットボタン */}
-        <button
-          style={{ ...STYLES.btnOutline, width: "100%", marginTop: 12, fontSize: 12 }}
-          onClick={() => {
-            if (window.confirm("学習進捗・テスト履歴をすべてリセットしますか？")) {
-              setState(INITIAL_STATE);
-            }
-          }}
-        >
-          <RefreshCw size={12} style={{ marginRight: 5 }} /> 進捗をリセット
-        </button>
-      </div>
+        );
+      })()}
 
       {/* 模擬試験モーダル */}
       {showMockExam && (
