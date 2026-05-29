@@ -49,9 +49,6 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 ========================================
 */
 
-import { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
-
 // ============================================================
 // デザイントークン
 // ============================================================
