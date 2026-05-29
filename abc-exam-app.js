@@ -11012,7 +11012,7 @@ function HomeTab({
 // ============================================================
 // メインアプリ
 // ============================================================
-export default function ABCExamApp() {
+function ABCExamApp() {
   const [activeTab, setActiveTab] = useState("home");
   const [state, setStateRaw] = useState(loadState);
   const setState = useCallback(updater => {
@@ -11101,5 +11101,5 @@ export default function ABCExamApp() {
   const container = document.getElementById('root');
   if (!container) { console.error('root element not found'); return; }
   const root = ReactDOM.createRoot(container);
-  root.render(React.createElement(App));
+  root.render(React.createElement(ABCExamApp));
 })();
