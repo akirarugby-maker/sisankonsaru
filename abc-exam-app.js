@@ -1,36 +1,33 @@
-const { useState, useEffect, useCallback } = React;
-const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
-        XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-        ReferenceLine, Area, AreaChart, Cell,
-        RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
-const LucideReact = (() => {
-  const mk = (...paths) => function IconComp({ size = 20, color = 'currentColor', style }) {
+'use strict';
+// ─── React globals (loaded via CDN) ────────────────────────────────────
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+// ─── Recharts globals ──────────────────────────────────────────────────
+const {
+  LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  ReferenceLine, Area, AreaChart, Cell,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
+} = Recharts;
+// ─── Lucide icon shim (SVG stubs) ──────────────────────────────────────
+function makeLucide(name) {
+  return function(props) {
+    const { size=24, color='currentColor', strokeWidth=2, style, className } = props || {};
     return React.createElement('svg', {
-      xmlns: 'http://www.w3.org/2000/svg', width: size, height: size,
-      viewBox: '0 0 24 24', fill: 'none', stroke: color,
-      strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', style,
-    }, ...paths.map((d, i) => React.createElement('path', { key: i, d })));
+      xmlns:'http://www.w3.org/2000/svg', width:size, height:size,
+      viewBox:'0 0 24 24', fill:'none', stroke:color,
+      strokeWidth:strokeWidth, strokeLinecap:'round', strokeLinejoin:'round',
+      style:style, className:className
+    });
   };
-  return {
-    Home:        mk('m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z','M9 22V12h6v10'),
-    Search:      mk('M21 21l-4.35-4.35','M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0'),
-    BookOpen:    mk('M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z','M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'),
-    Calculator:  mk('rect x=2 y=2 width=20 height=20 rx=2/','M8 6h8M8 10h8M8 14h4'),
-    BarChart2:   mk('line x1=18 y1=20 x2=18 y2=10/','line x1=12 y1=20 x2=12 y2=4/','line x1=6 y1=20 x2=6 y2=14/'),
-    TrendingUp:  mk('polyline points=23 6 13.5 15.5 8.5 10.5 1 18/','polyline points=17 6 23 6 23 12/'),
-    PieChart:    mk('path d=M21.21 15.89A10 10 0 1 1 8 2.83/','path d=M22 12A10 10 0 0 0 12 2v10z/'),
-    DollarSign:  mk('line x1=12 y1=1 x2=12 y2=23/','path d=M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6/'),
-    Shield:      mk('path d=M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z/'),
-    RefreshCw:   mk('polyline points=23 4 23 10 17 10/','polyline points=1 20 1 14 7 14/','path d=M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15/'),
-    Check:       mk('polyline points=20 6 9 17 4 12/'),
-    ChevronRight:mk('polyline points=9 18 15 12 9 6/'),
-    Award:       mk('circle cx=12 cy=8 r=7/','polyline points=8.21 13.89 7 23 12 20 17 23 15.79 13.88/'),
-    AlertTriangle:mk('path d=M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z/','line x1=12 y1=9 x2=12 y2=13/','line x1=12 y1=17 x2=12.01 y2=17/'),
-    Percent:     mk('line x1=19 y1=5 x2=5 y2=19/','circle cx=6.5 cy=6.5 r=2.5/','circle cx=17.5 cy=17.5 r=2.5/'),
-    Activity:    mk('polyline points=22 12 18 12 15 21 9 3 6 12 2 12/'),
-  };
-})();
-const { Search, BookOpen, Calculator, BarChart2, Home, TrendingUp, PieChart, DollarSign, Shield, RefreshCw, Check, ChevronRight, Award, AlertTriangle, Percent, Activity } = LucideReact;
+}
+const Search=makeLucide('Search'), BookOpen=makeLucide('BookOpen'),
+  Calculator=makeLucide('Calculator'), BarChart2=makeLucide('BarChart2'),
+  Home=makeLucide('Home'), TrendingUp=makeLucide('TrendingUp'),
+  PieChart=makeLucide('PieChart'), DollarSign=makeLucide('DollarSign'),
+  Shield=makeLucide('Shield'), RefreshCw=makeLucide('RefreshCw'),
+  Check=makeLucide('Check'), ChevronRight=makeLucide('ChevronRight'),
+  Award=makeLucide('Award'), AlertTriangle=makeLucide('AlertTriangle'),
+  Percent=makeLucide('Percent'), Activity=makeLucide('Activity');
 
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
@@ -8063,29 +8060,72 @@ function AnalysisSectionA({
   const {
     testHistory
   } = state;
-  const TAB_LABELS = {
-    ethics: "倫理",
-    basics: "基礎",
-    portfolio: "PF理論",
-    products: "金融商品",
-    casestudy: "ケース",
-    calc: "計算"
-  };
-  const radarData = Object.entries(TAB_LABELS).map(([key, subject]) => {
-    const records = key === "calc" ? testHistory.filter(h => h.isCalc) : testHistory.filter(h => h.tab === key);
+
+  // 章をまとめたグループでレーダー表示（7分野）
+  const RADAR_GROUPS = [{
+    key: "g_ethics",
+    label: "倫理・顧客本位",
+    tabs: ["ch1", "ch2", "ethics"]
+  }, {
+    key: "g_basics",
+    label: "資産運用基礎",
+    tabs: ["basics"]
+  }, {
+    key: "g_fs",
+    label: "財務諸表",
+    tabs: ["ch6"]
+  }, {
+    key: "g_pf",
+    label: "PF・CAPM",
+    tabs: ["portfolio"]
+  }, {
+    key: "g_prod",
+    label: "金融商品",
+    tabs: ["products"]
+  }, {
+    key: "g_deriv",
+    label: "デリバティブ",
+    tabs: ["supp2"]
+  }, {
+    key: "g_calc",
+    label: "計算問題",
+    tabs: ["__calc__"]
+  }];
+  const radarData = RADAR_GROUPS.map(({
+    label,
+    tabs
+  }) => {
+    const records = tabs[0] === "__calc__" ? testHistory.filter(h => h.isCalc) : testHistory.filter(h => tabs.includes(h.tab));
     const total = records.length;
     const correct = records.filter(h => h.correct).length;
     return {
-      subject,
+      subject: label,
       正答率: total > 0 ? Math.round(correct / total * 100) : 0,
       fullMark: 100
     };
   });
+
+  // セクション別正答率（chapter × section）
+  const TAB_LABELS = {
+    ch1: "行動経済学",
+    ch2: "ゴールベース",
+    ethics: "倫理・税制",
+    basics: "資産運用基礎",
+    ch6: "財務諸表",
+    portfolio: "PF・CAPM",
+    products: "金融商品",
+    supp2: "デリバティブ",
+    casestudy: "ケース"
+  };
   const TAB_SECTIONS = {
+    ch1: ["A"],
+    ch2: ["A"],
     ethics: ["A", "B", "C"],
     basics: ["A", "B", "C", "D", "E"],
+    ch6: ["A"],
     portfolio: ["A", "B", "C", "D"],
     products: ["A", "B", "C", "D", "E"],
+    supp2: ["A"],
     casestudy: ["A", "B"]
   };
   const sectionData = [];
@@ -8095,7 +8135,7 @@ function AnalysisSectionA({
       if (records.length > 0) {
         const correct = records.filter(h => h.correct).length;
         sectionData.push({
-          name: `${TAB_LABELS[tab]}-${sec}`,
+          name: `${TAB_LABELS[tab]?.slice(0, 4) ?? tab}-${sec}`,
           正答率: Math.round(correct / records.length * 100)
         });
       }
@@ -8120,8 +8160,8 @@ function AnalysisSectionA({
     正答率: Math.round(correct / total * 100)
   }));
   const withData = radarData.filter(d => d.正答率 > 0);
-  const weakTab = withData.sort((a, b) => a.正答率 - b.正答率)[0];
-  const adviceKey = weakTab?.subject === "倫理" ? "weak_ethics" : weakTab?.subject === "計算" ? "weak_calc" : "default";
+  const weakTab = [...withData].sort((a, b) => a.正答率 - b.正答率)[0];
+  const adviceKey = weakTab?.subject === "倫理・顧客本位" ? "weak_ethics" : weakTab?.subject === "計算問題" ? "weak_calc" : "default";
   if (testHistory.length === 0) {
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -9441,10 +9481,31 @@ function buildMockQuestions() {
     ...q,
     tab
   }));
+
+  // 第1章（行動経済学）・第2章（ゴールベース）
+  const ch1Pool = tag(CH1_QUIZZES, "ch1");
+  const ch2Pool = tag(CH2_QUIZZES, "ch2");
+
+  // 第1〜3章（フィデューシャリー・信頼関係・NISA）
   const ethicsPool = tag([...ETHICS_QUIZZES.A, ...ETHICS_QUIZZES.B, ...ETHICS_QUIZZES.C], "ethics");
+
+  // 第4〜5章（リターン・リスク・現在価値・積立）
   const basicsPool = tag([...BASICS_QUIZZES.A, ...BASICS_QUIZZES.B, ...BASICS_QUIZZES.C], "basics");
-  const portfolioPool = tag([...PORTFOLIO_QUIZZES.A, ...PORTFOLIO_QUIZZES.B, ...PORTFOLIO_QUIZZES.C, ...PORTFOLIO_QUIZZES.D], "portfolio");
-  const productsPool = tag([...PRODUCTS_QUIZZES.A, ...PRODUCTS_QUIZZES.B, ...PRODUCTS_QUIZZES.C, ...PRODUCTS_QUIZZES.D, ...PRODUCTS_QUIZZES.E], "products");
+
+  // 第6章（財務諸表）
+  const ch6Pool = tag(CH6_QUIZZES, "ch6");
+
+  // 第7〜8章（ポートフォリオ理論・CAPM）
+  const pfPool = tag([...PORTFOLIO_QUIZZES.A, ...PORTFOLIO_QUIZZES.B, ...PORTFOLIO_QUIZZES.C, ...PORTFOLIO_QUIZZES.D], "portfolio");
+
+  // 第9〜12章（株式・債券・外国証券・投資信託）
+  const productsPool = tag([...PRODUCTS_QUIZZES.A, ...PRODUCTS_QUIZZES.B, ...PRODUCTS_QUIZZES.C, ...PRODUCTS_QUIZZES.D], "products");
+
+  // 補論2（デリバティブ）・補論3（オルタナティブ）
+  const supp2Pool = tag(SUPP2_QUIZZES, "supp2");
+  const supp3Pool = tag(PRODUCTS_QUIZZES.E, "products");
+
+  // ケーススタディ
   const casePool = CASE_STUDIES.flatMap((cs, ci) => cs.questions.map((q, qi) => ({
     id: `case-${ci}-${qi}`,
     tab: "casestudy",
@@ -9452,24 +9513,61 @@ function buildMockQuestions() {
     explanation: q.explanation || "",
     ...q
   })));
-  return [...pick(ethicsPool, 8), ...pick(basicsPool, 10), ...pick(portfolioPool, 10), ...pick(productsPool, 8), ...pick(casePool, 4)];
+
+  // 合計40問：全14章から均等配分
+  return [...pick(ch1Pool, 2),
+  // 第1章  行動経済学      2問
+  ...pick(ch2Pool, 2),
+  // 第2章  ゴールベース    2問
+  ...pick(ethicsPool, 4),
+  // 第1-3章 倫理・税制     4問
+  ...pick(basicsPool, 6),
+  // 第4-5章 資産運用基礎   6問
+  ...pick(ch6Pool, 4),
+  // 第6章  財務諸表        4問
+  ...pick(pfPool, 8),
+  // 第7-8章 PF理論・CAPM  8問
+  ...pick(productsPool, 6),
+  // 第9-12章 金融商品      6問
+  ...pick(supp2Pool, 3),
+  // 補論2  デリバティブ    3問
+  ...pick(supp3Pool, 2),
+  // 補論3  オルタナティブ  2問
+  ...pick(casePool, 3) // ケーススタディ         3問
+  ]; // 計40問
 }
 const MOCK_EXAM_TABS = {
+  ch1: {
+    label: "行動経済学",
+    color: "#16A085"
+  },
+  ch2: {
+    label: "ゴールベース",
+    color: "#4A90D9"
+  },
   ethics: {
-    label: "倫理",
+    label: "倫理・税制",
     color: COLORS.secondary
   },
   basics: {
-    label: "基礎",
+    label: "資産運用基礎",
     color: COLORS.accent
   },
+  ch6: {
+    label: "財務諸表",
+    color: "#27AE60"
+  },
   portfolio: {
-    label: "PF理論",
+    label: "PF・CAPM",
     color: COLORS.highlight
   },
   products: {
     label: "金融商品",
     color: "#E67E22"
+  },
+  supp2: {
+    label: "デリバティブ",
+    color: "#E74C3C"
   },
   casestudy: {
     label: "ケース",
@@ -9607,7 +9705,7 @@ function MockExam({
       gap: 6,
       marginBottom: 16
     }
-  }, [["形式", "4肢択一・40問"], ["制限時間", "60分"], ["合格基準", "60点以上（60%）"], ["出題構成", "倫理8問・基礎10問・PF理論10問・金融商品8問・ケース4問"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
+  }, [["形式", "4肢択一・40問"], ["制限時間", "60分"], ["合格基準", "60点以上（60%）"], ["出題構成", "全14章から均等配分（行動経済学・ゴールベース・倫理・基礎・財務諸表・PF理論・CAPM・金融商品・デリバティブ・ケース）"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
     key: k,
     style: {
       display: "flex",
@@ -10806,7 +10904,7 @@ function HomeTab({
 // ============================================================
 // メインアプリ
 // ============================================================
-function ABCExamApp() {
+export default function ABCExamApp() {
   const [activeTab, setActiveTab] = useState("home");
   const [state, setStateRaw] = useState(loadState);
   const setState = useCallback(updater => {
@@ -10890,4 +10988,11 @@ function ABCExamApp() {
     onTabChange: setActiveTab
   }));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ABCExamApp));
+
+// ─── Mount ────────────────────────────────────────────────────────────
+(function() {
+  const container = document.getElementById('root');
+  if (!container) { console.error('root element not found'); return; }
+  const root = ReactDOM.createRoot(container);
+  root.render(React.createElement(App));
+})();

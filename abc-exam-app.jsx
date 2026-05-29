@@ -6207,29 +6207,48 @@ const FORGETTING_CURVE_DATA = generateForgettingCurve();
 // --- AnalysisSectionA: 正答率分析 ---
 function AnalysisSectionA({ state }) {
   const { testHistory } = state;
-  const TAB_LABELS = {
-    ethics:    "倫理",
-    basics:    "基礎",
-    portfolio: "PF理論",
-    products:  "金融商品",
-    casestudy: "ケース",
-    calc:      "計算",
-  };
 
-  const radarData = Object.entries(TAB_LABELS).map(([key, subject]) => {
-    const records = key === "calc"
+  // 章をまとめたグループでレーダー表示（7分野）
+  const RADAR_GROUPS = [
+    { key: "g_ethics",  label: "倫理・顧客本位", tabs: ["ch1","ch2","ethics"] },
+    { key: "g_basics",  label: "資産運用基礎",   tabs: ["basics"] },
+    { key: "g_fs",      label: "財務諸表",        tabs: ["ch6"] },
+    { key: "g_pf",      label: "PF・CAPM",        tabs: ["portfolio"] },
+    { key: "g_prod",    label: "金融商品",         tabs: ["products"] },
+    { key: "g_deriv",   label: "デリバティブ",     tabs: ["supp2"] },
+    { key: "g_calc",    label: "計算問題",          tabs: ["__calc__"] },
+  ];
+
+  const radarData = RADAR_GROUPS.map(({ label, tabs }) => {
+    const records = tabs[0] === "__calc__"
       ? testHistory.filter((h) => h.isCalc)
-      : testHistory.filter((h) => h.tab === key);
+      : testHistory.filter((h) => tabs.includes(h.tab));
     const total   = records.length;
     const correct = records.filter((h) => h.correct).length;
-    return { subject, 正答率: total > 0 ? Math.round((correct / total) * 100) : 0, fullMark: 100 };
+    return { subject: label, 正答率: total > 0 ? Math.round((correct / total) * 100) : 0, fullMark: 100 };
   });
 
+  // セクション別正答率（chapter × section）
+  const TAB_LABELS = {
+    ch1:       "行動経済学",
+    ch2:       "ゴールベース",
+    ethics:    "倫理・税制",
+    basics:    "資産運用基礎",
+    ch6:       "財務諸表",
+    portfolio: "PF・CAPM",
+    products:  "金融商品",
+    supp2:     "デリバティブ",
+    casestudy: "ケース",
+  };
   const TAB_SECTIONS = {
+    ch1:       ["A"],
+    ch2:       ["A"],
     ethics:    ["A","B","C"],
     basics:    ["A","B","C","D","E"],
+    ch6:       ["A"],
     portfolio: ["A","B","C","D"],
     products:  ["A","B","C","D","E"],
+    supp2:     ["A"],
     casestudy: ["A","B"],
   };
   const sectionData = [];
@@ -6238,7 +6257,7 @@ function AnalysisSectionA({ state }) {
       const records = testHistory.filter((h) => h.tab === tab && h.section === sec);
       if (records.length > 0) {
         const correct = records.filter((h) => h.correct).length;
-        sectionData.push({ name: `${TAB_LABELS[tab]}-${sec}`, 正答率: Math.round((correct / records.length) * 100) });
+        sectionData.push({ name: `${TAB_LABELS[tab]?.slice(0,4) ?? tab}-${sec}`, 正答率: Math.round((correct / records.length) * 100) });
       }
     });
   });
@@ -6256,8 +6275,10 @@ function AnalysisSectionA({ state }) {
     .map(([date, { correct, total }]) => ({ date: date.slice(5), 正答率: Math.round((correct / total) * 100) }));
 
   const withData = radarData.filter((d) => d.正答率 > 0);
-  const weakTab  = withData.sort((a, b) => a.正答率 - b.正答率)[0];
-  const adviceKey = weakTab?.subject === "倫理" ? "weak_ethics" : weakTab?.subject === "計算" ? "weak_calc" : "default";
+  const weakTab  = [...withData].sort((a, b) => a.正答率 - b.正答率)[0];
+  const adviceKey = weakTab?.subject === "倫理・顧客本位" ? "weak_ethics"
+    : weakTab?.subject === "計算問題" ? "weak_calc"
+    : "default";
 
   if (testHistory.length === 0) {
     return (
@@ -6941,33 +6962,63 @@ function AnalysisTab({ state, setState }) {
 function buildMockQuestions() {
   const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
   const pick    = (arr, n) => shuffle(arr).slice(0, Math.min(n, arr.length));
+  const tag     = (arr, tab) => arr.map((q) => ({ ...q, tab }));
 
-  const tag = (arr, tab) => arr.map((q) => ({ ...q, tab }));
-  const ethicsPool    = tag([...ETHICS_QUIZZES.A,    ...ETHICS_QUIZZES.B,    ...ETHICS_QUIZZES.C],    "ethics");
-  const basicsPool    = tag([...BASICS_QUIZZES.A,    ...BASICS_QUIZZES.B,    ...BASICS_QUIZZES.C],    "basics");
-  const portfolioPool = tag([...PORTFOLIO_QUIZZES.A, ...PORTFOLIO_QUIZZES.B, ...PORTFOLIO_QUIZZES.C, ...PORTFOLIO_QUIZZES.D], "portfolio");
-  const productsPool  = tag([...PRODUCTS_QUIZZES.A,  ...PRODUCTS_QUIZZES.B,  ...PRODUCTS_QUIZZES.C, ...PRODUCTS_QUIZZES.D, ...PRODUCTS_QUIZZES.E], "products");
-  const casePool      = CASE_STUDIES.flatMap((cs, ci) =>
+  // 第1章（行動経済学）・第2章（ゴールベース）
+  const ch1Pool     = tag(CH1_QUIZZES, "ch1");
+  const ch2Pool     = tag(CH2_QUIZZES, "ch2");
+
+  // 第1〜3章（フィデューシャリー・信頼関係・NISA）
+  const ethicsPool  = tag([...ETHICS_QUIZZES.A, ...ETHICS_QUIZZES.B, ...ETHICS_QUIZZES.C], "ethics");
+
+  // 第4〜5章（リターン・リスク・現在価値・積立）
+  const basicsPool  = tag([...BASICS_QUIZZES.A, ...BASICS_QUIZZES.B, ...BASICS_QUIZZES.C], "basics");
+
+  // 第6章（財務諸表）
+  const ch6Pool     = tag(CH6_QUIZZES, "ch6");
+
+  // 第7〜8章（ポートフォリオ理論・CAPM）
+  const pfPool      = tag([...PORTFOLIO_QUIZZES.A, ...PORTFOLIO_QUIZZES.B, ...PORTFOLIO_QUIZZES.C, ...PORTFOLIO_QUIZZES.D], "portfolio");
+
+  // 第9〜12章（株式・債券・外国証券・投資信託）
+  const productsPool = tag([...PRODUCTS_QUIZZES.A, ...PRODUCTS_QUIZZES.B, ...PRODUCTS_QUIZZES.C, ...PRODUCTS_QUIZZES.D], "products");
+
+  // 補論2（デリバティブ）・補論3（オルタナティブ）
+  const supp2Pool   = tag(SUPP2_QUIZZES,          "supp2");
+  const supp3Pool   = tag(PRODUCTS_QUIZZES.E,     "products");
+
+  // ケーススタディ
+  const casePool    = CASE_STUDIES.flatMap((cs, ci) =>
     cs.questions.map((q, qi) => ({
       id: `case-${ci}-${qi}`, tab: "casestudy", keyword: cs.title, explanation: q.explanation || "", ...q,
     }))
   );
 
+  // 合計40問：全14章から均等配分
   return [
-    ...pick(ethicsPool,    8),
-    ...pick(basicsPool,    10),
-    ...pick(portfolioPool, 10),
-    ...pick(productsPool,  8),
-    ...pick(casePool,      4),
-  ];
+    ...pick(ch1Pool,      2),   // 第1章  行動経済学      2問
+    ...pick(ch2Pool,      2),   // 第2章  ゴールベース    2問
+    ...pick(ethicsPool,   4),   // 第1-3章 倫理・税制     4問
+    ...pick(basicsPool,   6),   // 第4-5章 資産運用基礎   6問
+    ...pick(ch6Pool,      4),   // 第6章  財務諸表        4問
+    ...pick(pfPool,       8),   // 第7-8章 PF理論・CAPM  8問
+    ...pick(productsPool, 6),   // 第9-12章 金融商品      6問
+    ...pick(supp2Pool,    3),   // 補論2  デリバティブ    3問
+    ...pick(supp3Pool,    2),   // 補論3  オルタナティブ  2問
+    ...pick(casePool,     3),   // ケーススタディ         3問
+  ]; // 計40問
 }
 
 const MOCK_EXAM_TABS = {
-  ethics:    { label: "倫理",      color: COLORS.secondary },
-  basics:    { label: "基礎",      color: COLORS.accent    },
-  portfolio: { label: "PF理論",    color: COLORS.highlight },
-  products:  { label: "金融商品",  color: "#E67E22"        },
-  casestudy: { label: "ケース",    color: "#16A085"        },
+  ch1:       { label: "行動経済学",    color: "#16A085" },
+  ch2:       { label: "ゴールベース",  color: "#4A90D9" },
+  ethics:    { label: "倫理・税制",    color: COLORS.secondary },
+  basics:    { label: "資産運用基礎",  color: COLORS.accent    },
+  ch6:       { label: "財務諸表",      color: "#27AE60" },
+  portfolio: { label: "PF・CAPM",      color: COLORS.highlight },
+  products:  { label: "金融商品",      color: "#E67E22"        },
+  supp2:     { label: "デリバティブ",  color: "#E74C3C"        },
+  casestudy: { label: "ケース",        color: "#16A085"        },
 };
 
 function MockExam({ state, setState, onClose }) {
@@ -7066,7 +7117,7 @@ function MockExam({ state, setState, onClose }) {
         <p style={{ fontWeight: 900, fontSize: 20, color: COLORS.primary, margin: "0 0 12px", textAlign: "center" }}>📝 模擬試験</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
           {[["形式","4肢択一・40問"], ["制限時間","60分"], ["合格基準","60点以上（60%）"],
-            ["出題構成","倫理8問・基礎10問・PF理論10問・金融商品8問・ケース4問"]
+            ["出題構成","全14章から均等配分（行動経済学・ゴールベース・倫理・基礎・財務諸表・PF理論・CAPM・金融商品・デリバティブ・ケース）"]
           ].map(([k, v]) => (
             <div key={k} style={{ display: "flex", gap: 8, fontSize: 13 }}>
               <span style={{ color: COLORS.textLight, minWidth: 72, fontWeight: 600 }}>{k}</span>
