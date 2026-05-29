@@ -163,10 +163,12 @@ const INITIAL_PROGRESS = {
   analysis:  { analyzed: false },
 };
 
-// 教本章別進捗（第1章・第2章の新規クイズ用）
+// 教本章別進捗（新規クイズ用: 既存タブで追跡できない章）
 const INITIAL_CHAP_PROGRESS = {
-  ch1: { A: false },
-  ch2: { A: false },
+  ch1:   { A: false },
+  ch2:   { A: false },
+  ch6:   { A: false },
+  supp2: { A: false },
 };
 
 const INITIAL_STATE = {
@@ -265,34 +267,34 @@ const CHAPTERS_META = [
   { id: "ch3",   num: "第3章",  title: "資産運用と税制",          subtitle: "NISA・iDeCo・税制優遇",           color: "#E67E22", tabId: "ethics",    sections: { A: "税制・口座" } },
   { id: "ch4",   num: "第4章",  title: "資産運用の基礎",          subtitle: "リターン・リスク・統計",           color: "#9B59B6", tabId: "basics",    sections: { A: "期待リターン", B: "リスク計算" } },
   { id: "ch5",   num: "第5章",  title: "資産形成の実務",          subtitle: "現在価値・積立・長期投資",         color: "#3498DB", tabId: "basics",    sections: { A: "時間価値", B: "積立実務", C: "長期戦略" } },
-  { id: "ch6",   num: "第6章",  title: "財務諸表の活用",          subtitle: "PER・PBR・ROE・財務分析",         color: "#27AE60", tabId: "basics",    sections: { A: "財務分析" } },
+  { id: "ch6",   num: "第6章",  title: "財務諸表の活用",          subtitle: "PER・PBR・ROE・財務分析",         color: "#27AE60", tabId: "basics",    sections: { A: "財務諸表" } },
   { id: "ch7",   num: "第7章",  title: "ポートフォリオ理論",      subtitle: "相関係数・分散効果・効率的PF",     color: "#8E44AD", tabId: "portfolio", sections: { A: "分散効果", B: "市場線" } },
   { id: "ch8",   num: "第8章",  title: "CAPM・評価モデル",        subtitle: "ベータ・シャープ・情報レシオ",     color: "#C0392B", tabId: "portfolio", sections: { A: "CAPM", B: "評価指標" } },
   { id: "ch9",   num: "第9章",  title: "株式投資",                subtitle: "PER・PBR・配当割引モデル",        color: "#2ECC71", tabId: "products",  sections: { A: "株式評価" } },
   { id: "ch10",  num: "第10章", title: "債券投資",                subtitle: "金利・デュレーション・イールド",   color: "#E74C3C", tabId: "products",  sections: { A: "債券分析" } },
   { id: "ch11",  num: "第11章", title: "外国投資・外国株式",      subtitle: "為替・外貨建て資産",               color: "#1ABC9C", tabId: "products",  sections: { A: "外国投資" } },
   { id: "ch12",  num: "第12章", title: "投資信託",                subtitle: "アクティブ・パッシブ・ESG",        color: "#F39C12", tabId: "products",  sections: { A: "投資信託" } },
-  { id: "supp2", num: "補論2",  title: "デリバティブ取引",        subtitle: "先物・オプション・スワップ",       color: "#E74C3C", tabId: null,        sections: { A: "デリバティブ" } },
+  { id: "supp2", num: "補論2",  title: "デリバティブ取引",        subtitle: "先物・オプション・スワップ",       color: "#E74C3C", tabId: "products",  sections: { A: "デリバティブ" } },
   { id: "supp3", num: "補論3",  title: "オルタナティブ投資",      subtitle: "REIT・ヘッジファンド・不動産",     color: "#95A5A6", tabId: "products",  sections: { A: "オルタナティブ" } },
 ];
 
 // 全章の進捗を統合して返すヘルパー
 function computeAllChapProgress(progress, chapProgress) {
   return {
-    ch1:   { A: chapProgress?.ch1?.A ?? false },
-    ch2:   { A: chapProgress?.ch2?.A ?? false },
-    ch3:   { A: progress.ethics?.C   ?? false },
-    ch4:   { A: progress.basics?.A   ?? false,  B: progress.basics?.B ?? false },
-    ch5:   { A: progress.basics?.C   ?? false,  B: progress.basics?.D ?? false, C: progress.basics?.E ?? false },
-    ch6:   { A: false },
-    ch7:   { A: progress.portfolio?.A ?? false, B: progress.portfolio?.B ?? false },
-    ch8:   { A: progress.portfolio?.C ?? false, B: progress.portfolio?.D ?? false },
-    ch9:   { A: progress.products?.A  ?? false },
-    ch10:  { A: progress.products?.B  ?? false },
-    ch11:  { A: progress.products?.C  ?? false },
-    ch12:  { A: progress.products?.D  ?? false },
-    supp2: { A: false },
-    supp3: { A: progress.products?.E  ?? false },
+    ch1:   { A: chapProgress?.ch1?.A   ?? false },
+    ch2:   { A: chapProgress?.ch2?.A   ?? false },
+    ch3:   { A: progress.ethics?.C     ?? false },
+    ch4:   { A: progress.basics?.A     ?? false, B: progress.basics?.B ?? false },
+    ch5:   { A: progress.basics?.C     ?? false, B: progress.basics?.D ?? false, C: progress.basics?.E ?? false },
+    ch6:   { A: chapProgress?.ch6?.A   ?? false },
+    ch7:   { A: progress.portfolio?.A  ?? false, B: progress.portfolio?.B ?? false },
+    ch8:   { A: progress.portfolio?.C  ?? false, B: progress.portfolio?.D ?? false },
+    ch9:   { A: progress.products?.A   ?? false },
+    ch10:  { A: progress.products?.B   ?? false },
+    ch11:  { A: progress.products?.C   ?? false },
+    ch12:  { A: progress.products?.D   ?? false },
+    supp2: { A: chapProgress?.supp2?.A ?? false },
+    supp3: { A: progress.products?.E   ?? false },
   };
 }
 
@@ -1383,6 +1385,310 @@ const CH2_QUIZZES = [
     answer: 1,
     explanation: "「長期・積立・分散」は金融庁も推奨する資産形成の基本方針。ドルコスト平均法による積立効果、時間分散・地域分散・アセットクラス分散によるリスク低減が期待される。",
     keyword: "長期積立分散投資",
+  },
+];
+
+// ============================================================
+// 第6章 財務諸表クイズ（CH6_QUIZZES）
+// ============================================================
+const CH6_QUIZZES = [
+  {
+    id: "ch6-fs-1",
+    q: "貸借対照表（B/S）が示すものとして正しいものはどれか？",
+    choices: [
+      "一定期間の収益・費用・利益の流れ",
+      "特定時点における資産・負債・純資産の残高",
+      "一定期間の現金の収支",
+      "株主資本の変動の履歴",
+    ],
+    answer: 1,
+    explanation: "貸借対照表（Balance Sheet）は特定時点（決算日）の財政状態を示す。「資産 = 負債 + 純資産」という会計等式が常に成り立つ。",
+    keyword: "貸借対照表",
+  },
+  {
+    id: "ch6-fs-2",
+    q: "損益計算書（P/L）で最初に表示される利益の段階はどれか？",
+    choices: [
+      "経常利益",
+      "売上総利益（粗利益）",
+      "営業利益",
+      "当期純利益",
+    ],
+    answer: 1,
+    explanation: "P/Lの利益段階：①売上総利益→②営業利益→③経常利益→④税引前当期純利益→⑤当期純利益の順。売上高から売上原価を引いた「売上総利益（粗利益）」が最初。",
+    keyword: "損益計算書",
+  },
+  {
+    id: "ch6-fs-3",
+    q: "ROE（自己資本利益率）の計算式として正しいものはどれか？",
+    choices: [
+      "当期純利益 ÷ 自己資本 × 100",
+      "当期純利益 ÷ 総資産 × 100",
+      "営業利益 ÷ 自己資本 × 100",
+      "売上総利益 ÷ 自己資本 × 100",
+    ],
+    answer: 0,
+    explanation: "ROE（Return on Equity）= 当期純利益 ÷ 自己資本 × 100。株主から見た投資効率を示す。日本企業の目標水準として10%以上が目安とされる。",
+    keyword: "ROE",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-4",
+    q: "ROA（総資産利益率）の計算式として正しいものはどれか？",
+    choices: [
+      "当期純利益 ÷ 自己資本 × 100",
+      "営業利益 ÷ 自己資本 × 100",
+      "当期純利益（または営業利益）÷ 総資産 × 100",
+      "売上高 ÷ 総資産 × 100",
+    ],
+    answer: 2,
+    explanation: "ROA（Return on Assets）= 純利益÷総資産×100。経営者が総資産をどれだけ効率的に活用して利益を生んだかを示す。ROE < ROAの場合、負債活用の効果がない。",
+    keyword: "ROA",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-5",
+    q: "PBR（株価純資産倍率）が1倍未満の状態が示すこととして正しいものはどれか？",
+    choices: [
+      "株価が1株当たり純資産（BPS）を下回っており、理論上は割安",
+      "株価が過大評価されている",
+      "企業の収益性が業界平均より高い",
+      "株主還元が積極的である",
+    ],
+    answer: 0,
+    explanation: "PBR = 株価 ÷ BPS（1株当たり純資産）。PBR < 1は株価が解散価値を下回る状態。理論上は割安だが、低PBRが続く場合は事業の将来性に問題がある可能性もある。",
+    keyword: "PBR",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-6",
+    q: "流動比率の計算式と、一般的な「健全」水準の組み合わせとして正しいものはどれか？",
+    choices: [
+      "流動負債 ÷ 流動資産 × 100、200%以上",
+      "流動資産 ÷ 流動負債 × 100、200%以上",
+      "流動資産 ÷ 固定資産 × 100、100%以上",
+      "固定負債 ÷ 流動資産 × 100、50%以下",
+    ],
+    answer: 1,
+    explanation: "流動比率 = 流動資産 ÷ 流動負債 × 100。短期債務の返済能力を示す安全性指標。一般的に200%以上が「健全」とされるが業種による差が大きい。",
+    keyword: "流動比率",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-7",
+    q: "キャッシュフロー計算書における「営業CF」の説明として正しいものはどれか？",
+    choices: [
+      "設備投資や有価証券の売買による現金の増減",
+      "借入や社債発行による現金の増減",
+      "本業の事業活動から生じる現金の増減",
+      "配当金の支払いによる現金の減少",
+    ],
+    answer: 2,
+    explanation: "営業CFは本業から生み出すキャッシュを示す。健全企業は営業CFがプラスであることが重要。「黒字倒産」は損益が黒字でも営業CFがマイナスになる状態で起こる。",
+    keyword: "営業キャッシュフロー",
+  },
+  {
+    id: "ch6-fs-8",
+    q: "自己資本比率の計算式として正しいものはどれか？",
+    choices: [
+      "自己資本 ÷ 負債 × 100",
+      "自己資本 ÷ 総資産 × 100",
+      "純利益 ÷ 自己資本 × 100",
+      "負債 ÷ 総資産 × 100",
+    ],
+    answer: 1,
+    explanation: "自己資本比率 = 自己資本 ÷ 総資産 × 100。企業の財務安全性を示す。一般的に40%以上で「安全」とされるが、業種・規模によって基準が異なる。",
+    keyword: "自己資本比率",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-9",
+    q: "配当利回りの計算式として正しいものはどれか？",
+    choices: [
+      "1株当たり利益（EPS）÷ 株価 × 100",
+      "1株当たり純資産（BPS）÷ 株価 × 100",
+      "1株当たり年間配当金 ÷ 株価 × 100",
+      "株価 ÷ 1株当たり配当金 × 100",
+    ],
+    answer: 2,
+    explanation: "配当利回り = 1株当たり年間配当金 ÷ 株価 × 100。投資金額に対する配当収益の割合。株価が下落しても利回りが上昇する点に注意（利回り上昇＝割安とは限らない）。",
+    keyword: "配当利回り",
+    isCalc: true,
+  },
+  {
+    id: "ch6-fs-10",
+    q: "デュポン分析（DuPont Analysis）でROEを3分解した式として正しいものはどれか？",
+    choices: [
+      "ROE = 売上高純利益率 × 総資産回転率 × 財務レバレッジ",
+      "ROE = 売上高成長率 × 株式回転率 × 配当利回り",
+      "ROE = 営業利益率 × 自己資本回転率 × 流動比率",
+      "ROE = PER × PBR × 配当性向",
+    ],
+    answer: 0,
+    explanation: "デュポン分析：ROE = 純利益率（収益性）× 総資産回転率（効率性）× 財務レバレッジ（安全性の逆）。ROEの改善要因を3分解することで経営課題が特定できる。",
+    keyword: "デュポン分析",
+  },
+  {
+    id: "ch6-fs-11",
+    q: "EV/EBITDA倍率の説明として正しいものはどれか？",
+    choices: [
+      "時価総額を1株当たり利益で割った株価評価指標",
+      "企業価値（時価総額＋純有利子負債）をEBITDAで割った企業評価指標",
+      "純資産を総資産で割った安全性指標",
+      "営業利益を売上高で割った収益性指標",
+    ],
+    answer: 1,
+    explanation: "EV/EBITDA = 企業価値（EV：時価総額＋有利子負債－現金）÷ EBITDA（利払・税・償却前利益）。国際比較や企業買収価値評価に使われ、国や業種を超えた比較が可能。",
+    keyword: "EV/EBITDA",
+  },
+  {
+    id: "ch6-fs-12",
+    q: "インタレスト・カバレッジ・レシオの説明として正しいものはどれか？",
+    choices: [
+      "流動資産が流動負債を何倍カバーしているかを示す短期安全性指標",
+      "営業利益（EBIT）が支払利息を何倍カバーしているかを示す安全性指標",
+      "自己資本が有利子負債を何倍カバーしているかを示す財務健全性指標",
+      "売上高が固定費を何倍カバーしているかを示す損益分岐点指標",
+    ],
+    answer: 1,
+    explanation: "インタレスト・カバレッジ・レシオ = 営業利益 ÷ 支払利息。利息支払い能力を示し、1倍を下回ると営業利益で利息を払えない危険な状態。通常3倍以上が望ましい。",
+    keyword: "インタレスト・カバレッジ",
+  },
+];
+
+// ============================================================
+// 補論2 デリバティブ取引クイズ（SUPP2_QUIZZES）
+// ============================================================
+const SUPP2_QUIZZES = [
+  {
+    id: "supp2-d-1",
+    q: "デリバティブ（金融派生商品）の説明として正しいものはどれか？",
+    choices: [
+      "国債や社債など元本が保証された固定収益商品",
+      "株式・債券・為替などの原資産の価格変動に基づいて価値が決まる金融商品",
+      "投資信託を複数組み合わせたラップ型金融商品",
+      "預金に上乗せ金利が付く仕組預金",
+    ],
+    answer: 1,
+    explanation: "デリバティブ（derivative）は「派生」を意味し、株価・金利・為替・商品価格などの原資産価格から派生して価値が決まる金融商品の総称。ヘッジや投機に活用される。",
+    keyword: "デリバティブ",
+  },
+  {
+    id: "supp2-d-2",
+    q: "先物取引の説明として正しいものはどれか？",
+    choices: [
+      "将来の特定日に特定価格で原資産を売買することを約束する取引",
+      "原資産を買う権利を売買する取引",
+      "2つのキャッシュフローを交換する取引",
+      "原資産を現時点の価格で即座に売買する取引（現物取引）",
+    ],
+    answer: 0,
+    explanation: "先物（futures）は将来の特定日（満期日）に、あらかじめ合意した価格で売買する契約。買い手・売り手ともに義務が生じる点がオプションと異なる。取引所で標準化されている。",
+    keyword: "先物取引",
+  },
+  {
+    id: "supp2-d-3",
+    q: "コール・オプション（call option）の説明として正しいものはどれか？",
+    choices: [
+      "特定の原資産を一定価格（行使価格）で売る権利",
+      "特定の原資産の価格変動に連動して損益が決まる義務的な契約",
+      "特定の原資産を一定価格（行使価格）で買う権利",
+      "将来の金利差を受け取る権利",
+    ],
+    answer: 2,
+    explanation: "コール・オプションは原資産を「行使価格で買う権利」。原資産価格が行使価格より高くなれば行使して利益を得る。権利の対価として「プレミアム」を支払う。",
+    keyword: "コールオプション",
+  },
+  {
+    id: "supp2-d-4",
+    q: "プット・オプション（put option）の説明として正しいものはどれか？",
+    choices: [
+      "特定の原資産を一定価格（行使価格）で買う権利",
+      "特定の原資産を一定価格（行使価格）で売る権利",
+      "将来の決められた日に原資産を売買する義務",
+      "2つの固定・変動金利を交換する権利",
+    ],
+    answer: 1,
+    explanation: "プット・オプションは原資産を「行使価格で売る権利」。原資産価格が行使価格より低くなれば行使して利益を得る。株式ポートフォリオの下落リスクヘッジに活用される。",
+    keyword: "プットオプション",
+  },
+  {
+    id: "supp2-d-5",
+    q: "オプション取引における「プレミアム（option premium）」とは何か？",
+    choices: [
+      "オプションの利益（行使価格と市場価格の差額）",
+      "オプションの権利を取得するために支払う対価（オプション料）",
+      "オプション取引にかかる取引所手数料",
+      "オプションの満期時に受け取るキャッシュフロー",
+    ],
+    answer: 1,
+    explanation: "プレミアムはオプションの価格であり、権利を買う対価。プレミアムは「本質的価値」（即行使した場合の価値）と「時間的価値」（残存期間に対する期待）で構成される。",
+    keyword: "オプションプレミアム",
+  },
+  {
+    id: "supp2-d-6",
+    q: "先物取引とオプション取引の主な違いとして正しいものはどれか？",
+    choices: [
+      "先物は売買の義務が生じるが、オプションは権利であり行使は任意",
+      "先物は取引所のみだが、オプションはOTC（店頭）でのみ取引される",
+      "先物は株式のみ対象だが、オプションはあらゆる資産が対象",
+      "先物は短期、オプションは長期の取引にのみ利用される",
+    ],
+    answer: 0,
+    explanation: "先物は売買双方に義務（取引しない自由はない）。オプション買い手は行使するかどうかを選べる。行使しなければプレミアムだけが損失。この「義務と権利の違い」が核心。",
+    keyword: "先物とオプションの違い",
+  },
+  {
+    id: "supp2-d-7",
+    q: "金利スワップ（interest rate swap）の最も一般的な形態はどれか？",
+    choices: [
+      "日本円と米ドルの元本を交換する取引",
+      "株式の配当と債券の利子を交換する取引",
+      "固定金利の支払いと変動金利の受け取りを交換する取引",
+      "現物株と先物の差額を交換する取引",
+    ],
+    answer: 2,
+    explanation: "金利スワップの典型は「固定金利支払い ↔ 変動金利受け取り」。変動金利の借入れを実質固定化するヘッジや、金利変動を利用した運用戦略に活用される。元本は交換しない。",
+    keyword: "金利スワップ",
+  },
+  {
+    id: "supp2-d-8",
+    q: "デリバティブを活用した「ヘッジ取引」の目的として正しいものはどれか？",
+    choices: [
+      "レバレッジを利かせて投資リターンを最大化すること",
+      "税金の支払いを将来に繰り延べること",
+      "既存の資産・負債が持つリスクを相殺・軽減すること",
+      "市場平均（ベンチマーク）を上回る超過収益を狙うこと",
+    ],
+    answer: 2,
+    explanation: "ヘッジ取引（hedging）は「生け垣」が語源で、既存ポジションのリスクを反対ポジションで相殺する戦略。為替ヘッジ・金利ヘッジ・株価ヘッジなどがある。",
+    keyword: "ヘッジ取引",
+  },
+  {
+    id: "supp2-d-9",
+    q: "原資産価格の上昇によって損失が生じるデリバティブポジションはどれか？",
+    choices: [
+      "コール・オプションの買い（ロング・コール）",
+      "プット・オプションの買い（ロング・プット）",
+      "先物の買い（ロング・ポジション）",
+      "コール・オプションの売り（ショート・コール）",
+    ],
+    answer: 3,
+    explanation: "コールオプション売り（ショートコール）は原資産が上昇すると、相手（買い手）が行使してくるため損失が拡大する（理論上無限大）。ヘッジなしの「裸のコール売り」は最もリスクが高い。",
+    keyword: "デリバティブポジション",
+  },
+  {
+    id: "supp2-d-10",
+    q: "為替予約（currency forward）の説明として正しいものはどれか？",
+    choices: [
+      "外貨を市場の現在レート（スポットレート）で即座に交換する取引",
+      "将来の特定日に特定の為替レートで外貨と円を交換することを約束する取引",
+      "外貨建て資産から受け取る利子をヘッジする金利スワップの一種",
+      "オプション取引を使って為替の下落リスクだけを回避する取引",
+    ],
+    answer: 1,
+    explanation: "為替予約は将来の売買レートを現時点で確定する先渡し取引（OTC先物）。輸出入企業が為替リスクをヘッジするのに活用。確定レートはスポットレートに「スワップコスト」を加味した水準。",
+    keyword: "為替予約",
   },
 ];
 
@@ -3944,11 +4250,21 @@ const ALL_BASICS_SECTIONS = [
   { id: "C", label: "C: 現在価値" },
   { id: "D", label: "D: 統計" },
   { id: "E", label: "E: 資産配分" },
+  { id: "F", label: "F: 財務諸表" },
 ];
 
 function BasicsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = COLORS.accent;
+
+  // F セクションは chapProgress で追跡
+  const combinedProgress = {
+    ...state.progress,
+    basics: {
+      ...state.progress.basics,
+      F: state.chapProgress?.ch6?.A ?? false,
+    },
+  };
 
   const renderSection = () => {
     switch (section) {
@@ -3957,43 +4273,105 @@ function BasicsTab({ state, setState }) {
       case "C": return <PVSection               color={color} />;
       case "D": return <StatsSection            color={color} />;
       case "E": return <AssetAllocationSection  color={color} />;
+      case "F": return <BasicsSectionF color={color} state={state} setState={setState} />;
       default:  return null;
     }
   };
 
   const quizMap = { A: BASICS_QUIZZES.A, B: BASICS_QUIZZES.B, C: BASICS_QUIZZES.C, D: BASICS_QUIZZES.C, E: BASICS_QUIZZES.C };
   const quizKey = `_quizOpenBasics${section}`;
-  const done    = state.progress.basics?.[section];
+  const done    = section === "F" ? (state.chapProgress?.ch6?.A ?? false) : (state.progress.basics?.[section]);
 
   return (
     <div style={{ padding: "14px 14px 24px" }}>
       <PageHeader
         title="資産運用の基礎"
-        subtitle="リターン・リスク・現在価値・統計・資産配分"
+        subtitle="リターン・リスク・現在価値・統計・財務諸表"
         color={color}
         icon={BookOpen}
       />
       <SectionTab sections={ALL_BASICS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
-      <SectionProgress tabId="basics" sections={ALL_BASICS_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+      <SectionProgress tabId="basics" sections={ALL_BASICS_SECTIONS} progress={combinedProgress} color={color} onSelect={setSection} />
 
       {renderSection()}
 
-      <button
-        style={{
-          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
-          width: "100%", marginTop: 4, marginBottom: 12,
-          background: done
-            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
-            : `linear-gradient(135deg, ${color}, #E8922A)`,
-        }}
-        onClick={() => setState((s) => ({ ...s, [quizKey]: !s[quizKey] }))}
-      >
-        {done
-          ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
-          : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`}
-      </button>
-      {state[quizKey] && quizMap[section] && (
-        <QuizComponent quizzes={quizMap[section]} tabId="basics" sectionId={section} accentColor={color} state={state} setState={setState} />
+      {section !== "F" && (
+        <>
+          <button
+            style={{
+              ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+              width: "100%", marginTop: 4, marginBottom: 12,
+              background: done
+                ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+                : `linear-gradient(135deg, ${color}, #E8922A)`,
+            }}
+            onClick={() => setState((s) => ({ ...s, [quizKey]: !s[quizKey] }))}
+          >
+            {done
+              ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</>
+              : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`}
+          </button>
+          {state[quizKey] && quizMap[section] && (
+            <QuizComponent quizzes={quizMap[section]} tabId="basics" sectionId={section} accentColor={color} state={state} setState={setState} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// --- セクションF: 財務諸表の活用（第6章）---
+function BasicsSectionF({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.ch6?.A ?? false;
+  return (
+    <div>
+      <InfoBox title="財務諸表の活用" color={color}>
+        企業分析・株式評価の基礎となる財務諸表の読み方と主要指標。
+        ABC試験では第6章で出題される重要テーマ。<br /><br />
+        <strong>主要財務指標：</strong>ROE（収益性）／ROA（資産効率）／PBR（株価純資産倍率）／
+        PER（株価収益率）／流動比率（安全性）／自己資本比率
+      </InfoBox>
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 10 }}>財務指標早見表</div>
+        {[
+          { name: "ROE",      formula: "当期純利益 ÷ 自己資本 × 100",      memo: "株主目線の収益性（目安: 10%以上）" },
+          { name: "ROA",      formula: "純利益（営業利益）÷ 総資産 × 100", memo: "資産効率（業種平均と比較）" },
+          { name: "PBR",      formula: "株価 ÷ BPS",                        memo: "1倍未満＝理論上割安" },
+          { name: "PER",      formula: "株価 ÷ EPS",                        memo: "業種平均との比較が重要" },
+          { name: "配当利回り", formula: "年間配当 ÷ 株価 × 100",           memo: "高利回り＝必ずしも優良ではない" },
+          { name: "流動比率",  formula: "流動資産 ÷ 流動負債 × 100",        memo: "200%以上が目安（短期安全性）" },
+          { name: "自己資本比率", formula: "自己資本 ÷ 総資産 × 100",       memo: "40%以上が目安（財務健全性）" },
+          { name: "デュポン分析", formula: "ROE = 純利益率 × 総資産回転率 × レバレッジ", memo: "ROEを3要素に分解" },
+        ].map((item) => (
+          <div key={item.name} style={{ padding: "7px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+              <span style={{ fontWeight: 800, fontSize: 12, color: COLORS.text }}>{item.name}</span>
+              <span style={{ fontSize: 10, color: COLORS.textLight }}>{item.memo}</span>
+            </div>
+            <div style={{ fontFamily: "monospace", fontSize: 12, color, fontWeight: 600 }}>{item.formula}</div>
+          </div>
+        ))}
+      </div>
+      {done ? (
+        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}` }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
+          <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションF 完了！</div>
+        </div>
+      ) : showQuiz ? (
+        <QuizComponent
+          quizzes={CH6_QUIZZES}
+          tabId="ch6"
+          sectionId="A"
+          accentColor={color}
+          state={state}
+          setState={setState}
+          progressField="chapProgress"
+        />
+      ) : (
+        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%", background: `linear-gradient(135deg, ${color}, #E8922A)` }}>
+          財務諸表 確認テスト（12問）を開始
+        </button>
       )}
     </div>
   );
@@ -5269,6 +5647,68 @@ function ProductsSectionE({ color, state, setState }) {
   );
 }
 
+// --- セクションF: デリバティブ取引（補論2）---
+function ProductsSectionF({ color, state, setState }) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.supp2?.A ?? false;
+  return (
+    <div>
+      <InfoBox title="デリバティブ取引とは" color={color}>
+        株式・債券・為替などの原資産から「派生」した金融商品の総称。
+        ヘッジ（リスク回避）・投機・裁定取引に活用される。ABC試験の補論2で出題。<br /><br />
+        <strong>主要3種類：</strong>先物取引（義務）／オプション取引（権利）／スワップ取引（交換）
+      </InfoBox>
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 10 }}>デリバティブ3種比較</div>
+        {[
+          { name: "先物取引",       key: "futures",  desc: "将来の特定日に合意価格で売買する義務。売り手・買い手ともに義務が生じる。" },
+          { name: "オプション取引",  key: "option",   desc: "原資産を買う権利（コール）または売る権利（プット）。権利行使は任意。" },
+          { name: "スワップ取引",    key: "swap",     desc: "2者間でキャッシュフローを交換。金利スワップ（固定⇄変動）が代表的。" },
+          { name: "為替予約",       key: "fwdfx",    desc: "将来の特定日に特定レートで外貨と円を交換する契約（店頭先物）。" },
+        ].map((item) => (
+          <div key={item.key} style={{ padding: "9px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+            <div style={{ fontWeight: 800, fontSize: 12, color: COLORS.text, marginBottom: 3 }}>{item.name}</div>
+            <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.5 }}>{item.desc}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ ...STYLES.card, marginBottom: 12, background: "#fff3f3", border: `1.5px solid ${color}40` }}>
+        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 8 }}>コール vs プットのポジション整理</div>
+        {[
+          { pos: "コール買い",  up: "↑ 利益",  down: "↓ プレミアム損失のみ",  note: "原資産上昇時に有利" },
+          { pos: "プット買い",  up: "↓ プレミアム損失のみ",  down: "↑ 利益",  note: "原資産下落時に有利" },
+          { pos: "コール売り",  up: "↓ 理論上無限の損失",  down: "↑ プレミアム収入",  note: "裸売りは最高リスク" },
+        ].map((item) => (
+          <div key={item.pos} style={{ display: "flex", gap: 8, padding: "5px 0", borderBottom: `1px solid ${COLORS.border}`, fontSize: 11 }}>
+            <span style={{ fontWeight: 700, minWidth: 70 }}>{item.pos}</span>
+            <span>原資産↑:{item.up} / ↓:{item.down}</span>
+          </div>
+        ))}
+      </div>
+      {done ? (
+        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}` }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
+          <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションF 完了！</div>
+        </div>
+      ) : showQuiz ? (
+        <QuizComponent
+          quizzes={SUPP2_QUIZZES}
+          tabId="supp2"
+          sectionId="A"
+          accentColor={color}
+          state={state}
+          setState={setState}
+          progressField="chapProgress"
+        />
+      ) : (
+        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%", background: `linear-gradient(135deg, ${color}, #E8922A)` }}>
+          デリバティブ 確認テスト（10問）を開始
+        </button>
+      )}
+    </div>
+  );
+}
+
 // --- ④金融商品タブ本体 ---
 const PRODUCTS_SECTIONS = [
   { id: "A", label: "A: 株式" },
@@ -5276,11 +5716,21 @@ const PRODUCTS_SECTIONS = [
   { id: "C", label: "C: 外国証券" },
   { id: "D", label: "D: 投資信託" },
   { id: "E", label: "E: オルタナ" },
+  { id: "F", label: "F: デリバティブ" },
 ];
 
 function ProductsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = "#E67E22";
+
+  // F セクションは chapProgress で追跡
+  const combinedProgress = {
+    ...state.progress,
+    products: {
+      ...state.progress.products,
+      F: state.chapProgress?.supp2?.A ?? false,
+    },
+  };
 
   const renderSection = () => {
     switch (section) {
@@ -5289,6 +5739,7 @@ function ProductsTab({ state, setState }) {
       case "C": return <ProductsSectionC color={color} state={state} setState={setState} />;
       case "D": return <ProductsSectionD color={color} state={state} setState={setState} />;
       case "E": return <ProductsSectionE color={color} state={state} setState={setState} />;
+      case "F": return <ProductsSectionF color={color} state={state} setState={setState} />;
       default:  return null;
     }
   };
@@ -5297,12 +5748,12 @@ function ProductsTab({ state, setState }) {
     <div style={{ padding: "14px 14px 24px" }}>
       <PageHeader
         title="金融商品"
-        subtitle="株式・債券・外国証券・投資信託・オルタナティブ"
+        subtitle="株式・債券・外国証券・投資信託・オルタナ・デリバティブ"
         color={color}
         icon={DollarSign}
       />
       <SectionTab sections={PRODUCTS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
-      <SectionProgress tabId="products" sections={PRODUCTS_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
+      <SectionProgress tabId="products" sections={PRODUCTS_SECTIONS} progress={combinedProgress} color={color} onSelect={setSection} />
       {renderSection()}
     </div>
   );

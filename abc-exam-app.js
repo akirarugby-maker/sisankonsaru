@@ -3,19 +3,12 @@ const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
         XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
         ReferenceLine, Area, AreaChart, Cell,
         RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
-// Lucide アイコンシム（lucide-react の代替）
 const LucideReact = (() => {
   const mk = (...paths) => function IconComp({ size = 20, color = 'currentColor', style }) {
     return React.createElement('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: size, height: size,
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: color,
-      strokeWidth: 2,
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      style,
+      xmlns: 'http://www.w3.org/2000/svg', width: size, height: size,
+      viewBox: '0 0 24 24', fill: 'none', stroke: color,
+      strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', style,
     }, ...paths.map((d, i) => React.createElement('path', { key: i, d })));
   };
   return {
@@ -221,12 +214,18 @@ const INITIAL_PROGRESS = {
   }
 };
 
-// 教本章別進捗（第1章・第2章の新規クイズ用）
+// 教本章別進捗（新規クイズ用: 既存タブで追跡できない章）
 const INITIAL_CHAP_PROGRESS = {
   ch1: {
     A: false
   },
   ch2: {
+    A: false
+  },
+  ch6: {
+    A: false
+  },
+  supp2: {
     A: false
   }
 };
@@ -376,7 +375,7 @@ const CHAPTERS_META = [{
   color: "#27AE60",
   tabId: "basics",
   sections: {
-    A: "財務分析"
+    A: "財務諸表"
   }
 }, {
   id: "ch7",
@@ -446,7 +445,7 @@ const CHAPTERS_META = [{
   title: "デリバティブ取引",
   subtitle: "先物・オプション・スワップ",
   color: "#E74C3C",
-  tabId: null,
+  tabId: "products",
   sections: {
     A: "デリバティブ"
   }
@@ -484,7 +483,7 @@ function computeAllChapProgress(progress, chapProgress) {
       C: progress.basics?.E ?? false
     },
     ch6: {
-      A: false
+      A: chapProgress?.ch6?.A ?? false
     },
     ch7: {
       A: progress.portfolio?.A ?? false,
@@ -507,7 +506,7 @@ function computeAllChapProgress(progress, chapProgress) {
       A: progress.products?.D ?? false
     },
     supp2: {
-      A: false
+      A: chapProgress?.supp2?.A ?? false
     },
     supp3: {
       A: progress.products?.E ?? false
@@ -1609,6 +1608,176 @@ const CH2_QUIZZES = [{
   answer: 1,
   explanation: "「長期・積立・分散」は金融庁も推奨する資産形成の基本方針。ドルコスト平均法による積立効果、時間分散・地域分散・アセットクラス分散によるリスク低減が期待される。",
   keyword: "長期積立分散投資"
+}];
+
+// ============================================================
+// 第6章 財務諸表クイズ（CH6_QUIZZES）
+// ============================================================
+const CH6_QUIZZES = [{
+  id: "ch6-fs-1",
+  q: "貸借対照表（B/S）が示すものとして正しいものはどれか？",
+  choices: ["一定期間の収益・費用・利益の流れ", "特定時点における資産・負債・純資産の残高", "一定期間の現金の収支", "株主資本の変動の履歴"],
+  answer: 1,
+  explanation: "貸借対照表（Balance Sheet）は特定時点（決算日）の財政状態を示す。「資産 = 負債 + 純資産」という会計等式が常に成り立つ。",
+  keyword: "貸借対照表"
+}, {
+  id: "ch6-fs-2",
+  q: "損益計算書（P/L）で最初に表示される利益の段階はどれか？",
+  choices: ["経常利益", "売上総利益（粗利益）", "営業利益", "当期純利益"],
+  answer: 1,
+  explanation: "P/Lの利益段階：①売上総利益→②営業利益→③経常利益→④税引前当期純利益→⑤当期純利益の順。売上高から売上原価を引いた「売上総利益（粗利益）」が最初。",
+  keyword: "損益計算書"
+}, {
+  id: "ch6-fs-3",
+  q: "ROE（自己資本利益率）の計算式として正しいものはどれか？",
+  choices: ["当期純利益 ÷ 自己資本 × 100", "当期純利益 ÷ 総資産 × 100", "営業利益 ÷ 自己資本 × 100", "売上総利益 ÷ 自己資本 × 100"],
+  answer: 0,
+  explanation: "ROE（Return on Equity）= 当期純利益 ÷ 自己資本 × 100。株主から見た投資効率を示す。日本企業の目標水準として10%以上が目安とされる。",
+  keyword: "ROE",
+  isCalc: true
+}, {
+  id: "ch6-fs-4",
+  q: "ROA（総資産利益率）の計算式として正しいものはどれか？",
+  choices: ["当期純利益 ÷ 自己資本 × 100", "営業利益 ÷ 自己資本 × 100", "当期純利益（または営業利益）÷ 総資産 × 100", "売上高 ÷ 総資産 × 100"],
+  answer: 2,
+  explanation: "ROA（Return on Assets）= 純利益÷総資産×100。経営者が総資産をどれだけ効率的に活用して利益を生んだかを示す。ROE < ROAの場合、負債活用の効果がない。",
+  keyword: "ROA",
+  isCalc: true
+}, {
+  id: "ch6-fs-5",
+  q: "PBR（株価純資産倍率）が1倍未満の状態が示すこととして正しいものはどれか？",
+  choices: ["株価が1株当たり純資産（BPS）を下回っており、理論上は割安", "株価が過大評価されている", "企業の収益性が業界平均より高い", "株主還元が積極的である"],
+  answer: 0,
+  explanation: "PBR = 株価 ÷ BPS（1株当たり純資産）。PBR < 1は株価が解散価値を下回る状態。理論上は割安だが、低PBRが続く場合は事業の将来性に問題がある可能性もある。",
+  keyword: "PBR",
+  isCalc: true
+}, {
+  id: "ch6-fs-6",
+  q: "流動比率の計算式と、一般的な「健全」水準の組み合わせとして正しいものはどれか？",
+  choices: ["流動負債 ÷ 流動資産 × 100、200%以上", "流動資産 ÷ 流動負債 × 100、200%以上", "流動資産 ÷ 固定資産 × 100、100%以上", "固定負債 ÷ 流動資産 × 100、50%以下"],
+  answer: 1,
+  explanation: "流動比率 = 流動資産 ÷ 流動負債 × 100。短期債務の返済能力を示す安全性指標。一般的に200%以上が「健全」とされるが業種による差が大きい。",
+  keyword: "流動比率",
+  isCalc: true
+}, {
+  id: "ch6-fs-7",
+  q: "キャッシュフロー計算書における「営業CF」の説明として正しいものはどれか？",
+  choices: ["設備投資や有価証券の売買による現金の増減", "借入や社債発行による現金の増減", "本業の事業活動から生じる現金の増減", "配当金の支払いによる現金の減少"],
+  answer: 2,
+  explanation: "営業CFは本業から生み出すキャッシュを示す。健全企業は営業CFがプラスであることが重要。「黒字倒産」は損益が黒字でも営業CFがマイナスになる状態で起こる。",
+  keyword: "営業キャッシュフロー"
+}, {
+  id: "ch6-fs-8",
+  q: "自己資本比率の計算式として正しいものはどれか？",
+  choices: ["自己資本 ÷ 負債 × 100", "自己資本 ÷ 総資産 × 100", "純利益 ÷ 自己資本 × 100", "負債 ÷ 総資産 × 100"],
+  answer: 1,
+  explanation: "自己資本比率 = 自己資本 ÷ 総資産 × 100。企業の財務安全性を示す。一般的に40%以上で「安全」とされるが、業種・規模によって基準が異なる。",
+  keyword: "自己資本比率",
+  isCalc: true
+}, {
+  id: "ch6-fs-9",
+  q: "配当利回りの計算式として正しいものはどれか？",
+  choices: ["1株当たり利益（EPS）÷ 株価 × 100", "1株当たり純資産（BPS）÷ 株価 × 100", "1株当たり年間配当金 ÷ 株価 × 100", "株価 ÷ 1株当たり配当金 × 100"],
+  answer: 2,
+  explanation: "配当利回り = 1株当たり年間配当金 ÷ 株価 × 100。投資金額に対する配当収益の割合。株価が下落しても利回りが上昇する点に注意（利回り上昇＝割安とは限らない）。",
+  keyword: "配当利回り",
+  isCalc: true
+}, {
+  id: "ch6-fs-10",
+  q: "デュポン分析（DuPont Analysis）でROEを3分解した式として正しいものはどれか？",
+  choices: ["ROE = 売上高純利益率 × 総資産回転率 × 財務レバレッジ", "ROE = 売上高成長率 × 株式回転率 × 配当利回り", "ROE = 営業利益率 × 自己資本回転率 × 流動比率", "ROE = PER × PBR × 配当性向"],
+  answer: 0,
+  explanation: "デュポン分析：ROE = 純利益率（収益性）× 総資産回転率（効率性）× 財務レバレッジ（安全性の逆）。ROEの改善要因を3分解することで経営課題が特定できる。",
+  keyword: "デュポン分析"
+}, {
+  id: "ch6-fs-11",
+  q: "EV/EBITDA倍率の説明として正しいものはどれか？",
+  choices: ["時価総額を1株当たり利益で割った株価評価指標", "企業価値（時価総額＋純有利子負債）をEBITDAで割った企業評価指標", "純資産を総資産で割った安全性指標", "営業利益を売上高で割った収益性指標"],
+  answer: 1,
+  explanation: "EV/EBITDA = 企業価値（EV：時価総額＋有利子負債－現金）÷ EBITDA（利払・税・償却前利益）。国際比較や企業買収価値評価に使われ、国や業種を超えた比較が可能。",
+  keyword: "EV/EBITDA"
+}, {
+  id: "ch6-fs-12",
+  q: "インタレスト・カバレッジ・レシオの説明として正しいものはどれか？",
+  choices: ["流動資産が流動負債を何倍カバーしているかを示す短期安全性指標", "営業利益（EBIT）が支払利息を何倍カバーしているかを示す安全性指標", "自己資本が有利子負債を何倍カバーしているかを示す財務健全性指標", "売上高が固定費を何倍カバーしているかを示す損益分岐点指標"],
+  answer: 1,
+  explanation: "インタレスト・カバレッジ・レシオ = 営業利益 ÷ 支払利息。利息支払い能力を示し、1倍を下回ると営業利益で利息を払えない危険な状態。通常3倍以上が望ましい。",
+  keyword: "インタレスト・カバレッジ"
+}];
+
+// ============================================================
+// 補論2 デリバティブ取引クイズ（SUPP2_QUIZZES）
+// ============================================================
+const SUPP2_QUIZZES = [{
+  id: "supp2-d-1",
+  q: "デリバティブ（金融派生商品）の説明として正しいものはどれか？",
+  choices: ["国債や社債など元本が保証された固定収益商品", "株式・債券・為替などの原資産の価格変動に基づいて価値が決まる金融商品", "投資信託を複数組み合わせたラップ型金融商品", "預金に上乗せ金利が付く仕組預金"],
+  answer: 1,
+  explanation: "デリバティブ（derivative）は「派生」を意味し、株価・金利・為替・商品価格などの原資産価格から派生して価値が決まる金融商品の総称。ヘッジや投機に活用される。",
+  keyword: "デリバティブ"
+}, {
+  id: "supp2-d-2",
+  q: "先物取引の説明として正しいものはどれか？",
+  choices: ["将来の特定日に特定価格で原資産を売買することを約束する取引", "原資産を買う権利を売買する取引", "2つのキャッシュフローを交換する取引", "原資産を現時点の価格で即座に売買する取引（現物取引）"],
+  answer: 0,
+  explanation: "先物（futures）は将来の特定日（満期日）に、あらかじめ合意した価格で売買する契約。買い手・売り手ともに義務が生じる点がオプションと異なる。取引所で標準化されている。",
+  keyword: "先物取引"
+}, {
+  id: "supp2-d-3",
+  q: "コール・オプション（call option）の説明として正しいものはどれか？",
+  choices: ["特定の原資産を一定価格（行使価格）で売る権利", "特定の原資産の価格変動に連動して損益が決まる義務的な契約", "特定の原資産を一定価格（行使価格）で買う権利", "将来の金利差を受け取る権利"],
+  answer: 2,
+  explanation: "コール・オプションは原資産を「行使価格で買う権利」。原資産価格が行使価格より高くなれば行使して利益を得る。権利の対価として「プレミアム」を支払う。",
+  keyword: "コールオプション"
+}, {
+  id: "supp2-d-4",
+  q: "プット・オプション（put option）の説明として正しいものはどれか？",
+  choices: ["特定の原資産を一定価格（行使価格）で買う権利", "特定の原資産を一定価格（行使価格）で売る権利", "将来の決められた日に原資産を売買する義務", "2つの固定・変動金利を交換する権利"],
+  answer: 1,
+  explanation: "プット・オプションは原資産を「行使価格で売る権利」。原資産価格が行使価格より低くなれば行使して利益を得る。株式ポートフォリオの下落リスクヘッジに活用される。",
+  keyword: "プットオプション"
+}, {
+  id: "supp2-d-5",
+  q: "オプション取引における「プレミアム（option premium）」とは何か？",
+  choices: ["オプションの利益（行使価格と市場価格の差額）", "オプションの権利を取得するために支払う対価（オプション料）", "オプション取引にかかる取引所手数料", "オプションの満期時に受け取るキャッシュフロー"],
+  answer: 1,
+  explanation: "プレミアムはオプションの価格であり、権利を買う対価。プレミアムは「本質的価値」（即行使した場合の価値）と「時間的価値」（残存期間に対する期待）で構成される。",
+  keyword: "オプションプレミアム"
+}, {
+  id: "supp2-d-6",
+  q: "先物取引とオプション取引の主な違いとして正しいものはどれか？",
+  choices: ["先物は売買の義務が生じるが、オプションは権利であり行使は任意", "先物は取引所のみだが、オプションはOTC（店頭）でのみ取引される", "先物は株式のみ対象だが、オプションはあらゆる資産が対象", "先物は短期、オプションは長期の取引にのみ利用される"],
+  answer: 0,
+  explanation: "先物は売買双方に義務（取引しない自由はない）。オプション買い手は行使するかどうかを選べる。行使しなければプレミアムだけが損失。この「義務と権利の違い」が核心。",
+  keyword: "先物とオプションの違い"
+}, {
+  id: "supp2-d-7",
+  q: "金利スワップ（interest rate swap）の最も一般的な形態はどれか？",
+  choices: ["日本円と米ドルの元本を交換する取引", "株式の配当と債券の利子を交換する取引", "固定金利の支払いと変動金利の受け取りを交換する取引", "現物株と先物の差額を交換する取引"],
+  answer: 2,
+  explanation: "金利スワップの典型は「固定金利支払い ↔ 変動金利受け取り」。変動金利の借入れを実質固定化するヘッジや、金利変動を利用した運用戦略に活用される。元本は交換しない。",
+  keyword: "金利スワップ"
+}, {
+  id: "supp2-d-8",
+  q: "デリバティブを活用した「ヘッジ取引」の目的として正しいものはどれか？",
+  choices: ["レバレッジを利かせて投資リターンを最大化すること", "税金の支払いを将来に繰り延べること", "既存の資産・負債が持つリスクを相殺・軽減すること", "市場平均（ベンチマーク）を上回る超過収益を狙うこと"],
+  answer: 2,
+  explanation: "ヘッジ取引（hedging）は「生け垣」が語源で、既存ポジションのリスクを反対ポジションで相殺する戦略。為替ヘッジ・金利ヘッジ・株価ヘッジなどがある。",
+  keyword: "ヘッジ取引"
+}, {
+  id: "supp2-d-9",
+  q: "原資産価格の上昇によって損失が生じるデリバティブポジションはどれか？",
+  choices: ["コール・オプションの買い（ロング・コール）", "プット・オプションの買い（ロング・プット）", "先物の買い（ロング・ポジション）", "コール・オプションの売り（ショート・コール）"],
+  answer: 3,
+  explanation: "コールオプション売り（ショートコール）は原資産が上昇すると、相手（買い手）が行使してくるため損失が拡大する（理論上無限大）。ヘッジなしの「裸のコール売り」は最もリスクが高い。",
+  keyword: "デリバティブポジション"
+}, {
+  id: "supp2-d-10",
+  q: "為替予約（currency forward）の説明として正しいものはどれか？",
+  choices: ["外貨を市場の現在レート（スポットレート）で即座に交換する取引", "将来の特定日に特定の為替レートで外貨と円を交換することを約束する取引", "外貨建て資産から受け取る利子をヘッジする金利スワップの一種", "オプション取引を使って為替の下落リスクだけを回避する取引"],
+  answer: 1,
+  explanation: "為替予約は将来の売買レートを現時点で確定する先渡し取引（OTC先物）。輸出入企業が為替リスクをヘッジするのに活用。確定レートはスポットレートに「スワップコスト」を加味した水準。",
+  keyword: "為替予約"
 }];
 
 // --- 倫理タブ クイズデータ ---
@@ -4326,6 +4495,9 @@ const ALL_BASICS_SECTIONS = [{
 }, {
   id: "E",
   label: "E: 資産配分"
+}, {
+  id: "F",
+  label: "F: 財務諸表"
 }];
 function BasicsTab({
   state,
@@ -4333,6 +4505,15 @@ function BasicsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.accent;
+
+  // F セクションは chapProgress で追跡
+  const combinedProgress = {
+    ...state.progress,
+    basics: {
+      ...state.progress.basics,
+      F: state.chapProgress?.ch6?.A ?? false
+    }
+  };
   const renderSection = () => {
     switch (section) {
       case "A":
@@ -4355,6 +4536,12 @@ function BasicsTab({
         return /*#__PURE__*/React.createElement(AssetAllocationSection, {
           color: color
         });
+      case "F":
+        return /*#__PURE__*/React.createElement(BasicsSectionF, {
+          color: color,
+          state: state,
+          setState: setState
+        });
       default:
         return null;
     }
@@ -4367,14 +4554,14 @@ function BasicsTab({
     E: BASICS_QUIZZES.C
   };
   const quizKey = `_quizOpenBasics${section}`;
-  const done = state.progress.basics?.[section];
+  const done = section === "F" ? state.chapProgress?.ch6?.A ?? false : state.progress.basics?.[section];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 14px 24px"
     }
   }, /*#__PURE__*/React.createElement(PageHeader, {
     title: "\u8CC7\u7523\u904B\u7528\u306E\u57FA\u790E",
-    subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u8CC7\u7523\u914D\u5206",
+    subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u8CA1\u52D9\u8AF8\u8868",
     color: color,
     icon: BookOpen
   }), /*#__PURE__*/React.createElement(SectionTab, {
@@ -4385,10 +4572,10 @@ function BasicsTab({
   }), /*#__PURE__*/React.createElement(SectionProgress, {
     tabId: "basics",
     sections: ALL_BASICS_SECTIONS,
-    progress: state.progress,
+    progress: combinedProgress,
     color: color,
     onSelect: setSection
-  }), renderSection(), /*#__PURE__*/React.createElement("button", {
+  }), renderSection(), section !== "F" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     style: {
       ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
       width: "100%",
@@ -4412,7 +4599,127 @@ function BasicsTab({
     accentColor: color,
     state: state,
     setState: setState
-  }));
+  })));
+}
+
+// --- セクションF: 財務諸表の活用（第6章）---
+function BasicsSectionF({
+  color,
+  state,
+  setState
+}) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.ch6?.A ?? false;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u8CA1\u52D9\u8AF8\u8868\u306E\u6D3B\u7528",
+    color: color
+  }, "\u4F01\u696D\u5206\u6790\u30FB\u682A\u5F0F\u8A55\u4FA1\u306E\u57FA\u790E\u3068\u306A\u308B\u8CA1\u52D9\u8AF8\u8868\u306E\u8AAD\u307F\u65B9\u3068\u4E3B\u8981\u6307\u6A19\u3002 ABC\u8A66\u9A13\u3067\u306F\u7B2C6\u7AE0\u3067\u51FA\u984C\u3055\u308C\u308B\u91CD\u8981\u30C6\u30FC\u30DE\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u8981\u8CA1\u52D9\u6307\u6A19\uFF1A"), "ROE\uFF08\u53CE\u76CA\u6027\uFF09\uFF0FROA\uFF08\u8CC7\u7523\u52B9\u7387\uFF09\uFF0FPBR\uFF08\u682A\u4FA1\u7D14\u8CC7\u7523\u500D\u7387\uFF09\uFF0F PER\uFF08\u682A\u4FA1\u53CE\u76CA\u7387\uFF09\uFF0F\u6D41\u52D5\u6BD4\u7387\uFF08\u5B89\u5168\u6027\uFF09\uFF0F\u81EA\u5DF1\u8CC7\u672C\u6BD4\u7387"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color,
+      marginBottom: 10
+    }
+  }, "\u8CA1\u52D9\u6307\u6A19\u65E9\u898B\u8868"), [{
+    name: "ROE",
+    formula: "当期純利益 ÷ 自己資本 × 100",
+    memo: "株主目線の収益性（目安: 10%以上）"
+  }, {
+    name: "ROA",
+    formula: "純利益（営業利益）÷ 総資産 × 100",
+    memo: "資産効率（業種平均と比較）"
+  }, {
+    name: "PBR",
+    formula: "株価 ÷ BPS",
+    memo: "1倍未満＝理論上割安"
+  }, {
+    name: "PER",
+    formula: "株価 ÷ EPS",
+    memo: "業種平均との比較が重要"
+  }, {
+    name: "配当利回り",
+    formula: "年間配当 ÷ 株価 × 100",
+    memo: "高利回り＝必ずしも優良ではない"
+  }, {
+    name: "流動比率",
+    formula: "流動資産 ÷ 流動負債 × 100",
+    memo: "200%以上が目安（短期安全性）"
+  }, {
+    name: "自己資本比率",
+    formula: "自己資本 ÷ 総資産 × 100",
+    memo: "40%以上が目安（財務健全性）"
+  }, {
+    name: "デュポン分析",
+    formula: "ROE = 純利益率 × 総資産回転率 × レバレッジ",
+    memo: "ROEを3要素に分解"
+  }].map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.name,
+    style: {
+      padding: "7px 0",
+      borderBottom: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 12,
+      color: COLORS.text
+    }
+  }, item.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, item.memo)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "monospace",
+      fontSize: 12,
+      color,
+      fontWeight: 600
+    }
+  }, item.formula)))), done ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      textAlign: "center",
+      background: COLORS.secondary + "12",
+      border: `2px solid ${COLORS.secondary}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      marginBottom: 4
+    }
+  }, "\u2705"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      color: COLORS.secondary
+    }
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: CH6_QUIZZES,
+    tabId: "ch6",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState,
+    progressField: "chapProgress"
+  }) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowQuiz(true),
+    style: {
+      ...STYLES.btnPrimary,
+      width: "100%",
+      background: `linear-gradient(135deg, ${color}, #E8922A)`
+    }
+  }, "\u8CA1\u52D9\u8AF8\u8868 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF0812\u554F\uFF09\u3092\u958B\u59CB"));
 }
 
 // --- セクションC: 現在価値と割引率 ---
@@ -6783,6 +7090,142 @@ function ProductsSectionE({
   }));
 }
 
+// --- セクションF: デリバティブ取引（補論2）---
+function ProductsSectionF({
+  color,
+  state,
+  setState
+}) {
+  const [showQuiz, setShowQuiz] = useState(false);
+  const done = state.chapProgress?.supp2?.A ?? false;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
+    title: "\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6\u53D6\u5F15\u3068\u306F",
+    color: color
+  }, "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u70BA\u66FF\u306A\u3069\u306E\u539F\u8CC7\u7523\u304B\u3089\u300C\u6D3E\u751F\u300D\u3057\u305F\u91D1\u878D\u5546\u54C1\u306E\u7DCF\u79F0\u3002 \u30D8\u30C3\u30B8\uFF08\u30EA\u30B9\u30AF\u56DE\u907F\uFF09\u30FB\u6295\u6A5F\u30FB\u88C1\u5B9A\u53D6\u5F15\u306B\u6D3B\u7528\u3055\u308C\u308B\u3002ABC\u8A66\u9A13\u306E\u88DC\u8AD62\u3067\u51FA\u984C\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u89813\u7A2E\u985E\uFF1A"), "\u5148\u7269\u53D6\u5F15\uFF08\u7FA9\u52D9\uFF09\uFF0F\u30AA\u30D7\u30B7\u30E7\u30F3\u53D6\u5F15\uFF08\u6A29\u5229\uFF09\uFF0F\u30B9\u30EF\u30C3\u30D7\u53D6\u5F15\uFF08\u4EA4\u63DB\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color,
+      marginBottom: 10
+    }
+  }, "\u30C7\u30EA\u30D0\u30C6\u30A3\u30D63\u7A2E\u6BD4\u8F03"), [{
+    name: "先物取引",
+    key: "futures",
+    desc: "将来の特定日に合意価格で売買する義務。売り手・買い手ともに義務が生じる。"
+  }, {
+    name: "オプション取引",
+    key: "option",
+    desc: "原資産を買う権利（コール）または売る権利（プット）。権利行使は任意。"
+  }, {
+    name: "スワップ取引",
+    key: "swap",
+    desc: "2者間でキャッシュフローを交換。金利スワップ（固定⇄変動）が代表的。"
+  }, {
+    name: "為替予約",
+    key: "fwdfx",
+    desc: "将来の特定日に特定レートで外貨と円を交換する契約（店頭先物）。"
+  }].map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.key,
+    style: {
+      padding: "9px 0",
+      borderBottom: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 12,
+      color: COLORS.text,
+      marginBottom: 3
+    }
+  }, item.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      lineHeight: 1.5
+    }
+  }, item.desc)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12,
+      background: "#fff3f3",
+      border: `1.5px solid ${color}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color,
+      marginBottom: 8
+    }
+  }, "\u30B3\u30FC\u30EB vs \u30D7\u30C3\u30C8\u306E\u30DD\u30B8\u30B7\u30E7\u30F3\u6574\u7406"), [{
+    pos: "コール買い",
+    up: "↑ 利益",
+    down: "↓ プレミアム損失のみ",
+    note: "原資産上昇時に有利"
+  }, {
+    pos: "プット買い",
+    up: "↓ プレミアム損失のみ",
+    down: "↑ 利益",
+    note: "原資産下落時に有利"
+  }, {
+    pos: "コール売り",
+    up: "↓ 理論上無限の損失",
+    down: "↑ プレミアム収入",
+    note: "裸売りは最高リスク"
+  }].map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.pos,
+    style: {
+      display: "flex",
+      gap: 8,
+      padding: "5px 0",
+      borderBottom: `1px solid ${COLORS.border}`,
+      fontSize: 11
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      minWidth: 70
+    }
+  }, item.pos), /*#__PURE__*/React.createElement("span", null, "\u539F\u8CC7\u7523\u2191:", item.up, " / \u2193:", item.down)))), done ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      textAlign: "center",
+      background: COLORS.secondary + "12",
+      border: `2px solid ${COLORS.secondary}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      marginBottom: 4
+    }
+  }, "\u2705"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      color: COLORS.secondary
+    }
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+    quizzes: SUPP2_QUIZZES,
+    tabId: "supp2",
+    sectionId: "A",
+    accentColor: color,
+    state: state,
+    setState: setState,
+    progressField: "chapProgress"
+  }) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowQuiz(true),
+    style: {
+      ...STYLES.btnPrimary,
+      width: "100%",
+      background: `linear-gradient(135deg, ${color}, #E8922A)`
+    }
+  }, "\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF0810\u554F\uFF09\u3092\u958B\u59CB"));
+}
+
 // --- ④金融商品タブ本体 ---
 const PRODUCTS_SECTIONS = [{
   id: "A",
@@ -6799,6 +7242,9 @@ const PRODUCTS_SECTIONS = [{
 }, {
   id: "E",
   label: "E: オルタナ"
+}, {
+  id: "F",
+  label: "F: デリバティブ"
 }];
 function ProductsTab({
   state,
@@ -6806,6 +7252,15 @@ function ProductsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = "#E67E22";
+
+  // F セクションは chapProgress で追跡
+  const combinedProgress = {
+    ...state.progress,
+    products: {
+      ...state.progress.products,
+      F: state.chapProgress?.supp2?.A ?? false
+    }
+  };
   const renderSection = () => {
     switch (section) {
       case "A":
@@ -6838,6 +7293,12 @@ function ProductsTab({
           state: state,
           setState: setState
         });
+      case "F":
+        return /*#__PURE__*/React.createElement(ProductsSectionF, {
+          color: color,
+          state: state,
+          setState: setState
+        });
       default:
         return null;
     }
@@ -6848,7 +7309,7 @@ function ProductsTab({
     }
   }, /*#__PURE__*/React.createElement(PageHeader, {
     title: "\u91D1\u878D\u5546\u54C1",
-    subtitle: "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u5916\u56FD\u8A3C\u5238\u30FB\u6295\u8CC7\u4FE1\u8A17\u30FB\u30AA\u30EB\u30BF\u30CA\u30C6\u30A3\u30D6",
+    subtitle: "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u5916\u56FD\u8A3C\u5238\u30FB\u6295\u8CC7\u4FE1\u8A17\u30FB\u30AA\u30EB\u30BF\u30CA\u30FB\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6",
     color: color,
     icon: DollarSign
   }), /*#__PURE__*/React.createElement(SectionTab, {
@@ -6859,7 +7320,7 @@ function ProductsTab({
   }), /*#__PURE__*/React.createElement(SectionProgress, {
     tabId: "products",
     sections: PRODUCTS_SECTIONS,
-    progress: state.progress,
+    progress: combinedProgress,
     color: color,
     onSelect: setSection
   }), renderSection());
