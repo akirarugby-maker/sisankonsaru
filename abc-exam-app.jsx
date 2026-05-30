@@ -3088,6 +3088,7 @@ function QuizComponent({
   state,
   setState,
   progressField = "progress",     // "progress" | "chapProgress"
+  onNext,                         // 次のセクションへ移動するコールバック
 }) {
   const [idx, setIdx]           = useState(0);
   const [selected, setSelected] = useState(null);  // 選択肢インデックス
@@ -3216,24 +3217,47 @@ function QuizComponent({
             もう一度
           </button>
           {passed && (
-            <div
-              style={{
-                flex:         1,
-                background:   COLORS.secondary + "20",
-                border:       `1.5px solid ${COLORS.secondary}`,
-                borderRadius: 12,
-                padding:      "8px 0",
-                fontSize:     13,
-                fontWeight:   700,
-                color:        COLORS.secondary,
-                display:      "flex",
-                alignItems:   "center",
-                justifyContent: "center",
-                gap:          4,
-              }}
-            >
-              <Check size={14} /> 完了済み
-            </div>
+            onNext ? (
+              <button
+                style={{
+                  flex:           1,
+                  background:     `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
+                  border:         "none",
+                  borderRadius:   12,
+                  padding:        "10px 0",
+                  fontSize:       13,
+                  fontWeight:     700,
+                  color:          "#fff",
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  gap:            4,
+                  cursor:         "pointer",
+                }}
+                onClick={onNext}
+              >
+                <Check size={14} /> 次のセクションへ →
+              </button>
+            ) : (
+              <div
+                style={{
+                  flex:         1,
+                  background:   COLORS.secondary + "20",
+                  border:       `1.5px solid ${COLORS.secondary}`,
+                  borderRadius: 12,
+                  padding:      "8px 0",
+                  fontSize:     13,
+                  fontWeight:   700,
+                  color:        COLORS.secondary,
+                  display:      "flex",
+                  alignItems:   "center",
+                  justifyContent: "center",
+                  gap:          4,
+                }}
+              >
+                <Check size={14} /> 完了済み
+              </div>
+            )
           )}
         </div>
       </div>
@@ -3672,17 +3696,17 @@ function EthicsTab({ state, setState }) {
         onSelect={setSection}
       />
 
-      {section === "A" && <EthicsSectionA color={color} state={state} setState={setState} />}
-      {section === "B" && <EthicsSectionB color={color} state={state} setState={setState} />}
-      {section === "C" && <EthicsSectionC color={color} state={state} setState={setState} />}
-      {section === "D" && <EthicsSectionD color={color} state={state} setState={setState} />}
+      {section === "A" && <EthicsSectionA color={color} state={state} setState={setState} onNext={() => setSection("B")} />}
+      {section === "B" && <EthicsSectionB color={color} state={state} setState={setState} onNext={() => setSection("C")} />}
+      {section === "C" && <EthicsSectionC color={color} state={state} setState={setState} onNext={() => setSection("D")} />}
+      {section === "D" && <EthicsSectionD color={color} state={state} setState={setState} onNext={() => setSection("E")} />}
       {section === "E" && <EthicsSectionE color={color} state={state} setState={setState} />}
     </div>
   );
 }
 
 // --- セクションA: フィデューシャリーデューティー ---
-function EthicsSectionA({ color, state, setState }) {
+function EthicsSectionA({ color, state, setState, onNext }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.A;
 
@@ -3772,6 +3796,7 @@ function EthicsSectionA({ color, state, setState }) {
           accentColor={color}
           state={state}
           setState={setState}
+          onNext={onNext}
         />
       )}
     </div>
@@ -3779,7 +3804,7 @@ function EthicsSectionA({ color, state, setState }) {
 }
 
 // --- セクションB: 顧客との信頼関係構築 ---
-function EthicsSectionB({ color, state, setState }) {
+function EthicsSectionB({ color, state, setState, onNext }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.B;
 
@@ -3851,6 +3876,7 @@ function EthicsSectionB({ color, state, setState }) {
           accentColor={color}
           state={state}
           setState={setState}
+          onNext={onNext}
         />
       )}
     </div>
@@ -3858,7 +3884,7 @@ function EthicsSectionB({ color, state, setState }) {
 }
 
 // --- セクションC: 資産形成の新しい潮流 ---
-function EthicsSectionC({ color, state, setState }) {
+function EthicsSectionC({ color, state, setState, onNext }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [activeProduct, setActiveProduct] = useState("nisa");
   const done = state.progress.ethics?.C;
@@ -3974,6 +4000,7 @@ function EthicsSectionC({ color, state, setState }) {
           accentColor={color}
           state={state}
           setState={setState}
+          onNext={onNext}
         />
       )}
     </div>
@@ -4334,7 +4361,7 @@ function BasicsFrontTab({ state, setState }) {
 // ============================================================
 // セクションD: 行動経済学（第1章）
 // ============================================================
-function EthicsSectionD({ color, state, setState }) {
+function EthicsSectionD({ color, state, setState, onNext }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch1?.A ?? false;
   return (
@@ -4382,6 +4409,7 @@ function EthicsSectionD({ color, state, setState }) {
           state={state}
           setState={setState}
           progressField="chapProgress"
+          onNext={onNext}
         />
       ) : (
         <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
@@ -4439,6 +4467,7 @@ function EthicsSectionE({ color, state, setState }) {
           state={state}
           setState={setState}
           progressField="chapProgress"
+          onNext={onNext}
         />
       ) : (
         <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
@@ -4522,7 +4551,7 @@ function BasicsTab({ state, setState }) {
               : `理解度テストを受ける（${quizMap[section]?.length ?? 8}問）`}
           </button>
           {state[quizKey] && quizMap[section] && (
-            <QuizComponent quizzes={quizMap[section]} tabId="basics" sectionId={section} accentColor={color} state={state} setState={setState} />
+            <QuizComponent quizzes={quizMap[section]} tabId="basics" sectionId={section} accentColor={color} state={state} setState={setState} onNext={{ A:"B", B:"C", C:"D", D:"E", E:"F" }[section] ? () => setSection({ A:"B", B:"C", C:"D", D:"E", E:"F" }[section]) : undefined} />
           )}
         </>
       )}
@@ -5027,7 +5056,7 @@ function BasicsBackTab({ state, setState }) {
 // ============================================================
 
 // --- セクションA: 分散投資の効果 ---
-function PortfolioSectionA({ color, state, setState }) {
+function PortfolioSectionA({ color, state, setState, onNext }) {
   const [rhoSlider, setRhoSlider]   = useState(0);   // -100〜100 → /100
   const [wASlider,  setWASlider]    = useState(50);
   const [rA,        setRA]          = useState(8);
@@ -5158,13 +5187,13 @@ function PortfolioSectionA({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPFA: !s._quizPFA }))}>
         {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
       </button>
-      {state._quizPFA && <QuizComponent quizzes={PORTFOLIO_QUIZZES.A} tabId="portfolio" sectionId="A" accentColor={color} state={state} setState={setState} />}
+      {state._quizPFA && <QuizComponent quizzes={PORTFOLIO_QUIZZES.A} tabId="portfolio" sectionId="A" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションB: 効率的フロンティア ---
-function PortfolioSectionB({ color, state, setState }) {
+function PortfolioSectionB({ color, state, setState, onNext }) {
   const rf = 0.02;
   const efData = generateEfficientFrontier(0.08, 0.03, 0.18, 0.06, 40)
     .filter((d) => d.rho === 0)
@@ -5236,13 +5265,13 @@ function PortfolioSectionB({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPFB: !s._quizPFB }))}>
         {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（4問）"}
       </button>
-      {state._quizPFB && <QuizComponent quizzes={PORTFOLIO_QUIZZES.B} tabId="portfolio" sectionId="B" accentColor={color} state={state} setState={setState} />}
+      {state._quizPFB && <QuizComponent quizzes={PORTFOLIO_QUIZZES.B} tabId="portfolio" sectionId="B" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションC: CAPM ---
-function PortfolioSectionC({ color, state, setState }) {
+function PortfolioSectionC({ color, state, setState, onNext }) {
   const [rfSlider, setRfSlider] = useState(2);
   const [rmSlider, setRmSlider] = useState(8);
 
@@ -5341,13 +5370,13 @@ function PortfolioSectionC({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPFC: !s._quizPFC }))}>
         {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
       </button>
-      {state._quizPFC && <QuizComponent quizzes={PORTFOLIO_QUIZZES.C} tabId="portfolio" sectionId="C" accentColor={color} state={state} setState={setState} />}
+      {state._quizPFC && <QuizComponent quizzes={PORTFOLIO_QUIZZES.C} tabId="portfolio" sectionId="C" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションD: パフォーマンス評価指標 ---
-function PortfolioSectionD({ color, state, setState }) {
+function PortfolioSectionD({ color, state, setState, onNext }) {
   const done = state.progress.portfolio?.D;
 
   return (
@@ -5436,7 +5465,7 @@ function PortfolioSectionD({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPFD: !s._quizPFD }))}>
         {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "理解度テストを受ける（8問）"}
       </button>
-      {state._quizPFD && <QuizComponent quizzes={[...PORTFOLIO_QUIZZES.C.slice(4), ...PORTFOLIO_QUIZZES.D]} tabId="portfolio" sectionId="D" accentColor={color} state={state} setState={setState} />}
+      {state._quizPFD && <QuizComponent quizzes={[...PORTFOLIO_QUIZZES.C.slice(4), ...PORTFOLIO_QUIZZES.D]} tabId="portfolio" sectionId="D" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
@@ -5455,9 +5484,9 @@ function PortfolioTab({ state, setState }) {
 
   const renderSection = () => {
     switch (section) {
-      case "A": return <PortfolioSectionA color={color} state={state} setState={setState} />;
-      case "B": return <PortfolioSectionB color={color} state={state} setState={setState} />;
-      case "C": return <PortfolioSectionC color={color} state={state} setState={setState} />;
+      case "A": return <PortfolioSectionA color={color} state={state} setState={setState} onNext={() => setSection("B")} />;
+      case "B": return <PortfolioSectionB color={color} state={state} setState={setState} onNext={() => setSection("C")} />;
+      case "C": return <PortfolioSectionC color={color} state={state} setState={setState} onNext={() => setSection("D")} />;
       case "D": return <PortfolioSectionD color={color} state={state} setState={setState} />;
       default:  return null;
     }
@@ -5483,7 +5512,7 @@ function PortfolioTab({ state, setState }) {
 // ============================================================
 
 // --- セクションA: 株式投資 ---
-function ProductsSectionA({ color, state, setState }) {
+function ProductsSectionA({ color, state, setState, onNext }) {
   const done = state.progress.products?.A;
   return (
     <div>
@@ -5578,13 +5607,13 @@ function ProductsSectionA({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPRA: !s._quizPRA }))}>
         {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（6問）"}
       </button>
-      {state._quizPRA && <QuizComponent quizzes={PRODUCTS_QUIZZES.A} tabId="products" sectionId="A" accentColor={color} state={state} setState={setState} />}
+      {state._quizPRA && <QuizComponent quizzes={PRODUCTS_QUIZZES.A} tabId="products" sectionId="A" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションB: 債券投資 ---
-function ProductsSectionB({ color, state, setState }) {
+function ProductsSectionB({ color, state, setState, onNext }) {
   const done = state.progress.products?.B;
 
   // 金利と債券価格の逆相関グラフ
@@ -5657,13 +5686,13 @@ function ProductsSectionB({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPRB: !s._quizPRB }))}>
         {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（4問）"}
       </button>
-      {state._quizPRB && <QuizComponent quizzes={PRODUCTS_QUIZZES.B} tabId="products" sectionId="B" accentColor={color} state={state} setState={setState} />}
+      {state._quizPRB && <QuizComponent quizzes={PRODUCTS_QUIZZES.B} tabId="products" sectionId="B" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションC: 外国証券・為替 ---
-function ProductsSectionC({ color, state, setState }) {
+function ProductsSectionC({ color, state, setState, onNext }) {
   const done = state.progress.products?.C;
   return (
     <div>
@@ -5731,13 +5760,13 @@ function ProductsSectionC({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPRC: !s._quizPRC }))}>
         {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
       </button>
-      {state._quizPRC && <QuizComponent quizzes={PRODUCTS_QUIZZES.C} tabId="products" sectionId="C" accentColor={color} state={state} setState={setState} />}
+      {state._quizPRC && <QuizComponent quizzes={PRODUCTS_QUIZZES.C} tabId="products" sectionId="C" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションD: 投資信託 ---
-function ProductsSectionD({ color, state, setState }) {
+function ProductsSectionD({ color, state, setState, onNext }) {
   const done = state.progress.products?.D;
   const costData = [
     { name: "インデックス（低）", 購入時: 0, 信託報酬: 0.1, 留保額: 0 },
@@ -5794,13 +5823,13 @@ function ProductsSectionD({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPRD: !s._quizPRD }))}>
         {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
       </button>
-      {state._quizPRD && <QuizComponent quizzes={PRODUCTS_QUIZZES.D} tabId="products" sectionId="D" accentColor={color} state={state} setState={setState} />}
+      {state._quizPRD && <QuizComponent quizzes={PRODUCTS_QUIZZES.D} tabId="products" sectionId="D" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
 
 // --- セクションE: オルタナティブ・ESG ---
-function ProductsSectionE({ color, state, setState }) {
+function ProductsSectionE({ color, state, setState, onNext }) {
   const done = state.progress.products?.E;
   const altData = [
     { name: "REIT",   corr: 0.5,  ret: 4.0, risk: 17.5 },
@@ -5852,7 +5881,7 @@ function ProductsSectionE({ color, state, setState }) {
         onClick={() => setState((s) => ({ ...s, _quizPRE: !s._quizPRE }))}>
         {done ? <><Check size={14} style={{marginRight:5}}/>完了済み — 再挑戦する</> : "理解度テストを受ける（2問）"}
       </button>
-      {state._quizPRE && <QuizComponent quizzes={PRODUCTS_QUIZZES.E} tabId="products" sectionId="E" accentColor={color} state={state} setState={setState} />}
+      {state._quizPRE && <QuizComponent quizzes={PRODUCTS_QUIZZES.E} tabId="products" sectionId="E" accentColor={color} state={state} setState={setState} onNext={onNext} />}
     </div>
   );
 }
@@ -5944,11 +5973,11 @@ function ProductsTab({ state, setState }) {
 
   const renderSection = () => {
     switch (section) {
-      case "A": return <ProductsSectionA color={color} state={state} setState={setState} />;
-      case "B": return <ProductsSectionB color={color} state={state} setState={setState} />;
-      case "C": return <ProductsSectionC color={color} state={state} setState={setState} />;
-      case "D": return <ProductsSectionD color={color} state={state} setState={setState} />;
-      case "E": return <ProductsSectionE color={color} state={state} setState={setState} />;
+      case "A": return <ProductsSectionA color={color} state={state} setState={setState} onNext={() => setSection("B")} />;
+      case "B": return <ProductsSectionB color={color} state={state} setState={setState} onNext={() => setSection("C")} />;
+      case "C": return <ProductsSectionC color={color} state={state} setState={setState} onNext={() => setSection("D")} />;
+      case "D": return <ProductsSectionD color={color} state={state} setState={setState} onNext={() => setSection("E")} />;
+      case "E": return <ProductsSectionE color={color} state={state} setState={setState} onNext={() => setSection("F")} />;
       case "F": return <ProductsSectionF color={color} state={state} setState={setState} />;
       default:  return null;
     }

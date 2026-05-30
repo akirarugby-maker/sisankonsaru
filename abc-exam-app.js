@@ -2667,7 +2667,9 @@ function QuizComponent({
   accentColor,
   state,
   setState,
-  progressField = "progress" // "progress" | "chapProgress"
+  progressField = "progress",
+  // "progress" | "chapProgress"
+  onNext // 次のセクションへ移動するコールバック
 }) {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null); // 選択肢インデックス
@@ -2821,7 +2823,26 @@ function QuizComponent({
         borderColor: accentColor
       },
       onClick: handleRetry
-    }, "\u3082\u3046\u4E00\u5EA6"), passed && /*#__PURE__*/React.createElement("div", {
+    }, "\u3082\u3046\u4E00\u5EA6"), passed && (onNext ? /*#__PURE__*/React.createElement("button", {
+      style: {
+        flex: 1,
+        background: `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
+        border: "none",
+        borderRadius: 12,
+        padding: "10px 0",
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+        cursor: "pointer"
+      },
+      onClick: onNext
+    }, /*#__PURE__*/React.createElement(Check, {
+      size: 14
+    }), " \u6B21\u306E\u30BB\u30AF\u30B7\u30E7\u30F3\u3078 \u2192") : /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1,
         background: COLORS.secondary + "20",
@@ -2838,7 +2859,7 @@ function QuizComponent({
       }
     }, /*#__PURE__*/React.createElement(Check, {
       size: 14
-    }), " \u5B8C\u4E86\u6E08\u307F")));
+    }), " \u5B8C\u4E86\u6E08\u307F"))));
   }
 
   // 出題画面
@@ -3433,19 +3454,23 @@ function EthicsTab({
   }), section === "A" && /*#__PURE__*/React.createElement(EthicsSectionA, {
     color: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: () => setSection("B")
   }), section === "B" && /*#__PURE__*/React.createElement(EthicsSectionB, {
     color: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: () => setSection("C")
   }), section === "C" && /*#__PURE__*/React.createElement(EthicsSectionC, {
     color: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: () => setSection("D")
   }), section === "D" && /*#__PURE__*/React.createElement(EthicsSectionD, {
     color: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: () => setSection("E")
   }), section === "E" && /*#__PURE__*/React.createElement(EthicsSectionE, {
     color: color,
     state: state,
@@ -3457,7 +3482,8 @@ function EthicsTab({
 function EthicsSectionA({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.A;
@@ -3542,7 +3568,8 @@ function EthicsSectionA({
     sectionId: "A",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -3550,7 +3577,8 @@ function EthicsSectionA({
 function EthicsSectionB({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.progress.ethics?.B;
@@ -3626,7 +3654,8 @@ function EthicsSectionB({
     sectionId: "B",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -3634,7 +3663,8 @@ function EthicsSectionB({
 function EthicsSectionC({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [activeProduct, setActiveProduct] = useState("nisa");
@@ -3746,7 +3776,8 @@ function EthicsSectionC({
     sectionId: "C",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -4362,7 +4393,8 @@ function BasicsFrontTab({
 function EthicsSectionD({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch1?.A ?? false;
@@ -4464,7 +4496,8 @@ function EthicsSectionD({
     accentColor: color,
     state: state,
     setState: setState,
-    progressField: "chapProgress"
+    progressField: "chapProgress",
+    onNext: onNext
   }) : /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowQuiz(true),
     style: {
@@ -4570,7 +4603,8 @@ function EthicsSectionE({
     accentColor: color,
     state: state,
     setState: setState,
-    progressField: "chapProgress"
+    progressField: "chapProgress",
+    onNext: onNext
   }) : /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowQuiz(true),
     style: {
@@ -4703,7 +4737,20 @@ function BasicsTab({
     sectionId: section,
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: {
+      A: "B",
+      B: "C",
+      C: "D",
+      D: "E",
+      E: "F"
+    }[section] ? () => setSection({
+      A: "B",
+      B: "C",
+      C: "D",
+      D: "E",
+      E: "F"
+    }[section]) : undefined
   })));
 }
 
@@ -5597,7 +5644,8 @@ function BasicsBackTab({
 function PortfolioSectionA({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [rhoSlider, setRhoSlider] = useState(0); // -100〜100 → /100
   const [wASlider, setWASlider] = useState(50);
@@ -5848,7 +5896,8 @@ function PortfolioSectionA({
     sectionId: "A",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -5856,7 +5905,8 @@ function PortfolioSectionA({
 function PortfolioSectionB({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const rf = 0.02;
   const efData = generateEfficientFrontier(0.08, 0.03, 0.18, 0.06, 40).filter(d => d.rho === 0).map(d => ({
@@ -6026,7 +6076,8 @@ function PortfolioSectionB({
     sectionId: "B",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6034,7 +6085,8 @@ function PortfolioSectionB({
 function PortfolioSectionC({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [rfSlider, setRfSlider] = useState(2);
   const [rmSlider, setRmSlider] = useState(8);
@@ -6228,7 +6280,8 @@ function PortfolioSectionC({
     sectionId: "C",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6236,7 +6289,8 @@ function PortfolioSectionC({
 function PortfolioSectionD({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.portfolio?.D;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
@@ -6403,7 +6457,8 @@ function PortfolioSectionD({
     sectionId: "D",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6433,19 +6488,22 @@ function PortfolioTab({
         return /*#__PURE__*/React.createElement(PortfolioSectionA, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("B")
         });
       case "B":
         return /*#__PURE__*/React.createElement(PortfolioSectionB, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("C")
         });
       case "C":
         return /*#__PURE__*/React.createElement(PortfolioSectionC, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("D")
         });
       case "D":
         return /*#__PURE__*/React.createElement(PortfolioSectionD, {
@@ -6488,7 +6546,8 @@ function PortfolioTab({
 function ProductsSectionA({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.products?.A;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
@@ -6653,7 +6712,8 @@ function ProductsSectionA({
     sectionId: "A",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6661,7 +6721,8 @@ function ProductsSectionA({
 function ProductsSectionB({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.products?.B;
 
@@ -6801,7 +6862,8 @@ function ProductsSectionB({
     sectionId: "B",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6809,7 +6871,8 @@ function ProductsSectionB({
 function ProductsSectionC({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.products?.C;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
@@ -6920,7 +6983,8 @@ function ProductsSectionC({
     sectionId: "C",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -6928,7 +6992,8 @@ function ProductsSectionC({
 function ProductsSectionD({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.products?.D;
   const costData = [{
@@ -7065,7 +7130,8 @@ function ProductsSectionD({
     sectionId: "D",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -7073,7 +7139,8 @@ function ProductsSectionD({
 function ProductsSectionE({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const done = state.progress.products?.E;
   const altData = [{
@@ -7191,7 +7258,8 @@ function ProductsSectionE({
     sectionId: "E",
     accentColor: color,
     state: state,
-    setState: setState
+    setState: setState,
+    onNext: onNext
   }));
 }
 
@@ -7372,31 +7440,36 @@ function ProductsTab({
         return /*#__PURE__*/React.createElement(ProductsSectionA, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("B")
         });
       case "B":
         return /*#__PURE__*/React.createElement(ProductsSectionB, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("C")
         });
       case "C":
         return /*#__PURE__*/React.createElement(ProductsSectionC, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("D")
         });
       case "D":
         return /*#__PURE__*/React.createElement(ProductsSectionD, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("E")
         });
       case "E":
         return /*#__PURE__*/React.createElement(ProductsSectionE, {
           color: color,
           state: state,
-          setState: setState
+          setState: setState,
+          onNext: () => setSection("F")
         });
       case "F":
         return /*#__PURE__*/React.createElement(ProductsSectionF, {
