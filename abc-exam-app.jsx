@@ -893,7 +893,7 @@ function ChartCard({ title, height = 200, children, color = COLORS.primary }) {
 }
 
 // --- InfoBox: 解説・定義ボックス ---
-function InfoBox({ title, children, color = COLORS.primary }) {
+function InfoBox({ title, children, color = COLORS.primary, youtubeQuery }) {
   return (
     <div
       style={{
@@ -905,8 +905,25 @@ function InfoBox({ title, children, color = COLORS.primary }) {
       }}
     >
       {title && (
-        <div style={{ fontSize: 13, fontWeight: 800, color, marginBottom: 6 }}>
-          {title}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color, flex: 1 }}>
+            {title}
+          </div>
+          {youtubeQuery && (
+            <a
+              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeQuery)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                background: "#FF0000", color: "#fff", borderRadius: 5,
+                padding: "2px 8px", fontSize: 10, fontWeight: 700,
+                textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0,
+              }}
+            >
+              ▶ YouTube
+            </a>
+          )}
         </div>
       )}
       <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.7 }}>
@@ -3568,6 +3585,87 @@ function FlashQuizSection({ state, onNavigate }) {
   );
 }
 
+// --- ExportImportPanel: 進捗バックアップ ---
+function ExportImportPanel({ state, setState }) {
+  const [showImport, setShowImport] = useState(false);
+  const [importMsg, setImportMsg]   = useState("");
+
+  const handleExport = () => {
+    try {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `abc-exam-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { alert("エクスポートに失敗しました"); }
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (!parsed.progress || !parsed.chapProgress) {
+          setImportMsg("❌ 無効なバックアップファイルです");
+          return;
+        }
+        if (window.confirm("バックアップから進捗を復元しますか？現在の進捗は上書きされます。")) {
+          setState({ ...INITIAL_STATE, ...parsed });
+          setShowImport(false);
+          setImportMsg("✅ 復元しました");
+        }
+      } catch { setImportMsg("❌ ファイルの読み込みに失敗しました"); }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12 }}>
+      <div style={{ fontWeight: 800, fontSize: 13, color: COLORS.text, marginBottom: 4 }}>💾 進捗データ管理</div>
+      <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 10, lineHeight: 1.6 }}>
+        進捗はこのブラウザのみに保存されます。<br />定期的にバックアップして別デバイスでも使えます。
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          onClick={handleExport}
+          style={{ ...STYLES.btnPrimary, flex: 1, fontSize: 12, padding: "9px 4px" }}
+        >
+          ⬇ エクスポート
+        </button>
+        <button
+          onClick={() => { setShowImport(s => !s); setImportMsg(""); }}
+          style={{ ...STYLES.btnOutline, flex: 1, fontSize: 12, padding: "9px 4px" }}
+        >
+          ⬆ インポート
+        </button>
+      </div>
+      {showImport && (
+        <div style={{ marginTop: 10, padding: "10px 12px", background: COLORS.bg, borderRadius: 8, border: `1px solid ${COLORS.border}` }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 8 }}>
+            バックアップ（.json）を選択してください
+          </div>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleImport}
+            style={{ fontSize: 12, width: "100%", color: COLORS.text }}
+          />
+        </div>
+      )}
+      {importMsg && (
+        <div style={{ marginTop: 8, fontSize: 12, color: importMsg.startsWith("✅") ? COLORS.secondary : COLORS.danger }}>
+          {importMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- MiniCalcCard: ホーム画面「今日の計算練習」用 ---
 function MiniCalcCard({ quiz, onAnswer }) {
   const [selected, setSelected] = useState(null);
@@ -3834,7 +3932,7 @@ function EthicsSectionA({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="フィデューシャリーデューティー（FD）とは" color={color}>
+      <InfoBox title="フィデューシャリーデューティー（FD）とは" color={color} youtubeQuery="フィデューシャリーデューティー 顧客本位 金融庁">
         「顧客の最善の利益を最優先に考えた行動義務」＝受託者責任。<br />
         金融庁が2017年に「顧客本位の業務運営に関する原則」を策定。<br />
         プリンシプルベース（原則主義）アプローチを採用。ABC試験の最重要テーマ。
@@ -3932,7 +4030,7 @@ function EthicsSectionB({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="ライフプランニングの基本ステップ" color={color}>
+      <InfoBox title="ライフプランニングの基本ステップ" color={color} youtubeQuery="ライフプランニング KYC 顧客情報収集 資産運用">
         <strong>Step1</strong> ゴール設定（いつまでに・いくら・何のために）<br />
         <strong>Step2</strong> 現状把握（資産・負債・収入・支出）<br />
         <strong>Step3</strong> ギャップ分析<br />
@@ -4078,7 +4176,7 @@ function EthicsSectionC({ color, state, setState, onNext }) {
       </div>
 
       {/* ESG解説 */}
-      <InfoBox title="ESG投資・サステナブル投資" color="#16A085">
+      <InfoBox title="ESG投資・サステナブル投資" color="#16A085" youtubeQuery="ESG投資 サステナブル NISA 新NISA わかりやすく">
         <strong>E</strong>nvironment（環境）・<strong>S</strong>ocial（社会）・<strong>G</strong>overnance（ガバナンス）<br />
         非財務情報を投資判断に組み込む。主なアプローチ：<br />
         ①ネガティブスクリーニング（問題企業を除外）<br />
@@ -4137,7 +4235,7 @@ function EthicsSectionC({ color, state, setState, onNext }) {
 function ReturnCalculatorSection({ color }) {
   return (
     <div>
-      <InfoBox title="リターンの種類と使い分け" color={color}>
+      <InfoBox title="リターンの種類と使い分け" color={color} youtubeQuery="投資リターン 算術平均 幾何平均 年率換算 計算">
         <strong>単純リターン（保有期間）</strong>：R = (期末価格 − 期初価格 + 配当) / 期初価格<br />
         <strong>年率リターン（複利換算）</strong>：年率R = (1 + 保有期間R)^(1/年数) − 1<br />
         <strong>算術平均</strong>：各期リターンの単純平均 → 将来予測に使用<br />
@@ -4242,7 +4340,7 @@ function RiskCalculatorSection({ color }) {
 
   return (
     <div>
-      <InfoBox title="リスク（標準偏差）とは" color={color}>
+      <InfoBox title="リスク（標準偏差）とは" color={color} youtubeQuery="投資リスク 標準偏差 相関係数 シャープレシオ 計算">
         リスク＝リターンの「ばらつき」を標準偏差で表す。<br />
         <strong>分散 σ²</strong> = Σ(Ri − Ra)² / n<br />
         <strong>標準偏差 σ</strong> = √分散　（σが大きい＝高リスク）<br />
@@ -4488,7 +4586,7 @@ function EthicsSectionD({ color, state, setState, onNext }) {
   const done = state.chapProgress?.ch1?.A ?? false;
   return (
     <div>
-      <InfoBox title="行動経済学とは" color={color}>
+      <InfoBox title="行動経済学とは" color={color} youtubeQuery="行動経済学 バイアス 損失回避 投資 わかりやすく">
         人間が常に合理的に行動するとは限らないことを前提に、心理・感情・認知のバイアスが
         意思決定に与える影響を研究する学問。ABC試験の第1章で重要テーマ。<br /><br />
         <strong>主要な概念：</strong>損失回避バイアス／ヒューリスティック／サンクコスト効果／
@@ -4559,7 +4657,7 @@ function EthicsSectionE({ color, state, setState, onNext }) {
   const done = state.chapProgress?.ch2?.A ?? false;
   return (
     <div>
-      <InfoBox title="ゴールベース資産管理とは" color={color}>
+      <InfoBox title="ゴールベース資産管理とは" color={color} youtubeQuery="ゴールベース資産管理 ファンドラップ 投資一任サービス">
         顧客の「老後資金確保」「教育資金準備」などの具体的なライフゴールを中心に
         資産配分や運用計画を立てるアプローチ。ABC試験の第2章の核心テーマ。<br /><br />
         <strong>プロセス：</strong>①ゴール設定 → ②実現シナリオ設定（優先順位付け）→
@@ -4718,7 +4816,7 @@ function BasicsSectionF({ color, state, setState }) {
   const done = state.chapProgress?.ch6?.A ?? false;
   return (
     <div>
-      <InfoBox title="財務諸表の活用" color={color}>
+      <InfoBox title="財務諸表の活用" color={color} youtubeQuery="財務諸表 貸借対照表 損益計算書 投資分析 わかりやすく">
         企業分析・株式評価の基礎となる財務諸表の読み方と主要指標。
         ABC試験では第6章で出題される重要テーマ。<br /><br />
         <strong>主要財務指標：</strong>ROE（収益性）／ROA（資産効率）／PBR（株価純資産倍率）／
@@ -4782,7 +4880,7 @@ function BasicsSectionF({ color, state, setState }) {
 function PVSection({ color }) {
   return (
     <div>
-      <InfoBox title="現在価値（PV）の考え方" color={color}>
+      <InfoBox title="現在価値（PV）の考え方" color={color} youtubeQuery="現在価値 将来価値 割引率 DCF 計算 わかりやすく">
         「今の1万円は将来の1万円より価値が高い」＝時間価値の概念。<br />
         <strong>PV = FV / (1 + r)^n</strong>　割引率が高い・期間が長いほどPVは小さくなる。<br />
         NPV（正味現在価値）= 将来CFの現在価値合計 − 初期投資
@@ -4922,7 +5020,7 @@ function PVSection({ color }) {
 function StatsSection({ color }) {
   return (
     <div>
-      <InfoBox title="VaR（バリュー・アット・リスク）" color={color}>
+      <InfoBox title="VaR（バリュー・アット・リスク）" color={color} youtubeQuery="VaR バリューアットリスク リスク管理 投資 計算">
         一定の信頼水準で一定期間内に発生しうる最大損失額。<br />
         <strong>95%VaR = μ − 1.645σ</strong>　（z値：90%→1.28、99%→2.326）<br />
         例: μ=5%, σ=15%のとき 95%VaR = 5 − 1.645×15 = <strong>−19.7%</strong>
@@ -5017,7 +5115,7 @@ function AssetAllocationSection({ color }) {
 
   return (
     <div>
-      <InfoBox title="アセットアロケーションの重要性" color={color}>
+      <InfoBox title="アセットアロケーションの重要性" color={color} youtubeQuery="アセットアロケーション 資産配分 長期投資 分散投資">
         Brinson et al. の研究：ポートフォリオリターンの変動の約90%は資産配分で決まる。<br />
         <strong>アセットアロケーション</strong>：何に何%配分するか（資産クラスの比率決定）<br />
         <strong>アセットロケーション</strong>：どの口座（NISA/iDeCo/課税）に置くか（税効率化）
@@ -5254,7 +5352,7 @@ function PortfolioSectionA({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="2資産ポートフォリオのリスク公式" color={color}>
+      <InfoBox title="2資産ポートフォリオのリスク公式" color={color} youtubeQuery="ポートフォリオ 分散効果 相関係数 リスク計算">
         <strong>σP² = wA²σA² + wB²σB² + 2·wA·wB·ρ·σA·σB</strong><br />
         ρ = +1：分散効果なし（リスクは加重平均）<br />
         ρ =  0：部分的な分散効果<br />
@@ -5376,7 +5474,7 @@ function PortfolioSectionB({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="効率的フロンティアとCML" color={color}>
+      <InfoBox title="効率的フロンティアとCML" color={color} youtubeQuery="効率的フロンティア CML 資本市場線 最小分散ポートフォリオ">
         <strong>効率的フロンティア</strong>：同じリスクで最大リターンのポートフォリオ集合<br />
         <strong>最小分散ポートフォリオ</strong>：フロンティア上でリスク最小の点<br />
         <strong>接点ポートフォリオ</strong>：CMLとフロンティアの接点 = シャープレシオ最大<br />
@@ -5443,7 +5541,7 @@ function PortfolioSectionC({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="CAPM（資本資産評価モデル）" color={color}>
+      <InfoBox title="CAPM（資本資産評価モデル）" color={color} youtubeQuery="CAPM 資本資産評価モデル ベータ 期待リターン 計算">
         <strong>E(Ri) = Rf + βi × [E(Rm) − Rf]</strong><br />
         [E(Rm)−Rf]：マーケット・リスクプレミアム<br />
         β＞1：市場より変動大　β=1：市場と同じ　β＜1：変動小　β=0：Rfと同じ<br />
@@ -5543,7 +5641,7 @@ function PortfolioSectionD({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="4つのパフォーマンス評価指標" color={color}>
+      <InfoBox title="4つのパフォーマンス評価指標" color={color} youtubeQuery="シャープレシオ トレイナーレシオ ジェンセンアルファ ポートフォリオ評価">
         <strong>シャープレシオ</strong>：(Rp−Rf)/σp　全リスク1単位あたりの超過リターン<br />
         <strong>トレイナーレシオ</strong>：(Rp−Rf)/β　市場リスク1単位あたりの超過リターン<br />
         <strong>ジェンセンのα</strong>：Rp−[Rf+β(Rm−Rf)]　CAPMを超えた超過リターン<br />
@@ -5691,7 +5789,7 @@ function ProductsSectionA({ color, state, setState, onNext }) {
   const done = state.progress.products?.A;
   return (
     <div>
-      <InfoBox title="株式の主要評価指標" color={color}>
+      <InfoBox title="株式の主要評価指標" color={color} youtubeQuery="PER PBR ROE DDM 株式評価指標 わかりやすく">
         <strong>PER</strong> = 株価 / EPS　（低いほど割安・業種比較が重要）<br />
         <strong>PBR</strong> = 株価 / BPS　（1倍割れ = 解散価値以下）<br />
         <strong>ROE</strong> = 純利益 / 自己資本　（デュポン: 純利益率×総資産回転率×財務レバレッジ）<br />
@@ -5803,7 +5901,7 @@ function ProductsSectionB({ color, state, setState, onNext }) {
 
   return (
     <div>
-      <InfoBox title="債券の基本と金利の逆相関" color={color}>
+      <InfoBox title="債券の基本と金利の逆相関" color={color} youtubeQuery="債券 デュレーション 最終利回り 金利リスク わかりやすく">
         <strong>債券価格</strong> = Σ クーポン/(1+r)^t + 額面/(1+r)^n<br />
         <strong>金利↑ → 債券価格↓</strong>（逆相関）<br />
         <strong>デュレーション</strong>：キャッシュフローの加重平均残存期間（≠残存期間）<br />
@@ -5871,7 +5969,7 @@ function ProductsSectionC({ color, state, setState, onNext }) {
   const done = state.progress.products?.C;
   return (
     <div>
-      <InfoBox title="外国証券投資と為替リスク" color={color}>
+      <InfoBox title="外国証券投資と為替リスク" color={color} youtubeQuery="外国証券 為替リスク ヘッジ 購買力平価 外貨投資">
         <strong>円換算リターン</strong>：R円 = (1+R外貨)(1+R為替) − 1 ≈ R外貨 + R為替<br />
         円高（R為替 &lt; 0）→ 外貨建て資産の円換算リターンを押し下げる<br />
         <strong>カバー付きIRP</strong>：F/S = (1+r国内)/(1+r外国)　→ ヘッジコスト≒金利差<br />
@@ -5950,7 +6048,7 @@ function ProductsSectionD({ color, state, setState, onNext }) {
   ];
   return (
     <div>
-      <InfoBox title="投資信託のコスト構造" color={color}>
+      <InfoBox title="投資信託のコスト構造" color={color} youtubeQuery="投資信託 信託報酬 コスト ETF インデックスファンド">
         <strong>基準価額</strong> = 純資産総額 / 受益権総口数<br />
         <strong>購入時手数料</strong>：0〜3%程度（ノーロードも増加）<br />
         <strong>信託報酬</strong>：年0.1〜2%程度（インデックスが有利）<br />
@@ -6067,7 +6165,7 @@ function ProductsSectionF({ color, state, setState }) {
   const done = state.chapProgress?.supp2?.A ?? false;
   return (
     <div>
-      <InfoBox title="デリバティブ取引とは" color={color}>
+      <InfoBox title="デリバティブ取引とは" color={color} youtubeQuery="REIT 不動産投資信託 デリバティブ 先物 オプション わかりやすく">
         株式・債券・為替などの原資産から「派生」した金融商品の総称。
         ヘッジ（リスク回避）・投機・裁定取引に活用される。ABC試験の補論2で出題。<br /><br />
         <strong>主要3種類：</strong>先物取引（義務）／オプション取引（権利）／スワップ取引（交換）
@@ -8240,7 +8338,10 @@ function HomeTab({ state, setState, onTabChange }) {
       {/* ⑦ AI学習提案 */}
       <AIReviewWidget state={state} />
 
-      {/* ⑧ 試験概要（折りたたみ） */}
+      {/* ⑧ データ管理（エクスポート/インポート） */}
+      <ExportImportPanel state={state} setState={setState} />
+
+      {/* ⑨ 試験概要（折りたたみ） */}
       <div style={{ ...STYLES.card, marginBottom: 12 }}>
         <button
           onClick={() => setShowExamInfo((s) => !s)}

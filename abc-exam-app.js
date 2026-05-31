@@ -1117,7 +1117,8 @@ function ChartCard({
 function InfoBox({
   title,
   children,
-  color = COLORS.primary
+  color = COLORS.primary,
+  youtubeQuery
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1129,12 +1130,37 @@ function InfoBox({
     }
   }, title && /*#__PURE__*/React.createElement("div", {
     style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 8,
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontSize: 13,
       fontWeight: 800,
       color,
-      marginBottom: 6
+      flex: 1
     }
-  }, title), /*#__PURE__*/React.createElement("div", {
+  }, title), youtubeQuery && /*#__PURE__*/React.createElement("a", {
+    href: `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeQuery)}`,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 3,
+      background: "#FF0000",
+      color: "#fff",
+      borderRadius: 5,
+      padding: "2px 8px",
+      fontSize: 10,
+      fontWeight: 700,
+      textDecoration: "none",
+      whiteSpace: "nowrap",
+      flexShrink: 0
+    }
+  }, "\u25B6 YouTube")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       color: COLORS.text,
@@ -3255,6 +3281,129 @@ function FlashQuizSection({
   })));
 }
 
+// --- ExportImportPanel: 進捗バックアップ ---
+function ExportImportPanel({
+  state,
+  setState
+}) {
+  const [showImport, setShowImport] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const handleExport = () => {
+    try {
+      const blob = new Blob([JSON.stringify(state, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `abc-exam-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("エクスポートに失敗しました");
+    }
+  };
+  const handleImport = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (!parsed.progress || !parsed.chapProgress) {
+          setImportMsg("❌ 無効なバックアップファイルです");
+          return;
+        }
+        if (window.confirm("バックアップから進捗を復元しますか？現在の進捗は上書きされます。")) {
+          setState({
+            ...INITIAL_STATE,
+            ...parsed
+          });
+          setShowImport(false);
+          setImportMsg("✅ 復元しました");
+        }
+      } catch {
+        setImportMsg("❌ ファイルの読み込みに失敗しました");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: COLORS.text,
+      marginBottom: 4
+    }
+  }, "\uD83D\uDCBE \u9032\u6357\u30C7\u30FC\u30BF\u7BA1\u7406"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textMuted,
+      marginBottom: 10,
+      lineHeight: 1.6
+    }
+  }, "\u9032\u6357\u306F\u3053\u306E\u30D6\u30E9\u30A6\u30B6\u306E\u307F\u306B\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u5B9A\u671F\u7684\u306B\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3057\u3066\u5225\u30C7\u30D0\u30A4\u30B9\u3067\u3082\u4F7F\u3048\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: handleExport,
+    style: {
+      ...STYLES.btnPrimary,
+      flex: 1,
+      fontSize: 12,
+      padding: "9px 4px"
+    }
+  }, "\u2B07 \u30A8\u30AF\u30B9\u30DD\u30FC\u30C8"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setShowImport(s => !s);
+      setImportMsg("");
+    },
+    style: {
+      ...STYLES.btnOutline,
+      flex: 1,
+      fontSize: 12,
+      padding: "9px 4px"
+    }
+  }, "\u2B06 \u30A4\u30F3\u30DD\u30FC\u30C8")), showImport && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      padding: "10px 12px",
+      background: COLORS.bg,
+      borderRadius: 8,
+      border: `1px solid ${COLORS.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      marginBottom: 8
+    }
+  }, "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\uFF08.json\uFF09\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".json",
+    onChange: handleImport,
+    style: {
+      fontSize: 12,
+      width: "100%",
+      color: COLORS.text
+    }
+  })), importMsg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontSize: 12,
+      color: importMsg.startsWith("✅") ? COLORS.secondary : COLORS.danger
+    }
+  }, importMsg));
+}
+
 // --- MiniCalcCard: ホーム画面「今日の計算練習」用 ---
 function MiniCalcCard({
   quiz,
@@ -3706,7 +3855,8 @@ function EthicsSectionA({
   const done = state.progress.ethics?.A;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC\uFF08FD\uFF09\u3068\u306F",
-    color: color
+    color: color,
+    youtubeQuery: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30C7\u30E5\u30FC\u30C6\u30A3\u30FC \u9867\u5BA2\u672C\u4F4D \u91D1\u878D\u5E81"
   }, "\u300C\u9867\u5BA2\u306E\u6700\u5584\u306E\u5229\u76CA\u3092\u6700\u512A\u5148\u306B\u8003\u3048\u305F\u884C\u52D5\u7FA9\u52D9\u300D\uFF1D\u53D7\u8A17\u8005\u8CAC\u4EFB\u3002", /*#__PURE__*/React.createElement("br", null), "\u91D1\u878D\u5E81\u304C2017\u5E74\u306B\u300C\u9867\u5BA2\u672C\u4F4D\u306E\u696D\u52D9\u904B\u55B6\u306B\u95A2\u3059\u308B\u539F\u5247\u300D\u3092\u7B56\u5B9A\u3002", /*#__PURE__*/React.createElement("br", null), "\u30D7\u30EA\u30F3\u30B7\u30D7\u30EB\u30D9\u30FC\u30B9\uFF08\u539F\u5247\u4E3B\u7FA9\uFF09\u30A2\u30D7\u30ED\u30FC\u30C1\u3092\u63A1\u7528\u3002ABC\u8A66\u9A13\u306E\u6700\u91CD\u8981\u30C6\u30FC\u30DE\u3002"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -3801,7 +3951,8 @@ function EthicsSectionB({
   const done = state.progress.ethics?.B;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30E9\u30A4\u30D5\u30D7\u30E9\u30F3\u30CB\u30F3\u30B0\u306E\u57FA\u672C\u30B9\u30C6\u30C3\u30D7",
-    color: color
+    color: color,
+    youtubeQuery: "\u30E9\u30A4\u30D5\u30D7\u30E9\u30F3\u30CB\u30F3\u30B0 KYC \u9867\u5BA2\u60C5\u5831\u53CE\u96C6 \u8CC7\u7523\u904B\u7528"
   }, /*#__PURE__*/React.createElement("strong", null, "Step1"), " \u30B4\u30FC\u30EB\u8A2D\u5B9A\uFF08\u3044\u3064\u307E\u3067\u306B\u30FB\u3044\u304F\u3089\u30FB\u4F55\u306E\u305F\u3081\u306B\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step2"), " \u73FE\u72B6\u628A\u63E1\uFF08\u8CC7\u7523\u30FB\u8CA0\u50B5\u30FB\u53CE\u5165\u30FB\u652F\u51FA\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step3"), " \u30AE\u30E3\u30C3\u30D7\u5206\u6790", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step4"), " \u89E3\u6C7A\u7B56\u306E\u63D0\u6848", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Step5"), " \u5B9F\u884C\u30FB\u30E2\u30CB\u30BF\u30EA\u30F3\u30B0"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -3970,7 +4121,8 @@ function EthicsSectionC({
     }
   }, "\u2713"), /*#__PURE__*/React.createElement("span", null, tip))))), /*#__PURE__*/React.createElement(InfoBox, {
     title: "ESG\u6295\u8CC7\u30FB\u30B5\u30B9\u30C6\u30CA\u30D6\u30EB\u6295\u8CC7",
-    color: "#16A085"
+    color: "#16A085",
+    youtubeQuery: "ESG\u6295\u8CC7 \u30B5\u30B9\u30C6\u30CA\u30D6\u30EB NISA \u65B0NISA \u308F\u304B\u308A\u3084\u3059\u304F"
   }, /*#__PURE__*/React.createElement("strong", null, "E"), "nvironment\uFF08\u74B0\u5883\uFF09\u30FB", /*#__PURE__*/React.createElement("strong", null, "S"), "ocial\uFF08\u793E\u4F1A\uFF09\u30FB", /*#__PURE__*/React.createElement("strong", null, "G"), "overnance\uFF08\u30AC\u30D0\u30CA\u30F3\u30B9\uFF09", /*#__PURE__*/React.createElement("br", null), "\u975E\u8CA1\u52D9\u60C5\u5831\u3092\u6295\u8CC7\u5224\u65AD\u306B\u7D44\u307F\u8FBC\u3080\u3002\u4E3B\u306A\u30A2\u30D7\u30ED\u30FC\u30C1\uFF1A", /*#__PURE__*/React.createElement("br", null), "\u2460\u30CD\u30AC\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u554F\u984C\u4F01\u696D\u3092\u9664\u5916\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2461\u30DD\u30B8\u30C6\u30A3\u30D6\u30B9\u30AF\u30EA\u30FC\u30CB\u30F3\u30B0\uFF08\u512A\u826F\u4F01\u696D\u3092\u9078\u5225\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2462ESG\u30A4\u30F3\u30C6\u30B0\u30EC\u30FC\u30B7\u30E7\u30F3\uFF08\u8CA1\u52D9\u60C5\u5831\u3068\u7D71\u5408\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2463\u30A8\u30F3\u30B2\u30FC\u30B8\u30E1\u30F3\u30C8\uFF08\u4F01\u696D\u3068\u306E\u5BFE\u8A71\u3067\u6539\u5584\u4FC3\u9032\uFF09", /*#__PURE__*/React.createElement("br", null), "\u2464\u30A4\u30F3\u30D1\u30AF\u30C8\u6295\u8CC7\uFF08\u793E\u4F1A\u7684\u6210\u679C\u3068\u8CA1\u52D9\u30EA\u30BF\u30FC\u30F3\u306E\u4E21\u7ACB\uFF09"), /*#__PURE__*/React.createElement(ExamTipCard, {
     color: COLORS.accent,
     tips: ["新NISA：年360万円（つみたて120＋成長240）・生涯1,800万円", "NISA損失は他口座との損益通算・繰越控除ができない（頻出ひっかけ）", "新NISAは売却した翌年に簿価分の枠が復活", "iDeCo掛金は全額所得控除・原則60歳まで引き出し不可", "iDeCoの拠出限度額は職業・加入年金制度で異なる", "ESG：Sは「Social（社会）」。Safety・Stabilityではない"]
@@ -4008,7 +4160,8 @@ function ReturnCalculatorSection({
 }) {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30EA\u30BF\u30FC\u30F3\u306E\u7A2E\u985E\u3068\u4F7F\u3044\u5206\u3051",
-    color: color
+    color: color,
+    youtubeQuery: "\u6295\u8CC7\u30EA\u30BF\u30FC\u30F3 \u7B97\u8853\u5E73\u5747 \u5E7E\u4F55\u5E73\u5747 \u5E74\u7387\u63DB\u7B97 \u8A08\u7B97"
   }, /*#__PURE__*/React.createElement("strong", null, "\u5358\u7D14\u30EA\u30BF\u30FC\u30F3\uFF08\u4FDD\u6709\u671F\u9593\uFF09"), "\uFF1AR = (\u671F\u672B\u4FA1\u683C \u2212 \u671F\u521D\u4FA1\u683C + \u914D\u5F53) / \u671F\u521D\u4FA1\u683C", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5E74\u7387\u30EA\u30BF\u30FC\u30F3\uFF08\u8907\u5229\u63DB\u7B97\uFF09"), "\uFF1A\u5E74\u7387R = (1 + \u4FDD\u6709\u671F\u9593R)^(1/\u5E74\u6570) \u2212 1", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u7B97\u8853\u5E73\u5747"), "\uFF1A\u5404\u671F\u30EA\u30BF\u30FC\u30F3\u306E\u5358\u7D14\u5E73\u5747 \u2192 \u5C06\u6765\u4E88\u6E2C\u306B\u4F7F\u7528", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5E7E\u4F55\u5E73\u5747"), "\uFF1A\u8907\u5229\u30D9\u30FC\u30B9\u306E\u5E73\u5747 \u2192 \u904E\u53BB\u5B9F\u7E3E\u8A55\u4FA1\u306B\u4F7F\u7528"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.simpleReturn, {
     color: color
   })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.annualReturn, {
@@ -4191,7 +4344,8 @@ function RiskCalculatorSection({
   const normalData = generateNormalDist(meanVal, sigmaVal);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30EA\u30B9\u30AF\uFF08\u6A19\u6E96\u504F\u5DEE\uFF09\u3068\u306F",
-    color: color
+    color: color,
+    youtubeQuery: "\u6295\u8CC7\u30EA\u30B9\u30AF \u6A19\u6E96\u504F\u5DEE \u76F8\u95A2\u4FC2\u6570 \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA \u8A08\u7B97"
   }, "\u30EA\u30B9\u30AF\uFF1D\u30EA\u30BF\u30FC\u30F3\u306E\u300C\u3070\u3089\u3064\u304D\u300D\u3092\u6A19\u6E96\u504F\u5DEE\u3067\u8868\u3059\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5206\u6563 \u03C3\xB2"), " = \u03A3(Ri \u2212 Ra)\xB2 / n", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6A19\u6E96\u504F\u5DEE \u03C3"), " = \u221A\u5206\u6563\u3000\uFF08\u03C3\u304C\u5927\u304D\u3044\uFF1D\u9AD8\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u76F8\u95A2\u4FC2\u6570 \u03C1"), " = Cov(A,B) / (\u03C3A \xD7 \u03C3B)\u3000\u22121 \u2264 \u03C1 \u2264 1"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.stdDev, {
     color: color
   })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.correlation, {
@@ -4617,7 +4771,8 @@ function EthicsSectionD({
   const done = state.chapProgress?.ch1?.A ?? false;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u884C\u52D5\u7D4C\u6E08\u5B66\u3068\u306F",
-    color: color
+    color: color,
+    youtubeQuery: "\u884C\u52D5\u7D4C\u6E08\u5B66 \u30D0\u30A4\u30A2\u30B9 \u640D\u5931\u56DE\u907F \u6295\u8CC7 \u308F\u304B\u308A\u3084\u3059\u304F"
   }, "\u4EBA\u9593\u304C\u5E38\u306B\u5408\u7406\u7684\u306B\u884C\u52D5\u3059\u308B\u3068\u306F\u9650\u3089\u306A\u3044\u3053\u3068\u3092\u524D\u63D0\u306B\u3001\u5FC3\u7406\u30FB\u611F\u60C5\u30FB\u8A8D\u77E5\u306E\u30D0\u30A4\u30A2\u30B9\u304C \u610F\u601D\u6C7A\u5B9A\u306B\u4E0E\u3048\u308B\u5F71\u97FF\u3092\u7814\u7A76\u3059\u308B\u5B66\u554F\u3002ABC\u8A66\u9A13\u306E\u7B2C1\u7AE0\u3067\u91CD\u8981\u30C6\u30FC\u30DE\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u8981\u306A\u6982\u5FF5\uFF1A"), "\u640D\u5931\u56DE\u907F\u30D0\u30A4\u30A2\u30B9\uFF0F\u30D2\u30E5\u30FC\u30EA\u30B9\u30C6\u30A3\u30C3\u30AF\uFF0F\u30B5\u30F3\u30AF\u30B3\u30B9\u30C8\u52B9\u679C\uFF0F \u30CA\u30C3\u30B8\u7406\u8AD6\uFF0F\u78BA\u8A3C\u30D0\u30A4\u30A2\u30B9\uFF0F\u30A2\u30F3\u30AB\u30EA\u30F3\u30B0\u52B9\u679C\uFF0F\u73FE\u72B6\u7DAD\u6301\u30D0\u30A4\u30A2\u30B9"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -4745,7 +4900,8 @@ function EthicsSectionE({
   const done = state.chapProgress?.ch2?.A ?? false;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30B4\u30FC\u30EB\u30D9\u30FC\u30B9\u8CC7\u7523\u7BA1\u7406\u3068\u306F",
-    color: color
+    color: color,
+    youtubeQuery: "\u30B4\u30FC\u30EB\u30D9\u30FC\u30B9\u8CC7\u7523\u7BA1\u7406 \u30D5\u30A1\u30F3\u30C9\u30E9\u30C3\u30D7 \u6295\u8CC7\u4E00\u4EFB\u30B5\u30FC\u30D3\u30B9"
   }, "\u9867\u5BA2\u306E\u300C\u8001\u5F8C\u8CC7\u91D1\u78BA\u4FDD\u300D\u300C\u6559\u80B2\u8CC7\u91D1\u6E96\u5099\u300D\u306A\u3069\u306E\u5177\u4F53\u7684\u306A\u30E9\u30A4\u30D5\u30B4\u30FC\u30EB\u3092\u4E2D\u5FC3\u306B \u8CC7\u7523\u914D\u5206\u3084\u904B\u7528\u8A08\u753B\u3092\u7ACB\u3066\u308B\u30A2\u30D7\u30ED\u30FC\u30C1\u3002ABC\u8A66\u9A13\u306E\u7B2C2\u7AE0\u306E\u6838\u5FC3\u30C6\u30FC\u30DE\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30D7\u30ED\u30BB\u30B9\uFF1A"), "\u2460\u30B4\u30FC\u30EB\u8A2D\u5B9A \u2192 \u2461\u5B9F\u73FE\u30B7\u30CA\u30EA\u30AA\u8A2D\u5B9A\uFF08\u512A\u5148\u9806\u4F4D\u4ED8\u3051\uFF09\u2192 \u2462\u6295\u8CC7\u306E\u9078\u629E\u30FB\u5B9F\u884C \u2192 \u2463\u7D99\u7D9A\u7684\u30EC\u30D3\u30E5\u30FC"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -5021,7 +5177,8 @@ function BasicsSectionF({
   const done = state.chapProgress?.ch6?.A ?? false;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u8CA1\u52D9\u8AF8\u8868\u306E\u6D3B\u7528",
-    color: color
+    color: color,
+    youtubeQuery: "\u8CA1\u52D9\u8AF8\u8868 \u8CB8\u501F\u5BFE\u7167\u8868 \u640D\u76CA\u8A08\u7B97\u66F8 \u6295\u8CC7\u5206\u6790 \u308F\u304B\u308A\u3084\u3059\u304F"
   }, "\u4F01\u696D\u5206\u6790\u30FB\u682A\u5F0F\u8A55\u4FA1\u306E\u57FA\u790E\u3068\u306A\u308B\u8CA1\u52D9\u8AF8\u8868\u306E\u8AAD\u307F\u65B9\u3068\u4E3B\u8981\u6307\u6A19\u3002 ABC\u8A66\u9A13\u3067\u306F\u7B2C6\u7AE0\u3067\u51FA\u984C\u3055\u308C\u308B\u91CD\u8981\u30C6\u30FC\u30DE\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u8981\u8CA1\u52D9\u6307\u6A19\uFF1A"), "ROE\uFF08\u53CE\u76CA\u6027\uFF09\uFF0FROA\uFF08\u8CC7\u7523\u52B9\u7387\uFF09\uFF0FPBR\uFF08\u682A\u4FA1\u7D14\u8CC7\u7523\u500D\u7387\uFF09\uFF0F PER\uFF08\u682A\u4FA1\u53CE\u76CA\u7387\uFF09\uFF0F\u6D41\u52D5\u6BD4\u7387\uFF08\u5B89\u5168\u6027\uFF09\uFF0F\u81EA\u5DF1\u8CC7\u672C\u6BD4\u7387"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -5144,7 +5301,8 @@ function PVSection({
 }) {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u73FE\u5728\u4FA1\u5024\uFF08PV\uFF09\u306E\u8003\u3048\u65B9",
-    color: color
+    color: color,
+    youtubeQuery: "\u73FE\u5728\u4FA1\u5024 \u5C06\u6765\u4FA1\u5024 \u5272\u5F15\u7387 DCF \u8A08\u7B97 \u308F\u304B\u308A\u3084\u3059\u304F"
   }, "\u300C\u4ECA\u306E1\u4E07\u5186\u306F\u5C06\u6765\u306E1\u4E07\u5186\u3088\u308A\u4FA1\u5024\u304C\u9AD8\u3044\u300D\uFF1D\u6642\u9593\u4FA1\u5024\u306E\u6982\u5FF5\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "PV = FV / (1 + r)^n"), "\u3000\u5272\u5F15\u7387\u304C\u9AD8\u3044\u30FB\u671F\u9593\u304C\u9577\u3044\u307B\u3069PV\u306F\u5C0F\u3055\u304F\u306A\u308B\u3002", /*#__PURE__*/React.createElement("br", null), "NPV\uFF08\u6B63\u5473\u73FE\u5728\u4FA1\u5024\uFF09= \u5C06\u6765CF\u306E\u73FE\u5728\u4FA1\u5024\u5408\u8A08 \u2212 \u521D\u671F\u6295\u8CC7"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.pv, {
     color: color
   })), /*#__PURE__*/React.createElement(CalcComponent, {
@@ -5395,7 +5553,8 @@ function StatsSection({
 }) {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "VaR\uFF08\u30D0\u30EA\u30E5\u30FC\u30FB\u30A2\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\uFF09",
-    color: color
+    color: color,
+    youtubeQuery: "VaR \u30D0\u30EA\u30E5\u30FC\u30A2\u30C3\u30C8\u30EA\u30B9\u30AF \u30EA\u30B9\u30AF\u7BA1\u7406 \u6295\u8CC7 \u8A08\u7B97"
   }, "\u4E00\u5B9A\u306E\u4FE1\u983C\u6C34\u6E96\u3067\u4E00\u5B9A\u671F\u9593\u5185\u306B\u767A\u751F\u3057\u3046\u308B\u6700\u5927\u640D\u5931\u984D\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "95%VaR = \u03BC \u2212 1.645\u03C3"), "\u3000\uFF08z\u5024\uFF1A90%\u21921.28\u300199%\u21922.326\uFF09", /*#__PURE__*/React.createElement("br", null), "\u4F8B: \u03BC=5%, \u03C3=15%\u306E\u3068\u304D 95%VaR = 5 \u2212 1.645\xD715 = ", /*#__PURE__*/React.createElement("strong", null, "\u221219.7%")), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.sharpe, {
     color: color
   })), /*#__PURE__*/React.createElement(CalcComponent, {
@@ -5545,7 +5704,8 @@ function AssetAllocationSection({
   }));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3\u306E\u91CD\u8981\u6027",
-    color: color
+    color: color,
+    youtubeQuery: "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3 \u8CC7\u7523\u914D\u5206 \u9577\u671F\u6295\u8CC7 \u5206\u6563\u6295\u8CC7"
   }, "Brinson et al. \u306E\u7814\u7A76\uFF1A\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u30EA\u30BF\u30FC\u30F3\u306E\u5909\u52D5\u306E\u7D0490%\u306F\u8CC7\u7523\u914D\u5206\u3067\u6C7A\u307E\u308B\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30BB\u30C3\u30C8\u30A2\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u4F55\u306B\u4F55%\u914D\u5206\u3059\u308B\u304B\uFF08\u8CC7\u7523\u30AF\u30E9\u30B9\u306E\u6BD4\u7387\u6C7A\u5B9A\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30BB\u30C3\u30C8\u30ED\u30B1\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u3069\u306E\u53E3\u5EA7\uFF08NISA/iDeCo/\u8AB2\u7A0E\uFF09\u306B\u7F6E\u304F\u304B\uFF08\u7A0E\u52B9\u7387\u5316\uFF09"), /*#__PURE__*/React.createElement(ChartCard, {
     title: "\u8CC7\u7523\u30AF\u30E9\u30B9\u5225 \u30EA\u30B9\u30AF\u30FB\u30EA\u30BF\u30FC\u30F3\u7279\u6027",
     color: color,
@@ -5946,7 +6106,8 @@ function PortfolioSectionA({
   const done = state.progress.portfolio?.A;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "2\u8CC7\u7523\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u306E\u30EA\u30B9\u30AF\u516C\u5F0F",
-    color: color
+    color: color,
+    youtubeQuery: "\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA \u5206\u6563\u52B9\u679C \u76F8\u95A2\u4FC2\u6570 \u30EA\u30B9\u30AF\u8A08\u7B97"
   }, /*#__PURE__*/React.createElement("strong", null, "\u03C3P\xB2 = wA\xB2\u03C3A\xB2 + wB\xB2\u03C3B\xB2 + 2\xB7wA\xB7wB\xB7\u03C1\xB7\u03C3A\xB7\u03C3B"), /*#__PURE__*/React.createElement("br", null), "\u03C1 = +1\uFF1A\u5206\u6563\u52B9\u679C\u306A\u3057\uFF08\u30EA\u30B9\u30AF\u306F\u52A0\u91CD\u5E73\u5747\uFF09", /*#__PURE__*/React.createElement("br", null), "\u03C1 =  0\uFF1A\u90E8\u5206\u7684\u306A\u5206\u6563\u52B9\u679C", /*#__PURE__*/React.createElement("br", null), "\u03C1 = \u22121\uFF1A\u9069\u5207\u306A\u6BD4\u7387\u3067\u30EA\u30B9\u30AF\u3092\u30BC\u30ED\u306B\u3067\u304D\u308B\uFF08\u7406\u8AD6\u4E0A\uFF09"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.portfolioRisk, {
     color: color
   })), /*#__PURE__*/React.createElement("div", {
@@ -6197,7 +6358,8 @@ function PortfolioSectionB({
   const done = state.progress.portfolio?.B;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u3068CML",
-    color: color
+    color: color,
+    youtubeQuery: "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2 CML \u8CC7\u672C\u5E02\u5834\u7DDA \u6700\u5C0F\u5206\u6563\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"
   }, /*#__PURE__*/React.createElement("strong", null, "\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2"), "\uFF1A\u540C\u3058\u30EA\u30B9\u30AF\u3067\u6700\u5927\u30EA\u30BF\u30FC\u30F3\u306E\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u96C6\u5408", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6700\u5C0F\u5206\u6563\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"), "\uFF1A\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u4E0A\u3067\u30EA\u30B9\u30AF\u6700\u5C0F\u306E\u70B9", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u63A5\u70B9\u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA"), "\uFF1ACML\u3068\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u306E\u63A5\u70B9 = \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u6700\u5927", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "CML\uFF08\u8CC7\u672C\u5E02\u5834\u7DDA\uFF09"), "\uFF1A\u30EA\u30B9\u30AF\u30D5\u30EA\u30FC\u8CC7\u7523\u3068\u63A5\u70B9PF\u3092\u7D50\u3076\u76F4\u7DDA"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -6358,7 +6520,8 @@ function PortfolioSectionC({
   const done = state.progress.portfolio?.C;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "CAPM\uFF08\u8CC7\u672C\u8CC7\u7523\u8A55\u4FA1\u30E2\u30C7\u30EB\uFF09",
-    color: color
+    color: color,
+    youtubeQuery: "CAPM \u8CC7\u672C\u8CC7\u7523\u8A55\u4FA1\u30E2\u30C7\u30EB \u30D9\u30FC\u30BF \u671F\u5F85\u30EA\u30BF\u30FC\u30F3 \u8A08\u7B97"
   }, /*#__PURE__*/React.createElement("strong", null, "E(Ri) = Rf + \u03B2i \xD7 [E(Rm) \u2212 Rf]"), /*#__PURE__*/React.createElement("br", null), "[E(Rm)\u2212Rf]\uFF1A\u30DE\u30FC\u30B1\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\u30D7\u30EC\u30DF\u30A2\u30E0", /*#__PURE__*/React.createElement("br", null), "\u03B2\uFF1E1\uFF1A\u5E02\u5834\u3088\u308A\u5909\u52D5\u5927\u3000\u03B2=1\uFF1A\u5E02\u5834\u3068\u540C\u3058\u3000\u03B2\uFF1C1\uFF1A\u5909\u52D5\u5C0F\u3000\u03B2=0\uFF1ARf\u3068\u540C\u3058", /*#__PURE__*/React.createElement("br", null), "\u975E\u30B7\u30B9\u30C6\u30DE\u30C6\u30A3\u30C3\u30AF\u30EA\u30B9\u30AF\u306F\u5206\u6563\u6295\u8CC7\u3067\u6D88\u53BB\u3067\u304D\u308B\u305F\u3081\u3001CAPM\u306F\u03B2\u306E\u307F\u3067\u5831\u916C\u3092\u6C7A\u5B9A"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.capm, {
     color: color
   })), /*#__PURE__*/React.createElement("div", {
@@ -6559,7 +6722,8 @@ function PortfolioSectionD({
   const done = state.progress.portfolio?.D;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "4\u3064\u306E\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u8A55\u4FA1\u6307\u6A19",
-    color: color
+    color: color,
+    youtubeQuery: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA \u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA \u30B8\u30A7\u30F3\u30BB\u30F3\u30A2\u30EB\u30D5\u30A1 \u30DD\u30FC\u30C8\u30D5\u30A9\u30EA\u30AA\u8A55\u4FA1"
   }, /*#__PURE__*/React.createElement("strong", null, "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA"), "\uFF1A(Rp\u2212Rf)/\u03C3p\u3000\u5168\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30C8\u30EC\u30A4\u30CA\u30FC\u30EC\u30B7\u30AA"), "\uFF1A(Rp\u2212Rf)/\u03B2\u3000\u5E02\u5834\u30EA\u30B9\u30AF1\u5358\u4F4D\u3042\u305F\u308A\u306E\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30B8\u30A7\u30F3\u30BB\u30F3\u306E\u03B1"), "\uFF1ARp\u2212[Rf+\u03B2(Rm\u2212Rf)]\u3000CAPM\u3092\u8D85\u3048\u305F\u8D85\u904E\u30EA\u30BF\u30FC\u30F3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u60C5\u5831\u30EC\u30B7\u30AA(IR)"), "\uFF1A(Rp\u2212Rb)/TE\u3000\u30D9\u30F3\u30C1\u30DE\u30FC\u30AF\u8D85\u904E\u30EA\u30BF\u30FC\u30F3\xF7\u8FFD\u8DE1\u8AA4\u5DEE"), /*#__PURE__*/React.createElement(CalcComponent, {
     formulaName: "\u30D1\u30D5\u30A9\u30FC\u30DE\u30F3\u30B9\u6307\u6A19 \u4E00\u62EC\u8A08\u7B97\u6A5F",
     accentColor: color,
@@ -6839,7 +7003,8 @@ function ProductsSectionA({
   const done = state.progress.products?.A;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u682A\u5F0F\u306E\u4E3B\u8981\u8A55\u4FA1\u6307\u6A19",
-    color: color
+    color: color,
+    youtubeQuery: "PER PBR ROE DDM \u682A\u5F0F\u8A55\u4FA1\u6307\u6A19 \u308F\u304B\u308A\u3084\u3059\u304F"
   }, /*#__PURE__*/React.createElement("strong", null, "PER"), " = \u682A\u4FA1 / EPS\u3000\uFF08\u4F4E\u3044\u307B\u3069\u5272\u5B89\u30FB\u696D\u7A2E\u6BD4\u8F03\u304C\u91CD\u8981\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "PBR"), " = \u682A\u4FA1 / BPS\u3000\uFF081\u500D\u5272\u308C = \u89E3\u6563\u4FA1\u5024\u4EE5\u4E0B\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "ROE"), " = \u7D14\u5229\u76CA / \u81EA\u5DF1\u8CC7\u672C\u3000\uFF08\u30C7\u30E5\u30DD\u30F3: \u7D14\u5229\u76CA\u7387\xD7\u7DCF\u8CC7\u7523\u56DE\u8EE2\u7387\xD7\u8CA1\u52D9\u30EC\u30D0\u30EC\u30C3\u30B8\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "DDM\u5B9A\u7387\u6210\u9577"), "\uFF1AP = D1 / (r \u2212 g)"), /*#__PURE__*/React.createElement(CalcComponent, {
     formulaName: "PER\u30FBPBR\u30FB\u914D\u5F53\u5229\u56DE\u308A\u8A08\u7B97\u6A5F",
     accentColor: color,
@@ -7029,7 +7194,8 @@ function ProductsSectionB({
   })();
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u50B5\u5238\u306E\u57FA\u672C\u3068\u91D1\u5229\u306E\u9006\u76F8\u95A2",
-    color: color
+    color: color,
+    youtubeQuery: "\u50B5\u5238 \u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3 \u6700\u7D42\u5229\u56DE\u308A \u91D1\u5229\u30EA\u30B9\u30AF \u308F\u304B\u308A\u3084\u3059\u304F"
   }, /*#__PURE__*/React.createElement("strong", null, "\u50B5\u5238\u4FA1\u683C"), " = \u03A3 \u30AF\u30FC\u30DD\u30F3/(1+r)^t + \u984D\u9762/(1+r)^n", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u91D1\u5229\u2191 \u2192 \u50B5\u5238\u4FA1\u683C\u2193"), "\uFF08\u9006\u76F8\u95A2\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u30AD\u30E3\u30C3\u30B7\u30E5\u30D5\u30ED\u30FC\u306E\u52A0\u91CD\u5E73\u5747\u6B8B\u5B58\u671F\u9593\uFF08\u2260\u6B8B\u5B58\u671F\u9593\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FEE\u6B63\u30C7\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3"), "\uFF1A\u0394P/P \u2248 \u2212\u4FEE\u6B63D \xD7 \u0394r"), /*#__PURE__*/React.createElement(ChartCard, {
     title: "\u91D1\u5229\u5909\u5316\u3068\u50B5\u5238\u4FA1\u683C\u306E\u95A2\u4FC2\uFF08\u30AF\u30FC\u30DD\u30F33%\u30FB10\u5E74\u30FB\u984D\u9762100\u5186\uFF09",
     color: color,
@@ -7164,7 +7330,8 @@ function ProductsSectionC({
   const done = state.progress.products?.C;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u5916\u56FD\u8A3C\u5238\u6295\u8CC7\u3068\u70BA\u66FF\u30EA\u30B9\u30AF",
-    color: color
+    color: color,
+    youtubeQuery: "\u5916\u56FD\u8A3C\u5238 \u70BA\u66FF\u30EA\u30B9\u30AF \u30D8\u30C3\u30B8 \u8CFC\u8CB7\u529B\u5E73\u4FA1 \u5916\u8CA8\u6295\u8CC7"
   }, /*#__PURE__*/React.createElement("strong", null, "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3"), "\uFF1AR\u5186 = (1+R\u5916\u8CA8)(1+R\u70BA\u66FF) \u2212 1 \u2248 R\u5916\u8CA8 + R\u70BA\u66FF", /*#__PURE__*/React.createElement("br", null), "\u5186\u9AD8\uFF08R\u70BA\u66FF < 0\uFF09\u2192 \u5916\u8CA8\u5EFA\u3066\u8CC7\u7523\u306E\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u3092\u62BC\u3057\u4E0B\u3052\u308B", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30AB\u30D0\u30FC\u4ED8\u304DIRP"), "\uFF1AF/S = (1+r\u56FD\u5185)/(1+r\u5916\u56FD)\u3000\u2192 \u30D8\u30C3\u30B8\u30B3\u30B9\u30C8\u2252\u91D1\u5229\u5DEE", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u30A2\u30F3\u30AB\u30D0\u30FC\u30C9IRP"), "\uFF1A\u9AD8\u91D1\u5229\u901A\u8CA8\u306F\u5C06\u6765\u7684\u306B\u4E0B\u843D\u3059\u308B\u50BE\u5411"), /*#__PURE__*/React.createElement(CalcComponent, {
     formulaName: "\u5186\u63DB\u7B97\u30EA\u30BF\u30FC\u30F3\u8A08\u7B97\u6A5F",
     accentColor: color,
@@ -7301,7 +7468,8 @@ function ProductsSectionD({
   }];
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u6295\u8CC7\u4FE1\u8A17\u306E\u30B3\u30B9\u30C8\u69CB\u9020",
-    color: color
+    color: color,
+    youtubeQuery: "\u6295\u8CC7\u4FE1\u8A17 \u4FE1\u8A17\u5831\u916C \u30B3\u30B9\u30C8 ETF \u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u30D5\u30A1\u30F3\u30C9"
   }, /*#__PURE__*/React.createElement("strong", null, "\u57FA\u6E96\u4FA1\u984D"), " = \u7D14\u8CC7\u7523\u7DCF\u984D / \u53D7\u76CA\u6A29\u7DCF\u53E3\u6570", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u8CFC\u5165\u6642\u624B\u6570\u6599"), "\uFF1A0\u301C3%\u7A0B\u5EA6\uFF08\u30CE\u30FC\u30ED\u30FC\u30C9\u3082\u5897\u52A0\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FE1\u8A17\u5831\u916C"), "\uFF1A\u5E740.1\u301C2%\u7A0B\u5EA6\uFF08\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u304C\u6709\u5229\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4FE1\u8A17\u8CA1\u7523\u7559\u4FDD\u984D"), "\uFF1A\u89E3\u7D04\u6642\u30B3\u30B9\u30C8\uFF08\u6B8B\u5B58\u6295\u8CC7\u5BB6\u3092\u4FDD\u8B77\uFF09"), /*#__PURE__*/React.createElement(ChartCard, {
     title: "\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9 vs \u30A2\u30AF\u30C6\u30A3\u30D6 \u30B3\u30B9\u30C8\u6BD4\u8F03\uFF08\u5E74\u7387%\uFF09",
     color: color,
@@ -7560,7 +7728,8 @@ function ProductsSectionF({
   const done = state.chapProgress?.supp2?.A ?? false;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6\u53D6\u5F15\u3068\u306F",
-    color: color
+    color: color,
+    youtubeQuery: "REIT \u4E0D\u52D5\u7523\u6295\u8CC7\u4FE1\u8A17 \u30C7\u30EA\u30D0\u30C6\u30A3\u30D6 \u5148\u7269 \u30AA\u30D7\u30B7\u30E7\u30F3 \u308F\u304B\u308A\u3084\u3059\u304F"
   }, "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u70BA\u66FF\u306A\u3069\u306E\u539F\u8CC7\u7523\u304B\u3089\u300C\u6D3E\u751F\u300D\u3057\u305F\u91D1\u878D\u5546\u54C1\u306E\u7DCF\u79F0\u3002 \u30D8\u30C3\u30B8\uFF08\u30EA\u30B9\u30AF\u56DE\u907F\uFF09\u30FB\u6295\u6A5F\u30FB\u88C1\u5B9A\u53D6\u5F15\u306B\u6D3B\u7528\u3055\u308C\u308B\u3002ABC\u8A66\u9A13\u306E\u88DC\u8AD62\u3067\u51FA\u984C\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u89813\u7A2E\u985E\uFF1A"), "\u5148\u7269\u53D6\u5F15\uFF08\u7FA9\u52D9\uFF09\uFF0F\u30AA\u30D7\u30B7\u30E7\u30F3\u53D6\u5F15\uFF08\u6A29\u5229\uFF09\uFF0F\u30B9\u30EF\u30C3\u30D7\u53D6\u5F15\uFF08\u4EA4\u63DB\uFF09"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
@@ -11432,6 +11601,9 @@ function HomeTab({
     }
   }), " \u5225\u306E\u554F\u984C\u3092\u51FA\u3059")), /*#__PURE__*/React.createElement(AIReviewWidget, {
     state: state
+  }), /*#__PURE__*/React.createElement(ExportImportPanel, {
+    state: state,
+    setState: setState
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
