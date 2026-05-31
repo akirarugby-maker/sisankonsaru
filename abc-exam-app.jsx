@@ -4420,7 +4420,20 @@ function EthicsSectionD({ color, state, setState, onNext }) {
           <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
           <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションD 完了！</div>
         </div>
-      ) : showQuiz ? (
+      ) : null}
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%", marginTop: done ? 8 : 0, marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, ${color}CC)`,
+        }}
+        onClick={() => setShowQuiz(s => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "行動経済学 確認テスト（10問）を開始"}
+      </button>
+      {showQuiz && (
         <QuizComponent
           quizzes={CH1_QUIZZES}
           tabId="ch1"
@@ -4431,10 +4444,6 @@ function EthicsSectionD({ color, state, setState, onNext }) {
           progressField="chapProgress"
           onNext={onNext}
         />
-      ) : (
-        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
-          行動経済学 確認テスト（10問）を開始
-        </button>
       )}
     </div>
   );
@@ -4478,7 +4487,20 @@ function EthicsSectionE({ color, state, setState }) {
           <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
           <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションE 完了！</div>
         </div>
-      ) : showQuiz ? (
+      ) : null}
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%", marginTop: done ? 8 : 0, marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, ${color}CC)`,
+        }}
+        onClick={() => setShowQuiz(s => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "ゴールベース 確認テスト（8問）を開始"}
+      </button>
+      {showQuiz && (
         <QuizComponent
           quizzes={CH2_QUIZZES}
           tabId="ch2"
@@ -4489,10 +4511,6 @@ function EthicsSectionE({ color, state, setState }) {
           progressField="chapProgress"
           onNext={onNext}
         />
-      ) : (
-        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%" }}>
-          ゴールベース 確認テスト（8問）を開始
-        </button>
       )}
     </div>
   );
@@ -4622,7 +4640,20 @@ function BasicsSectionF({ color, state, setState }) {
           <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
           <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションF 完了！</div>
         </div>
-      ) : showQuiz ? (
+      ) : null}
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%", marginTop: done ? 8 : 0, marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, #E8922A)`,
+        }}
+        onClick={() => setShowQuiz(s => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "財務諸表 確認テスト（12問）を開始"}
+      </button>
+      {showQuiz && (
         <QuizComponent
           quizzes={CH6_QUIZZES}
           tabId="ch6"
@@ -4632,10 +4663,6 @@ function BasicsSectionF({ color, state, setState }) {
           setState={setState}
           progressField="chapProgress"
         />
-      ) : (
-        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%", background: `linear-gradient(135deg, ${color}, #E8922A)` }}>
-          財務諸表 確認テスト（12問）を開始
-        </button>
       )}
     </div>
   );
@@ -5959,7 +5986,20 @@ function ProductsSectionF({ color, state, setState }) {
           <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
           <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションF 完了！</div>
         </div>
-      ) : showQuiz ? (
+      ) : null}
+      <button
+        style={{
+          ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+          width: "100%", marginTop: done ? 8 : 0, marginBottom: 12,
+          background: done
+            ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`
+            : `linear-gradient(135deg, ${color}, #E8922A)`,
+        }}
+        onClick={() => setShowQuiz(s => !s)}
+      >
+        {done ? <><Check size={14} style={{ marginRight: 5 }} />完了済み — 再挑戦する</> : "デリバティブ 確認テスト（10問）を開始"}
+      </button>
+      {showQuiz && (
         <QuizComponent
           quizzes={SUPP2_QUIZZES}
           tabId="supp2"
@@ -5969,10 +6009,6 @@ function ProductsSectionF({ color, state, setState }) {
           setState={setState}
           progressField="chapProgress"
         />
-      ) : (
-        <button onClick={() => setShowQuiz(true)} style={{ ...STYLES.btnPrimary, width: "100%", background: `linear-gradient(135deg, ${color}, #E8922A)` }}>
-          デリバティブ 確認テスト（10問）を開始
-        </button>
       )}
     </div>
   );

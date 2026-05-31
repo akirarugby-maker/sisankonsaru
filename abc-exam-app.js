@@ -4504,7 +4504,21 @@ function EthicsSectionD({
       fontWeight: 800,
       color: COLORS.secondary
     }
-  }, "\u30BB\u30AF\u30B7\u30E7\u30F3D \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3D \u5B8C\u4E86\uFF01")) : null, /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: done ? 8 : 0,
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "行動経済学 確認テスト（10問）を開始"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
     quizzes: CH1_QUIZZES,
     tabId: "ch1",
     sectionId: "A",
@@ -4513,13 +4527,7 @@ function EthicsSectionD({
     setState: setState,
     progressField: "chapProgress",
     onNext: onNext
-  }) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowQuiz(true),
-    style: {
-      ...STYLES.btnPrimary,
-      width: "100%"
-    }
-  }, "\u884C\u52D5\u7D4C\u6E08\u5B66 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF0810\u554F\uFF09\u3092\u958B\u59CB"));
+  }));
 }
 
 // ============================================================
@@ -4611,7 +4619,21 @@ function EthicsSectionE({
       fontWeight: 800,
       color: COLORS.secondary
     }
-  }, "\u30BB\u30AF\u30B7\u30E7\u30F3E \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3E \u5B8C\u4E86\uFF01")) : null, /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: done ? 8 : 0,
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, ${color}CC)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "ゴールベース 確認テスト（8問）を開始"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
     quizzes: CH2_QUIZZES,
     tabId: "ch2",
     sectionId: "A",
@@ -4620,13 +4642,7 @@ function EthicsSectionE({
     setState: setState,
     progressField: "chapProgress",
     onNext: onNext
-  }) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowQuiz(true),
-    style: {
-      ...STYLES.btnPrimary,
-      width: "100%"
-    }
-  }, "\u30B4\u30FC\u30EB\u30D9\u30FC\u30B9 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF088\u554F\uFF09\u3092\u958B\u59CB"));
+  }));
 }
 
 // ============================================================
@@ -4884,7 +4900,21 @@ function BasicsSectionF({
       fontWeight: 800,
       color: COLORS.secondary
     }
-  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : null, /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: done ? 8 : 0,
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "財務諸表 確認テスト（12問）を開始"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
     quizzes: CH6_QUIZZES,
     tabId: "ch6",
     sectionId: "A",
@@ -4892,14 +4922,7 @@ function BasicsSectionF({
     state: state,
     setState: setState,
     progressField: "chapProgress"
-  }) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowQuiz(true),
-    style: {
-      ...STYLES.btnPrimary,
-      width: "100%",
-      background: `linear-gradient(135deg, ${color}, #E8922A)`
-    }
-  }, "\u8CA1\u52D9\u8AF8\u8868 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF0812\u554F\uFF09\u3092\u958B\u59CB"));
+  }));
 }
 
 // --- セクションC: 現在価値と割引率 ---
@@ -7422,7 +7445,21 @@ function ProductsSectionF({
       fontWeight: 800,
       color: COLORS.secondary
     }
-  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : showQuiz ? /*#__PURE__*/React.createElement(QuizComponent, {
+  }, "\u30BB\u30AF\u30B7\u30E7\u30F3F \u5B8C\u4E86\uFF01")) : null, /*#__PURE__*/React.createElement("button", {
+    style: {
+      ...(done ? STYLES.btnSecondary : STYLES.btnPrimary),
+      width: "100%",
+      marginTop: done ? 8 : 0,
+      marginBottom: 12,
+      background: done ? `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)` : `linear-gradient(135deg, ${color}, #E8922A)`
+    },
+    onClick: () => setShowQuiz(s => !s)
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 14,
+    style: {
+      marginRight: 5
+    }
+  }), "\u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B") : "デリバティブ 確認テスト（10問）を開始"), showQuiz && /*#__PURE__*/React.createElement(QuizComponent, {
     quizzes: SUPP2_QUIZZES,
     tabId: "supp2",
     sectionId: "A",
@@ -7430,14 +7467,7 @@ function ProductsSectionF({
     state: state,
     setState: setState,
     progressField: "chapProgress"
-  }) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowQuiz(true),
-    style: {
-      ...STYLES.btnPrimary,
-      width: "100%",
-      background: `linear-gradient(135deg, ${color}, #E8922A)`
-    }
-  }, "\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6 \u78BA\u8A8D\u30C6\u30B9\u30C8\uFF0810\u554F\uFF09\u3092\u958B\u59CB"));
+  }));
 }
 
 // --- ④金融商品タブ本体 ---
