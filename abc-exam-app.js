@@ -11061,7 +11061,19 @@ function HomeTab({
 // メインアプリ
 // ============================================================
 function ABCExamApp() {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return localStorage.getItem("activeTab") || "home";
+    } catch {
+      return "home";
+    }
+  });
+  const handleTabChange = useCallback(tab => {
+    setActiveTab(tab);
+    try {
+      localStorage.setItem("activeTab", tab);
+    } catch {}
+  }, []);
   const [state, setStateRaw] = useState(loadState);
   const setState = useCallback(updater => {
     setStateRaw(prev => {
@@ -11087,7 +11099,7 @@ function ABCExamApp() {
         return /*#__PURE__*/React.createElement(HomeTab, {
           state: state,
           setState: setState,
-          onTabChange: setActiveTab
+          onTabChange: handleTabChange
         });
       case "ethics":
         return /*#__PURE__*/React.createElement(EthicsTab, {
@@ -11141,7 +11153,7 @@ function ABCExamApp() {
     }
   }, /*#__PURE__*/React.createElement("main", null, renderTab()), /*#__PURE__*/React.createElement(NavigationBar, {
     activeTab: activeTab,
-    onTabChange: setActiveTab
+    onTabChange: handleTabChange
   }));
 }
 

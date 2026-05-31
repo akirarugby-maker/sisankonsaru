@@ -8059,7 +8059,14 @@ function HomeTab({ state, setState, onTabChange }) {
 // メインアプリ
 // ============================================================
 export default function ABCExamApp() {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState(() => {
+    try { return localStorage.getItem("activeTab") || "home"; } catch { return "home"; }
+  });
+
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+    try { localStorage.setItem("activeTab", tab); } catch {}
+  }, []);
   const [state, setStateRaw] = useState(loadState);
 
   const setState = useCallback((updater) => {
@@ -8089,7 +8096,7 @@ export default function ABCExamApp() {
           <HomeTab
             state={state}
             setState={setState}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
           />
         );
       case "ethics":
@@ -8140,7 +8147,7 @@ export default function ABCExamApp() {
       <main>{renderTab()}</main>
 
       {/* ナビゲーションバー */}
-      <NavigationBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <NavigationBar activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }
