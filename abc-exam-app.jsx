@@ -3475,6 +3475,99 @@ function SectionProgress({ tabId, sections, progress, color, onSelect }) {
   );
 }
 
+// --- 抜き打ちテスト: 1問カード ---
+function FlashQuizCard({ quiz, index, onNavigate }) {
+  const [selected, setSelected] = useState(null);
+  const [answered, setAnswered] = useState(false);
+  const correct = answered && selected === quiz.answer;
+
+  return (
+    <div style={{ borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 14, marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <div style={{
+          minWidth: 22, height: 22, borderRadius: "50%", background: COLORS.primary,
+          color: "#fff", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>{index + 1}</div>
+        <div style={{ fontSize: 10, color: COLORS.textMuted, fontWeight: 600 }}>{quiz._label}</div>
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, lineHeight: 1.65, marginBottom: 10 }}>
+        {quiz.q}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {quiz.choices.map((c, i) => {
+          let bg = "#fff", border = `1px solid ${COLORS.border}`, col = COLORS.text;
+          if (answered) {
+            if (i === quiz.answer) { bg = COLORS.secondary + "18"; border = `1.5px solid ${COLORS.secondary}`; col = COLORS.secondary; }
+            else if (i === selected) { bg = COLORS.danger + "12"; border = `1.5px solid ${COLORS.danger}`; col = COLORS.danger; }
+          }
+          return (
+            <button
+              key={i}
+              onClick={() => { if (answered) return; setSelected(i); setAnswered(true); }}
+              style={{ background: bg, border, borderRadius: 8, padding: "7px 10px", textAlign: "left",
+                cursor: answered ? "default" : "pointer", fontSize: 12, color: col,
+                fontFamily: "'Noto Sans JP', sans-serif", transition: "all 0.15s" }}
+            >
+              {["①","②","③","④"][i]} {c}
+            </button>
+          );
+        })}
+      </div>
+      {answered && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <span style={{ fontSize: 16 }}>{correct ? "✅" : "❌"}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: correct ? COLORS.secondary : COLORS.danger }}>
+              {correct ? "正解！" : `不正解 — 正答：${["①","②","③","④"][quiz.answer]}`}
+            </span>
+          </div>
+          <div style={{ padding: "8px 10px", background: COLORS.primary + "08", borderRadius: 8, fontSize: 11,
+            color: COLORS.text, lineHeight: 1.65, marginBottom: 8 }}>
+            {quiz.explanation}
+          </div>
+          <button
+            onClick={() => onNavigate(quiz._tab, quiz._sec)}
+            style={{ ...STYLES.btnOutline, fontSize: 11, padding: "6px 12px", width: "100%",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+          >
+            <ChevronRight size={12} /> {quiz._label} のページへ
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 抜き打ちテスト: 5問セクション ---
+function FlashQuizSection({ state, onNavigate }) {
+  const [quizzes] = useState(() => {
+    const pool = getStudiedFlashPool(state.visitedSections, state.progress);
+    if (pool.length === 0) return [];
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(5, shuffled.length));
+  });
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12 }}>
+      <div style={{ ...STYLES.sectionTitle, fontSize: 14, color: COLORS.primary, marginBottom: 2 }}>
+        <AlertTriangle size={15} color={COLORS.primary} /> 抜き打ちテスト
+      </div>
+      <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 12 }}>
+        既習分野からランダム{quizzes.length}問 — ホームを開くたびに更新
+      </div>
+      {quizzes.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "12px 0", color: COLORS.textMuted, fontSize: 12 }}>
+          各分野のセクションを学習すると<br />抜き打ちテストが解放されます 🎯
+        </div>
+      ) : (
+        quizzes.map((q, i) => (
+          <FlashQuizCard key={`${q.id || q.keyword}-${i}`} quiz={q} index={i} onNavigate={onNavigate} />
+        ))
+      )}
+    </div>
+  );
+}
+
 // --- MiniCalcCard: ホーム画面「今日の計算練習」用 ---
 function MiniCalcCard({ quiz, onAnswer }) {
   const [selected, setSelected] = useState(null);
@@ -3678,6 +3771,14 @@ const ETHICS_SECTIONS = [
 function EthicsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = COLORS.secondary;
+
+  useEffect(() => {
+    const nt = state.navTarget;
+    if (nt?.tab === "ethics" && nt?.sec) {
+      setSection(nt.sec);
+      setState(s => ({ ...s, navTarget: null }));
+    }
+  }, [state.navTarget]);
 
   useEffect(() => {
     if (state.visitedSections?.ethics?.[section]) return;
@@ -4534,6 +4635,14 @@ const ALL_BASICS_SECTIONS = [
 function BasicsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = COLORS.accent;
+
+  useEffect(() => {
+    const nt = state.navTarget;
+    if (nt?.tab === "basics" && nt?.sec) {
+      setSection(nt.sec);
+      setState(s => ({ ...s, navTarget: null }));
+    }
+  }, [state.navTarget]);
 
   useEffect(() => {
     if (state.visitedSections?.basics?.[section]) return;
@@ -5536,6 +5645,14 @@ function PortfolioTab({ state, setState }) {
   const color = COLORS.highlight;
 
   useEffect(() => {
+    const nt = state.navTarget;
+    if (nt?.tab === "portfolio" && nt?.sec) {
+      setSection(nt.sec);
+      setState(s => ({ ...s, navTarget: null }));
+    }
+  }, [state.navTarget]);
+
+  useEffect(() => {
     if (state.visitedSections?.portfolio?.[section]) return;
     setState(s => ({ ...s, visitedSections: { ...s.visitedSections, portfolio: { ...(s.visitedSections?.portfolio ?? {}), [section]: true } } }));
   }, [section]);
@@ -6028,6 +6145,14 @@ const PRODUCTS_SECTIONS = [
 function ProductsTab({ state, setState }) {
   const [section, setSection] = useState("A");
   const color = "#E67E22";
+
+  useEffect(() => {
+    const nt = state.navTarget;
+    if (nt?.tab === "products" && nt?.sec) {
+      setSection(nt.sec);
+      setState(s => ({ ...s, navTarget: null }));
+    }
+  }, [state.navTarget]);
 
   useEffect(() => {
     if (state.visitedSections?.products?.[section]) return;
@@ -7699,6 +7824,38 @@ function getStudiedCalcPool(visitedSections, progress) {
   return pool.length > 0 ? pool : ALL_CALC_QUIZZES;
 }
 
+// 抜き打きテスト用：既習セクション→問題の対応表
+const FLASH_QUIZ_MAP = [
+  { tab: "ethics",    sec: "A", label: "①顧客本位 A：フィデューシャリー", quizzes: ETHICS_QUIZZES.A },
+  { tab: "ethics",    sec: "B", label: "①顧客本位 B：顧客情報収集",       quizzes: ETHICS_QUIZZES.B },
+  { tab: "ethics",    sec: "C", label: "①顧客本位 C：税制・NISA",         quizzes: ETHICS_QUIZZES.C },
+  { tab: "ethics",    sec: "D", label: "①顧客本位 D：行動経済学",          quizzes: CH1_QUIZZES    },
+  { tab: "ethics",    sec: "E", label: "①顧客本位 E：ゴールベース",        quizzes: CH2_QUIZZES    },
+  { tab: "basics",    sec: "A", label: "②基礎 A：リターン計算",            quizzes: BASICS_QUIZZES.A },
+  { tab: "basics",    sec: "B", label: "②基礎 B：リスク・相関",            quizzes: BASICS_QUIZZES.B },
+  { tab: "basics",    sec: "C", label: "②基礎 C：現在価値・VaR",          quizzes: BASICS_QUIZZES.C },
+  { tab: "portfolio", sec: "A", label: "③PF理論 A：分散効果",             quizzes: PORTFOLIO_QUIZZES.A },
+  { tab: "portfolio", sec: "B", label: "③PF理論 B：効率的フロンティア",    quizzes: PORTFOLIO_QUIZZES.B },
+  { tab: "portfolio", sec: "C", label: "③PF理論 C：CAPM・ベータ",         quizzes: PORTFOLIO_QUIZZES.C },
+  { tab: "portfolio", sec: "D", label: "③PF理論 D：パフォーマンス評価",   quizzes: PORTFOLIO_QUIZZES.D },
+  { tab: "products",  sec: "A", label: "④金融商品 A：株式",               quizzes: PRODUCTS_QUIZZES.A },
+  { tab: "products",  sec: "B", label: "④金融商品 B：債券",               quizzes: PRODUCTS_QUIZZES.B },
+  { tab: "products",  sec: "C", label: "④金融商品 C：外貨",               quizzes: PRODUCTS_QUIZZES.C },
+  { tab: "products",  sec: "D", label: "④金融商品 D：投信・ETF",          quizzes: PRODUCTS_QUIZZES.D },
+  { tab: "products",  sec: "E", label: "④金融商品 E：REIT",              quizzes: PRODUCTS_QUIZZES.E },
+];
+
+// 既習セクションの全問題プールを返す（未学習なら空配列）
+function getStudiedFlashPool(visitedSections, progress) {
+  const studied = FLASH_QUIZ_MAP.filter(({ tab, sec }) =>
+    !!(visitedSections?.[tab]?.[sec] || progress?.[tab]?.[sec])
+  );
+  if (studied.length === 0) return [];
+  return studied.flatMap(({ quizzes, tab, sec, label }) =>
+    quizzes.map(q => ({ ...q, _tab: tab, _sec: sec, _label: label }))
+  );
+}
+
 // 進捗リングSVG
 function ProgressRing({ pct, size = 72, stroke = 7, color = COLORS.primary }) {
   const r   = (size - stroke) / 2;
@@ -8044,7 +8201,16 @@ function HomeTab({ state, setState, onTabChange }) {
         </button>
       </div>
 
-      {/* ⑤ 今日の計算練習 */}
+      {/* ⑤ 抜き打ちテスト */}
+      <FlashQuizSection
+        state={state}
+        onNavigate={(tab, sec) => {
+          setState(s => ({ ...s, navTarget: { tab, sec } }));
+          onTabChange(tab);
+        }}
+      />
+
+      {/* ⑥ 今日の計算練習 */}
       {calcQuiz && (
         <div style={{ marginBottom: 12 }}>
           <MiniCalcCard
@@ -8071,10 +8237,10 @@ function HomeTab({ state, setState, onTabChange }) {
         </div>
       )}
 
-      {/* ⑥ AI学習提案 */}
+      {/* ⑦ AI学習提案 */}
       <AIReviewWidget state={state} />
 
-      {/* ⑦ 試験概要（折りたたみ） */}
+      {/* ⑧ 試験概要（折りたたみ） */}
       <div style={{ ...STYLES.card, marginBottom: 12 }}>
         <button
           onClick={() => setShowExamInfo((s) => !s)}
