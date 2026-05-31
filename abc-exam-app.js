@@ -1,8 +1,8 @@
 'use strict';
 const { useState, useEffect, useCallback, useRef, useMemo } = React;
 const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
-function makeLucide(name) { return function(props) { const { size=24, color='currentColor', strokeWidth=2, style, className } = props || {}; return React.createElement('svg', { xmlns:'http://www.w3.org/2000/svg', width:size, height:size, viewBox:'0 0 24 24', fill:'none', stroke:color, strokeWidth:strokeWidth, strokeLinecap:'round', strokeLinejoin:'round', style:style, className:className }); }; }
-const Search=makeLucide('Search'), BookOpen=makeLucide('BookOpen'), Calculator=makeLucide('Calculator'), BarChart2=makeLucide('BarChart2'), Home=makeLucide('Home'), TrendingUp=makeLucide('TrendingUp'), PieChart=makeLucide('PieChart'), DollarSign=makeLucide('DollarSign'), Shield=makeLucide('Shield'), RefreshCw=makeLucide('RefreshCw'), Check=makeLucide('Check'), ChevronRight=makeLucide('ChevronRight'), Award=makeLucide('Award'), AlertTriangle=makeLucide('AlertTriangle'), Percent=makeLucide('Percent'), Activity=makeLucide('Activity');
+function makeLucide(n) { return function(p) { const { size=24, color='currentColor', strokeWidth=2, style, className } = p||{}; return React.createElement('svg',{xmlns:'http://www.w3.org/2000/svg',width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:color,strokeWidth,strokeLinecap:'round',strokeLinejoin:'round',style,className}); }; }
+const Search=makeLucide(), BookOpen=makeLucide(), Calculator=makeLucide(), BarChart2=makeLucide(), Home=makeLucide(), TrendingUp=makeLucide(), PieChart=makeLucide(), DollarSign=makeLucide(), Shield=makeLucide(), RefreshCw=makeLucide(), Check=makeLucide(), ChevronRight=makeLucide(), Award=makeLucide(), AlertTriangle=makeLucide(), Percent=makeLucide(), Activity=makeLucide();
 
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
@@ -198,10 +198,17 @@ const INITIAL_CHAP_PROGRESS = {
     A: false
   }
 };
+const INITIAL_VISITED = {
+  ethics: {},
+  basics: {},
+  portfolio: {},
+  products: {}
+};
 const INITIAL_STATE = {
   examDate: "",
   progress: INITIAL_PROGRESS,
   chapProgress: INITIAL_CHAP_PROGRESS,
+  visitedSections: INITIAL_VISITED,
   testHistory: [],
   calcHistory: [],
   reviewStatus: {}
@@ -222,6 +229,20 @@ function loadState() {
       chapProgress: {
         ...INITIAL_CHAP_PROGRESS,
         ...saved.chapProgress
+      },
+      visitedSections: {
+        ethics: {
+          ...(saved.visitedSections?.ethics ?? {})
+        },
+        basics: {
+          ...(saved.visitedSections?.basics ?? {})
+        },
+        portfolio: {
+          ...(saved.visitedSections?.portfolio ?? {})
+        },
+        products: {
+          ...(saved.visitedSections?.products ?? {})
+        }
       }
     };
   } catch {
@@ -438,54 +459,60 @@ const CHAPTERS_META = [{
 }];
 
 // 全章の進捗を統合して返すヘルパー
-function computeAllChapProgress(progress, chapProgress) {
+// v = "visited"（訪問済み・テスト未完了）, true = テスト完了, false = 未訪問
+function computeAllChapProgress(progress, chapProgress, visited) {
+  const e = visited?.ethics ?? {};
+  const b = visited?.basics ?? {};
+  const pf = visited?.portfolio ?? {};
+  const pr = visited?.products ?? {};
+  const m = (quizDone, isVisited) => quizDone ? true : isVisited ? "v" : false;
   return {
     ch1: {
-      A: chapProgress?.ch1?.A ?? false
+      A: m(chapProgress?.ch1?.A, e.D)
     },
     ch2: {
-      A: chapProgress?.ch2?.A ?? false
+      A: m(chapProgress?.ch2?.A, e.E)
     },
     ch3: {
-      A: progress.ethics?.C ?? false
+      A: m(progress.ethics?.C, e.C)
     },
     ch4: {
-      A: progress.basics?.A ?? false,
-      B: progress.basics?.B ?? false
+      A: m(progress.basics?.A, b.A),
+      B: m(progress.basics?.B, b.B)
     },
     ch5: {
-      A: progress.basics?.C ?? false,
-      B: progress.basics?.D ?? false,
-      C: progress.basics?.E ?? false
+      A: m(progress.basics?.C, b.C),
+      B: m(progress.basics?.D, b.D),
+      C: m(progress.basics?.E, b.E)
     },
     ch6: {
-      A: chapProgress?.ch6?.A ?? false
+      A: m(chapProgress?.ch6?.A, b.F)
     },
     ch7: {
-      A: progress.portfolio?.A ?? false,
-      B: progress.portfolio?.B ?? false
+      A: m(progress.portfolio?.A, pf.A),
+      B: m(progress.portfolio?.B, pf.B)
     },
     ch8: {
-      A: progress.portfolio?.C ?? false,
-      B: progress.portfolio?.D ?? false
+      A: m(progress.portfolio?.C, pf.C),
+      B: m(progress.portfolio?.D, pf.D)
     },
     ch9: {
-      A: progress.products?.A ?? false
+      A: m(progress.products?.A, pr.A)
     },
     ch10: {
-      A: progress.products?.B ?? false
+      A: m(progress.products?.B, pr.B)
     },
     ch11: {
-      A: progress.products?.C ?? false
+      A: m(progress.products?.C, pr.C)
     },
     ch12: {
-      A: progress.products?.D ?? false
+      A: m(progress.products?.D, pr.D)
     },
     supp2: {
-      A: chapProgress?.supp2?.A ?? false
+      A: m(chapProgress?.supp2?.A, pr.F)
     },
     supp3: {
-      A: progress.products?.E ?? false
+      A: m(progress.products?.E, pr.E)
     }
   };
 }
@@ -3396,6 +3423,19 @@ function EthicsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.secondary;
+  useEffect(() => {
+    if (state.visitedSections?.ethics?.[section]) return;
+    setState(s => ({
+      ...s,
+      visitedSections: {
+        ...s.visitedSections,
+        ethics: {
+          ...(s.visitedSections?.ethics ?? {}),
+          [section]: true
+        }
+      }
+    }));
+  }, [section]);
 
   // D・EセクションはchapProgressから進捗を取得
   const combinedProgress = {
@@ -4619,6 +4659,19 @@ function BasicsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.accent;
+  useEffect(() => {
+    if (state.visitedSections?.basics?.[section]) return;
+    setState(s => ({
+      ...s,
+      visitedSections: {
+        ...s.visitedSections,
+        basics: {
+          ...(s.visitedSections?.basics ?? {}),
+          [section]: true
+        }
+      }
+    }));
+  }, [section]);
 
   // F セクションは chapProgress で追跡
   const combinedProgress = {
@@ -6457,6 +6510,19 @@ function PortfolioTab({
 }) {
   const [section, setSection] = useState("A");
   const color = COLORS.highlight;
+  useEffect(() => {
+    if (state.visitedSections?.portfolio?.[section]) return;
+    setState(s => ({
+      ...s,
+      visitedSections: {
+        ...s.visitedSections,
+        portfolio: {
+          ...(s.visitedSections?.portfolio ?? {}),
+          [section]: true
+        }
+      }
+    }));
+  }, [section]);
   const renderSection = () => {
     switch (section) {
       case "A":
@@ -7400,6 +7466,19 @@ function ProductsTab({
 }) {
   const [section, setSection] = useState("A");
   const color = "#E67E22";
+  useEffect(() => {
+    if (state.visitedSections?.products?.[section]) return;
+    setState(s => ({
+      ...s,
+      visitedSections: {
+        ...s.visitedSections,
+        products: {
+          ...(s.visitedSections?.products ?? {}),
+          [section]: true
+        }
+      }
+    }));
+  }, [section]);
 
   // F セクションは chapProgress で追跡
   const combinedProgress = {
@@ -10449,11 +10528,11 @@ function HomeTab({
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   })();
 
-  // 章別進捗でリング表示を計算
-  const _chapAll = computeAllChapProgress(state.progress, state.chapProgress);
+  // 章別進捗でリング表示を計算（訪問済み含む）
+  const _chapAll = computeAllChapProgress(state.progress, state.chapProgress, state.visitedSections);
   const totalSections = CHAPTERS_META.reduce((a, ch) => a + Object.keys(_chapAll[ch.id] ?? {}).length, 0);
-  const doneSections = CHAPTERS_META.reduce((a, ch) => a + Object.values(_chapAll[ch.id] ?? {}).filter(Boolean).length, 0);
-  const progressPct = totalSections > 0 ? Math.round(doneSections / totalSections * 100) : 0;
+  const startedSections = CHAPTERS_META.reduce((a, ch) => a + Object.values(_chapAll[ch.id] ?? {}).filter(v => v !== false).length, 0);
+  const progressPct = totalSections > 0 ? Math.round(startedSections / totalSections * 100) : 0;
   const daysColor = daysLeft === null ? COLORS.primary : daysLeft <= 7 ? COLORS.danger : daysLeft <= 30 ? COLORS.accent : COLORS.secondary;
   const calcChartData = buildCalcChartData(state.testHistory);
   const refreshCalcQuiz = () => {
@@ -10615,21 +10694,23 @@ function HomeTab({
       fontWeight: 600
     }
   }, "\u26A1 \u6B8B\u308A", daysLeft, "\u65E5\uFF011\u65E5\u3042\u305F\u308A", Math.ceil(40 / daysLeft * 10) / 10, "\u554F\u30DA\u30FC\u30B9\u3067\u6F14\u7FD2\u3092\uFF01")), (() => {
-    const allChapProg = computeAllChapProgress(state.progress, state.chapProgress);
+    const allChapProg = computeAllChapProgress(state.progress, state.chapProgress, state.visitedSections);
     const chapSections = CHAPTERS_META.map(ch => {
       const secs = allChapProg[ch.id] ?? {};
-      const done = Object.values(secs).filter(Boolean).length;
+      const done = Object.values(secs).filter(v => v === true).length;
+      const started = Object.values(secs).filter(v => v !== false).length;
       const all = Object.keys(secs).length;
       return {
         ...ch,
         secs,
         done,
+        started,
         all
       };
     });
     const totalChapSecs = chapSections.reduce((a, c) => a + c.all, 0);
-    const doneChapSecs = chapSections.reduce((a, c) => a + c.done, 0);
-    const chapPct = totalChapSecs > 0 ? Math.round(doneChapSecs / totalChapSecs * 100) : 0;
+    const startedChapSecs = chapSections.reduce((a, c) => a + c.started, 0);
+    const chapPct = totalChapSecs > 0 ? Math.round(startedChapSecs / totalChapSecs * 100) : 0;
     return /*#__PURE__*/React.createElement("div", {
       style: {
         ...STYLES.card,
@@ -10663,7 +10744,7 @@ function HomeTab({
         color: COLORS.textLight,
         fontWeight: 600
       }
-    }, doneChapSecs, "/", totalChapSecs, " \u5B8C\u4E86")), /*#__PURE__*/React.createElement("div", {
+    }, startedChapSecs, "/", totalChapSecs, " \u5B66\u7FD2\u6E08")), /*#__PURE__*/React.createElement("div", {
       style: {
         height: 8,
         background: COLORS.border,
@@ -10681,8 +10762,8 @@ function HomeTab({
       }
     })), chapSections.map((ch, idx) => {
       const isLast = idx === chapSections.length - 1;
-      const pct = ch.all > 0 ? Math.round(ch.done / ch.all * 100) : 0;
-      const allDone = ch.done === ch.all;
+      const pct = ch.all > 0 ? Math.round(ch.started / ch.all * 100) : 0;
+      const allDone = ch.done === ch.all && ch.all > 0;
       return /*#__PURE__*/React.createElement("div", {
         key: ch.id,
         onClick: () => ch.tabId && onTabChange(ch.tabId),
@@ -10739,11 +10820,11 @@ function HomeTab({
         style: {
           fontSize: 10,
           fontWeight: 700,
-          color: allDone ? COLORS.secondary : COLORS.textLight,
+          color: allDone ? COLORS.secondary : ch.started > 0 ? ch.color : COLORS.textLight,
           flexShrink: 0,
           marginLeft: 4
         }
-      }, ch.done, "/", ch.all)), /*#__PURE__*/React.createElement("div", {
+      }, ch.started, "/", ch.all)), /*#__PURE__*/React.createElement("div", {
         style: {
           height: 4,
           background: COLORS.border,
@@ -10776,12 +10857,13 @@ function HomeTab({
           width: 14,
           height: 14,
           borderRadius: 4,
-          background: v ? allDone ? COLORS.secondary : ch.color : COLORS.border,
+          background: v === true ? allDone ? COLORS.secondary : ch.color : v === "v" ? ch.color + "44" : COLORS.border,
+          border: v === "v" ? `1px solid ${ch.color}88` : "none",
           display: "flex",
           alignItems: "center",
           justifyContent: "center"
         }
-      }, v && /*#__PURE__*/React.createElement(Check, {
+      }, v === true && /*#__PURE__*/React.createElement(Check, {
         size: 9,
         color: "#fff"
       })))), ch.tabId ? /*#__PURE__*/React.createElement(ChevronRight, {
@@ -11156,9 +11238,4 @@ function ABCExamApp() {
     onTabChange: handleTabChange
   }));
 }
-
-(function() {
-  const container = document.getElementById('root');
-  if (!container) { console.error('root element not found'); return; }
-  ReactDOM.createRoot(container).render(React.createElement(ABCExamApp));
-})();
+(function(){const c=document.getElementById('root');if(!c)return;ReactDOM.createRoot(c).render(React.createElement(ABCExamApp));})();
