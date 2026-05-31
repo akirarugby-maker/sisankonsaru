@@ -3484,9 +3484,10 @@ function MiniCalcCard({ quiz, onAnswer }) {
 
   return (
     <div style={{ ...STYLES.card }}>
-      <div style={{ ...STYLES.sectionTitle, fontSize: 14, color: COLORS.accent }}>
+      <div style={{ ...STYLES.sectionTitle, fontSize: 14, color: COLORS.accent, marginBottom: 2 }}>
         <Calculator size={15} color={COLORS.accent} /> 今日の計算練習
       </div>
+      <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 8 }}>既習分野からランダム出題</div>
       <div style={{ ...STYLES.badge(COLORS.highlight), marginBottom: 8 }}>計算問題</div>
       <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, lineHeight: 1.7, marginBottom: 12 }}>
         {quiz.q}
@@ -7677,6 +7678,27 @@ const ALL_CALC_QUIZZES = [
   ...PRODUCTS_QUIZZES.B.filter((q) => q.isCalc),
 ];
 
+// 既習セクションと計算問題の対応表
+const CALC_QUIZ_MAP = [
+  { tab: "basics",    sec: "A", quizzes: BASICS_QUIZZES.A.filter(q => q.isCalc) },
+  { tab: "basics",    sec: "B", quizzes: BASICS_QUIZZES.B.filter(q => q.isCalc) },
+  { tab: "basics",    sec: "C", quizzes: BASICS_QUIZZES.C.filter(q => q.isCalc) },
+  { tab: "portfolio", sec: "A", quizzes: PORTFOLIO_QUIZZES.A.filter(q => q.isCalc) },
+  { tab: "portfolio", sec: "C", quizzes: PORTFOLIO_QUIZZES.C.filter(q => q.isCalc) },
+  { tab: "products",  sec: "A", quizzes: PRODUCTS_QUIZZES.A.filter(q => q.isCalc) },
+  { tab: "products",  sec: "B", quizzes: PRODUCTS_QUIZZES.B.filter(q => q.isCalc) },
+];
+
+// 既習（訪問済み or テスト完了）セクションの計算問題プールを返す。未学習なら全問題にフォールバック
+function getStudiedCalcPool(visitedSections, progress) {
+  const pool = CALC_QUIZ_MAP
+    .filter(({ tab, sec }) =>
+      !!(visitedSections?.[tab]?.[sec] || progress?.[tab]?.[sec])
+    )
+    .flatMap(m => m.quizzes);
+  return pool.length > 0 ? pool : ALL_CALC_QUIZZES;
+}
+
 // 進捗リングSVG
 function ProgressRing({ pct, size = 72, stroke = 7, color = COLORS.primary }) {
   const r   = (size - stroke) / 2;
@@ -7715,8 +7737,8 @@ function buildCalcChartData(testHistory) {
 
 function HomeTab({ state, setState, onTabChange }) {
   const [calcQuiz, setCalcQuiz]     = useState(() => {
-    const picks = ALL_CALC_QUIZZES;
-    return picks[Math.floor(Math.random() * picks.length)] ?? null;
+    const pool = getStudiedCalcPool(state.visitedSections, state.progress);
+    return pool[Math.floor(Math.random() * pool.length)] ?? null;
   });
   const [showExamInfo, setShowExamInfo]   = useState(false);
   const [todayAnswered, setTodayAnswered] = useState(false);
@@ -7741,7 +7763,8 @@ function HomeTab({ state, setState, onTabChange }) {
   const calcChartData = buildCalcChartData(state.testHistory);
 
   const refreshCalcQuiz = () => {
-    const next = ALL_CALC_QUIZZES[Math.floor(Math.random() * ALL_CALC_QUIZZES.length)];
+    const pool = getStudiedCalcPool(state.visitedSections, state.progress);
+    const next = pool[Math.floor(Math.random() * pool.length)];
     setCalcQuiz(next);
     setTodayAnswered(false);
   };

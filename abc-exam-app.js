@@ -3085,12 +3085,19 @@ function MiniCalcCard({
     style: {
       ...STYLES.sectionTitle,
       fontSize: 14,
-      color: COLORS.accent
+      color: COLORS.accent,
+      marginBottom: 2
     }
   }, /*#__PURE__*/React.createElement(Calculator, {
     size: 15,
     color: COLORS.accent
   }), " \u4ECA\u65E5\u306E\u8A08\u7B97\u7DF4\u7FD2"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textMuted,
+      marginBottom: 8
+    }
+  }, "\u65E2\u7FD2\u5206\u91CE\u304B\u3089\u30E9\u30F3\u30C0\u30E0\u51FA\u984C"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.badge(COLORS.highlight),
       marginBottom: 8
@@ -10483,6 +10490,46 @@ function PlaceholderTab({
 // 全クイズから計算問題のみ抽出してランダム出題
 const ALL_CALC_QUIZZES = [...BASICS_QUIZZES.A.filter(q => q.isCalc), ...BASICS_QUIZZES.B.filter(q => q.isCalc), ...BASICS_QUIZZES.C.filter(q => q.isCalc), ...PORTFOLIO_QUIZZES.A.filter(q => q.isCalc), ...PORTFOLIO_QUIZZES.C.filter(q => q.isCalc), ...PRODUCTS_QUIZZES.A.filter(q => q.isCalc), ...PRODUCTS_QUIZZES.B.filter(q => q.isCalc)];
 
+// 既習セクションと計算問題の対応表
+const CALC_QUIZ_MAP = [{
+  tab: "basics",
+  sec: "A",
+  quizzes: BASICS_QUIZZES.A.filter(q => q.isCalc)
+}, {
+  tab: "basics",
+  sec: "B",
+  quizzes: BASICS_QUIZZES.B.filter(q => q.isCalc)
+}, {
+  tab: "basics",
+  sec: "C",
+  quizzes: BASICS_QUIZZES.C.filter(q => q.isCalc)
+}, {
+  tab: "portfolio",
+  sec: "A",
+  quizzes: PORTFOLIO_QUIZZES.A.filter(q => q.isCalc)
+}, {
+  tab: "portfolio",
+  sec: "C",
+  quizzes: PORTFOLIO_QUIZZES.C.filter(q => q.isCalc)
+}, {
+  tab: "products",
+  sec: "A",
+  quizzes: PRODUCTS_QUIZZES.A.filter(q => q.isCalc)
+}, {
+  tab: "products",
+  sec: "B",
+  quizzes: PRODUCTS_QUIZZES.B.filter(q => q.isCalc)
+}];
+
+// 既習（訪問済み or テスト完了）セクションの計算問題プールを返す。未学習なら全問題にフォールバック
+function getStudiedCalcPool(visitedSections, progress) {
+  const pool = CALC_QUIZ_MAP.filter(({
+    tab,
+    sec
+  }) => !!(visitedSections?.[tab]?.[sec] || progress?.[tab]?.[sec])).flatMap(m => m.quizzes);
+  return pool.length > 0 ? pool : ALL_CALC_QUIZZES;
+}
+
 // 進捗リングSVG
 function ProgressRing({
   pct,
@@ -10546,8 +10593,8 @@ function HomeTab({
   onTabChange
 }) {
   const [calcQuiz, setCalcQuiz] = useState(() => {
-    const picks = ALL_CALC_QUIZZES;
-    return picks[Math.floor(Math.random() * picks.length)] ?? null;
+    const pool = getStudiedCalcPool(state.visitedSections, state.progress);
+    return pool[Math.floor(Math.random() * pool.length)] ?? null;
   });
   const [showExamInfo, setShowExamInfo] = useState(false);
   const [todayAnswered, setTodayAnswered] = useState(false);
@@ -10566,7 +10613,8 @@ function HomeTab({
   const daysColor = daysLeft === null ? COLORS.primary : daysLeft <= 7 ? COLORS.danger : daysLeft <= 30 ? COLORS.accent : COLORS.secondary;
   const calcChartData = buildCalcChartData(state.testHistory);
   const refreshCalcQuiz = () => {
-    const next = ALL_CALC_QUIZZES[Math.floor(Math.random() * ALL_CALC_QUIZZES.length)];
+    const pool = getStudiedCalcPool(state.visitedSections, state.progress);
+    const next = pool[Math.floor(Math.random() * pool.length)];
     setCalcQuiz(next);
     setTodayAnswered(false);
   };
