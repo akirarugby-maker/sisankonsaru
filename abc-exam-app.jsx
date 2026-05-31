@@ -4452,7 +4452,7 @@ function EthicsSectionD({ color, state, setState, onNext }) {
 // ============================================================
 // セクションE: ゴールベース資産管理（第2章）
 // ============================================================
-function EthicsSectionE({ color, state, setState }) {
+function EthicsSectionE({ color, state, setState, onNext }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch2?.A ?? false;
   return (

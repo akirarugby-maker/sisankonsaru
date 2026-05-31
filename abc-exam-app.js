@@ -3,7 +3,6 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
 function makeLucide(n) { return function(p) { const { size=24, color='currentColor', strokeWidth=2, style, className } = p||{}; return React.createElement('svg',{xmlns:'http://www.w3.org/2000/svg',width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:color,strokeWidth,strokeLinecap:'round',strokeLinejoin:'round',style,className}); }; }
 const Search=makeLucide(), BookOpen=makeLucide(), Calculator=makeLucide(), BarChart2=makeLucide(), Home=makeLucide(), TrendingUp=makeLucide(), PieChart=makeLucide(), DollarSign=makeLucide(), Shield=makeLucide(), RefreshCw=makeLucide(), Check=makeLucide(), ChevronRight=makeLucide(), Award=makeLucide(), AlertTriangle=makeLucide(), Percent=makeLucide(), Activity=makeLucide();
-
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
 ========================================
@@ -4536,7 +4535,8 @@ function EthicsSectionD({
 function EthicsSectionE({
   color,
   state,
-  setState
+  setState,
+  onNext
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch2?.A ?? false;
