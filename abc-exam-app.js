@@ -1,30 +1,8 @@
 'use strict';
 const { useState, useEffect, useCallback, useRef, useMemo } = React;
-const {
-  LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ReferenceLine, Area, AreaChart, Cell,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} = Recharts;
-function makeLucide(name) {
-  return function(props) {
-    const { size=24, color='currentColor', strokeWidth=2, style, className } = props || {};
-    return React.createElement('svg', {
-      xmlns:'http://www.w3.org/2000/svg', width:size, height:size,
-      viewBox:'0 0 24 24', fill:'none', stroke:color,
-      strokeWidth:strokeWidth, strokeLinecap:'round', strokeLinejoin:'round',
-      style:style, className:className
-    });
-  };
-}
-const Search=makeLucide('Search'), BookOpen=makeLucide('BookOpen'),
-  Calculator=makeLucide('Calculator'), BarChart2=makeLucide('BarChart2'),
-  Home=makeLucide('Home'), TrendingUp=makeLucide('TrendingUp'),
-  PieChart=makeLucide('PieChart'), DollarSign=makeLucide('DollarSign'),
-  Shield=makeLucide('Shield'), RefreshCw=makeLucide('RefreshCw'),
-  Check=makeLucide('Check'), ChevronRight=makeLucide('ChevronRight'),
-  Award=makeLucide('Award'), AlertTriangle=makeLucide('AlertTriangle'),
-  Percent=makeLucide('Percent'), Activity=makeLucide('Activity');
+const { LineChart, Line, BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Area, AreaChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } = Recharts;
+function makeLucide(name) { return function(props) { const { size=24, color='currentColor', strokeWidth=2, style, className } = props || {}; return React.createElement('svg', { xmlns:'http://www.w3.org/2000/svg', width:size, height:size, viewBox:'0 0 24 24', fill:'none', stroke:color, strokeWidth:strokeWidth, strokeLinecap:'round', strokeLinejoin:'round', style:style, className:className }); }; }
+const Search=makeLucide('Search'), BookOpen=makeLucide('BookOpen'), Calculator=makeLucide('Calculator'), BarChart2=makeLucide('BarChart2'), Home=makeLucide('Home'), TrendingUp=makeLucide('TrendingUp'), PieChart=makeLucide('PieChart'), DollarSign=makeLucide('DollarSign'), Shield=makeLucide('Shield'), RefreshCw=makeLucide('RefreshCw'), Check=makeLucide('Check'), ChevronRight=makeLucide('ChevronRight'), Award=makeLucide('Award'), AlertTriangle=makeLucide('AlertTriangle'), Percent=makeLucide('Percent'), Activity=makeLucide('Activity');
 
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /*
@@ -263,41 +241,48 @@ const TABS = [{
   id: "home",
   label: "ホーム",
   icon: Home,
+  emoji: "🏠",
   color: COLORS.primary
 }, {
   id: "ethics",
   label: "①顧客本位",
   icon: Shield,
+  emoji: "🛡️",
   color: COLORS.secondary,
   short: "倫理"
 }, {
   id: "basics",
   label: "②基礎",
   icon: BookOpen,
+  emoji: "📖",
   color: COLORS.accent,
   short: "基礎"
 }, {
   id: "portfolio",
   label: "③PF理論",
   icon: TrendingUp,
+  emoji: "📈",
   color: COLORS.highlight,
   short: "PF"
 }, {
   id: "products",
   label: "④金融商品",
   icon: DollarSign,
+  emoji: "💹",
   color: "#E67E22",
   short: "商品"
 }, {
   id: "casestudy",
   label: "⑤ケース",
   icon: Activity,
+  emoji: "📋",
   color: "#16A085",
   short: "ケース"
 }, {
   id: "analysis",
   label: "⑥苦手分析",
   icon: BarChart2,
+  emoji: "📊",
   color: COLORS.danger,
   short: "分析"
 }];
@@ -528,44 +513,34 @@ function NavigationBar({
       boxShadow: "0 -4px 16px rgba(74,144,217,0.12)"
     }
   }, TABS.map(tab => {
-    const Icon = tab.icon;
     const active = activeTab === tab.id;
     return /*#__PURE__*/React.createElement("button", {
       key: tab.id,
       onClick: () => onTabChange(tab.id),
       style: {
-        background: "none",
-        border: "none",
+        background: active ? tab.color + "15" : "none",
+        border: active ? `1.5px solid ${tab.color}40` : "1.5px solid transparent",
         cursor: "pointer",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 3,
-        padding: "4px 6px",
-        borderRadius: 10,
+        gap: 2,
+        padding: "5px 4px 4px",
+        borderRadius: 12,
         transition: "all 0.18s ease",
-        minWidth: 44
+        minWidth: 42
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
-        width: 32,
-        height: 32,
-        borderRadius: 10,
-        background: active ? tab.color + "22" : "transparent",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "all 0.18s ease"
+        fontSize: 20,
+        lineHeight: 1.2
       }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      size: 18,
-      color: active ? tab.color : COLORS.textMuted
-    })), /*#__PURE__*/React.createElement("span", {
+    }, tab.emoji), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
-        fontWeight: active ? 800 : 500,
-        color: active ? tab.color : COLORS.textMuted,
-        fontFamily: "'Noto Sans JP', sans-serif"
+        fontWeight: active ? 900 : 700,
+        color: active ? tab.color : COLORS.text,
+        letterSpacing: "-0.2px"
       }
     }, tab.short || tab.label));
   }));
@@ -11173,6 +11148,5 @@ function ABCExamApp() {
 (function() {
   const container = document.getElementById('root');
   if (!container) { console.error('root element not found'); return; }
-  const root = ReactDOM.createRoot(container);
-  root.render(React.createElement(ABCExamApp));
+  ReactDOM.createRoot(container).render(React.createElement(ABCExamApp));
 })();

@@ -212,12 +212,14 @@ const TABS = [
     id:    "home",
     label: "ホーム",
     icon:  Home,
+    emoji: "🏠",
     color: COLORS.primary,
   },
   {
     id:    "ethics",
     label: "①顧客本位",
     icon:  Shield,
+    emoji: "🛡️",
     color: COLORS.secondary,
     short: "倫理",
   },
@@ -225,6 +227,7 @@ const TABS = [
     id:    "basics",
     label: "②基礎",
     icon:  BookOpen,
+    emoji: "📖",
     color: COLORS.accent,
     short: "基礎",
   },
@@ -232,6 +235,7 @@ const TABS = [
     id:    "portfolio",
     label: "③PF理論",
     icon:  TrendingUp,
+    emoji: "📈",
     color: COLORS.highlight,
     short: "PF",
   },
@@ -239,6 +243,7 @@ const TABS = [
     id:    "products",
     label: "④金融商品",
     icon:  DollarSign,
+    emoji: "💹",
     color: "#E67E22",
     short: "商品",
   },
@@ -246,6 +251,7 @@ const TABS = [
     id:    "casestudy",
     label: "⑤ケース",
     icon:  Activity,
+    emoji: "📋",
     color: "#16A085",
     short: "ケース",
   },
@@ -253,6 +259,7 @@ const TABS = [
     id:    "analysis",
     label: "⑥苦手分析",
     icon:  BarChart2,
+    emoji: "📊",
     color: COLORS.danger,
     short: "分析",
   },
@@ -320,46 +327,34 @@ function NavigationBar({ activeTab, onTabChange }) {
       }}
     >
       {TABS.map((tab) => {
-        const Icon   = tab.icon;
         const active = activeTab === tab.id;
         return (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             style={{
-              background:    "none",
-              border:        "none",
+              background:    active ? tab.color + "15" : "none",
+              border:        active ? `1.5px solid ${tab.color}40` : "1.5px solid transparent",
               cursor:        "pointer",
               display:       "flex",
               flexDirection: "column",
               alignItems:    "center",
-              gap:           3,
-              padding:       "4px 6px",
-              borderRadius:  10,
+              gap:           2,
+              padding:       "5px 4px 4px",
+              borderRadius:  12,
               transition:    "all 0.18s ease",
-              minWidth:      44,
+              minWidth:      42,
             }}
           >
-            <div
-              style={{
-                width:        32,
-                height:       32,
-                borderRadius: 10,
-                background:   active ? tab.color + "22" : "transparent",
-                display:      "flex",
-                alignItems:   "center",
-                justifyContent: "center",
-                transition:   "all 0.18s ease",
-              }}
-            >
-              <Icon size={18} color={active ? tab.color : COLORS.textMuted} />
-            </div>
+            <span style={{ fontSize: 20, lineHeight: 1.2 }}>
+              {tab.emoji}
+            </span>
             <span
               style={{
                 fontSize:   10,
-                fontWeight: active ? 800 : 500,
-                color:      active ? tab.color : COLORS.textMuted,
-                fontFamily: "'Noto Sans JP', sans-serif",
+                fontWeight: active ? 900 : 700,
+                color:      active ? tab.color : COLORS.text,
+                letterSpacing: "-0.2px",
               }}
             >
               {tab.short || tab.label}
