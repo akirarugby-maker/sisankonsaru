@@ -355,7 +355,7 @@ const CHAPTERS_META = [{
   id: "ch3",
   num: "第3章",
   title: "資産運用と税制",
-  subtitle: "NISA（Nippon Individual Savings Account）・iDeCo（individual-type Defined Contribution pension）・税制優遇",
+  subtitle: "NISA（Nippon Individual Savings Account：少額投資非課税制度）・iDeCo（individual-type Defined Contribution pension：個人型確定拠出年金）・税制優遇",
   color: "#E67E22",
   tabId: "ethics",
   sections: {
@@ -388,7 +388,7 @@ const CHAPTERS_META = [{
   id: "ch6",
   num: "第6章",
   title: "財務諸表の活用",
-  subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・ROE（Return on Equity）・財務分析",
+  subtitle: "PER（Price Earnings Ratio：株価収益率）・PBR（Price Book-value Ratio：株価純資産倍率）・ROE（Return on Equity：自己資本利益率）・財務分析",
   color: "#27AE60",
   tabId: "basics",
   sections: {
@@ -398,7 +398,7 @@ const CHAPTERS_META = [{
   id: "ch7",
   num: "第7章",
   title: "ポートフォリオ理論",
-  subtitle: "相関係数・分散効果・効率的ポートフォリオ（Efficient Portfolio）",
+  subtitle: "相関係数・分散効果・効率的ポートフォリオ（Efficient Portfolio：最小リスクで最大リターンを実現する組合せ）",
   color: "#8E44AD",
   tabId: "portfolio",
   sections: {
@@ -408,8 +408,8 @@ const CHAPTERS_META = [{
 }, {
   id: "ch8",
   num: "第8章",
-  title: "CAPM（Capital Asset Pricing Model）・評価モデル",
-  subtitle: "ベータ・シャープレシオ・情報レシオ（Information Ratio）",
+  title: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）・評価モデル",
+  subtitle: "ベータ・シャープレシオ・情報レシオ（Information Ratio：超過収益÷追跡誤差）",
   color: "#C0392B",
   tabId: "portfolio",
   sections: {
@@ -420,7 +420,7 @@ const CHAPTERS_META = [{
   id: "ch9",
   num: "第9章",
   title: "株式投資",
-  subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・DDM（Dividend Discount Model）",
+  subtitle: "PER（Price Earnings Ratio：株価収益率）・PBR（Price Book-value Ratio：株価純資産倍率）・DDM（Dividend Discount Model：配当割引モデル）",
   color: "#2ECC71",
   tabId: "products",
   sections: {
@@ -450,7 +450,7 @@ const CHAPTERS_META = [{
   id: "ch12",
   num: "第12章",
   title: "投資信託",
-  subtitle: "アクティブ・パッシブ・ESG（Environmental, Social, Governance）",
+  subtitle: "アクティブ・パッシブ・ESG（Environmental, Social, Governance：環境・社会・企業統治）",
   color: "#F39C12",
   tabId: "products",
   sections: {
@@ -469,8 +469,8 @@ const CHAPTERS_META = [{
 }, {
   id: "supp3",
   num: "補論3",
-  title: "オルタナティブ（Alternative）投資",
-  subtitle: "REIT（Real Estate Investment Trust）・ヘッジファンド・不動産",
+  title: "オルタナティブ（Alternative：代替投資）",
+  subtitle: "REIT（Real Estate Investment Trust：不動産投資信託）・ヘッジファンド・不動産",
   color: "#95A5A6",
   tabId: "products",
   sections: {
@@ -4556,7 +4556,7 @@ function SearchBar({
 // ============================================================
 const ETHICS_SECTIONS = [{
   id: "A",
-  label: "A: FD（Fiduciary Duty）原則"
+  label: "A: FD（Fiduciary Duty：受託者責任）原則"
 }, {
   id: "B",
   label: "B: 信頼関係"
@@ -9561,7 +9561,7 @@ const BASICS_SECTIONS_CDE = [{
   label: "C: 現在価値"
 }, {
   id: "D",
-  label: "D: 統計・VaR（Value at Risk）"
+  label: "D: 統計・VaR（Value at Risk：予想最大損失額）"
 }, {
   id: "E",
   label: "E: 資産配分"
@@ -10512,10 +10512,10 @@ const PF_SECTIONS = [{
   label: "A: 分散効果"
 }, {
   id: "B",
-  label: "B: 効率的フロンティア（Efficient Frontier）"
+  label: "B: 効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）"
 }, {
   id: "C",
-  label: "C: CAPM（Capital Asset Pricing Model）"
+  label: "C: CAPM（Capital Asset Pricing Model：資本資産評価モデル）"
 }, {
   id: "D",
   label: "D: 評価指標"
@@ -11497,7 +11497,7 @@ const PRODUCTS_SECTIONS = [{
   label: "D: 投資信託"
 }, {
   id: "E",
-  label: "E: オルタナティブ（Alternative）"
+  label: "E: オルタナティブ（Alternative：代替投資）"
 }, {
   id: "F",
   label: "F: デリバティブ"
@@ -12230,7 +12230,7 @@ const MOCK_ADVICE_DATA = {
 };
 const CALC_PRACTICE_ITEMS = [{
   key: "capm",
-  label: "CAPM（Capital Asset Pricing Model）期待リターン",
+  label: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）期待リターン",
   formula: "E(Ri) = Rf + β × (Rm − Rf)",
   question: v => `リスクフリーレート${v.rf}%、β=${v.beta}、市場リターン${v.rm}%のとき期待リターンは？`,
   generate: () => {
@@ -12388,7 +12388,7 @@ function AnalysisSectionA({
     tabs: ["ch6"]
   }, {
     key: "g_pf",
-    label: "ポートフォリオ理論・CAPM（Capital Asset Pricing Model）",
+    label: "ポートフォリオ理論・CAPM（Capital Asset Pricing Model：資本資産評価モデル）",
     tabs: ["portfolio"]
   }, {
     key: "g_prod",
@@ -13673,7 +13673,7 @@ function AIReviewWidget({
 function AnalysisSectionD() {
   const topics = [{
     key: "capm",
-    label: "CAPM（資本資産評価モデル）"
+    label: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）"
   }, {
     key: "sharpe_ratio",
     label: "シャープレシオ"
@@ -13682,7 +13682,7 @@ function AnalysisSectionD() {
     label: "ポートフォリオリスクと分散効果"
   }, {
     key: "efficient_frontier",
-    label: "効率的フロンティア（Efficient Frontier）・CML（Capital Market Line）"
+    label: "効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）・CML（Capital Market Line：資本市場線）"
   }, {
     key: "duration",
     label: "デュレーション"
@@ -13691,13 +13691,13 @@ function AnalysisSectionD() {
     label: "DDM（Dividend Discount Model：配当割引モデル）"
   }, {
     key: "fd_principle",
-    label: "フィデューシャリーデューティー"
+    label: "FD（Fiduciary Duty：受託者責任）"
   }, {
     key: "nisa",
-    label: "新NISA"
+    label: "新NISA（Nippon Individual Savings Account：少額投資非課税制度）"
   }, {
     key: "ideco",
-    label: "iDeCo"
+    label: "iDeCo（individual-type Defined Contribution pension：個人型確定拠出年金）"
   }];
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -14615,7 +14615,7 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "basics",
   sec: "C",
-  label: "②基礎 C：現在価値・VaR（Value at Risk）",
+  label: "②基礎 C：現在価値・VaR（Value at Risk：予想最大損失額）",
   quizzes: BASICS_QUIZZES.C
 }, {
   tab: "basics",
@@ -14635,12 +14635,12 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "portfolio",
   sec: "B",
-  label: "③ポートフォリオ理論 B：効率的フロンティア（Efficient Frontier）",
+  label: "③ポートフォリオ理論 B：効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）",
   quizzes: PORTFOLIO_QUIZZES.B
 }, {
   tab: "portfolio",
   sec: "C",
-  label: "③ポートフォリオ理論 C：CAPM（Capital Asset Pricing Model）・ベータ",
+  label: "③ポートフォリオ理論 C：CAPM（Capital Asset Pricing Model：資本資産評価モデル）・ベータ",
   quizzes: PORTFOLIO_QUIZZES.C
 }, {
   tab: "portfolio",
@@ -14665,12 +14665,12 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "products",
   sec: "D",
-  label: "④金融商品 D：投信・ETF（Exchange Traded Fund）",
+  label: "④金融商品 D：投信・ETF（Exchange Traded Fund：上場投資信託）",
   quizzes: PRODUCTS_QUIZZES.D
 }, {
   tab: "products",
   sec: "E",
-  label: "④金融商品 E：REIT（Real Estate Investment Trust）",
+  label: "④金融商品 E：REIT（Real Estate Investment Trust：不動産投資信託）",
   quizzes: PRODUCTS_QUIZZES.E
 }, {
   tab: "casestudy",

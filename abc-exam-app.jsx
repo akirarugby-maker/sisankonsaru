@@ -289,18 +289,18 @@ const TABS = [
 const CHAPTERS_META = [
   { id: "ch1",   num: "第1章",  title: "顧客と信頼関係を築く",    subtitle: "行動経済学・フィデューシャリー",   color: "#16A085", tabId: "ethics",    sections: { A: "行動経済学" } },
   { id: "ch2",   num: "第2章",  title: "新しい資産運用のあり方",  subtitle: "ゴールベース・ファンドラップ",      color: "#4A90D9", tabId: "ethics",    sections: { A: "ゴールベース" } },
-  { id: "ch3",   num: "第3章",  title: "資産運用と税制",          subtitle: "NISA（Nippon Individual Savings Account）・iDeCo（individual-type Defined Contribution pension）・税制優遇", color: "#E67E22", tabId: "ethics",    sections: { A: "税制・口座" } },
+  { id: "ch3",   num: "第3章",  title: "資産運用と税制",          subtitle: "NISA（Nippon Individual Savings Account：少額投資非課税制度）・iDeCo（individual-type Defined Contribution pension：個人型確定拠出年金）・税制優遇", color: "#E67E22", tabId: "ethics",    sections: { A: "税制・口座" } },
   { id: "ch4",   num: "第4章",  title: "資産運用の基礎",          subtitle: "リターン・リスク・統計",           color: "#9B59B6", tabId: "basics",    sections: { A: "期待リターン", B: "リスク計算" } },
   { id: "ch5",   num: "第5章",  title: "資産形成の実務",          subtitle: "現在価値・積立・長期投資",         color: "#3498DB", tabId: "basics",    sections: { A: "時間価値", B: "積立実務", C: "長期戦略" } },
-  { id: "ch6",   num: "第6章",  title: "財務諸表の活用",          subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・ROE（Return on Equity）・財務分析", color: "#27AE60", tabId: "basics",    sections: { A: "財務諸表" } },
-  { id: "ch7",   num: "第7章",  title: "ポートフォリオ理論",      subtitle: "相関係数・分散効果・効率的ポートフォリオ（Efficient Portfolio）", color: "#8E44AD", tabId: "portfolio", sections: { A: "分散効果", B: "市場線" } },
-  { id: "ch8",   num: "第8章",  title: "CAPM（Capital Asset Pricing Model）・評価モデル", subtitle: "ベータ・シャープレシオ・情報レシオ（Information Ratio）", color: "#C0392B", tabId: "portfolio", sections: { A: "CAPM", B: "評価指標" } },
-  { id: "ch9",   num: "第9章",  title: "株式投資",                subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・DDM（Dividend Discount Model）", color: "#2ECC71", tabId: "products",  sections: { A: "株式評価" } },
+  { id: "ch6",   num: "第6章",  title: "財務諸表の活用",          subtitle: "PER（Price Earnings Ratio：株価収益率）・PBR（Price Book-value Ratio：株価純資産倍率）・ROE（Return on Equity：自己資本利益率）・財務分析", color: "#27AE60", tabId: "basics",    sections: { A: "財務諸表" } },
+  { id: "ch7",   num: "第7章",  title: "ポートフォリオ理論",      subtitle: "相関係数・分散効果・効率的ポートフォリオ（Efficient Portfolio：最小リスクで最大リターンを実現する組合せ）", color: "#8E44AD", tabId: "portfolio", sections: { A: "分散効果", B: "市場線" } },
+  { id: "ch8",   num: "第8章",  title: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）・評価モデル", subtitle: "ベータ・シャープレシオ・情報レシオ（Information Ratio：超過収益÷追跡誤差）", color: "#C0392B", tabId: "portfolio", sections: { A: "CAPM", B: "評価指標" } },
+  { id: "ch9",   num: "第9章",  title: "株式投資",                subtitle: "PER（Price Earnings Ratio：株価収益率）・PBR（Price Book-value Ratio：株価純資産倍率）・DDM（Dividend Discount Model：配当割引モデル）", color: "#2ECC71", tabId: "products",  sections: { A: "株式評価" } },
   { id: "ch10",  num: "第10章", title: "債券投資",                subtitle: "金利・デュレーション・イールド",   color: "#E74C3C", tabId: "products",  sections: { A: "債券分析" } },
   { id: "ch11",  num: "第11章", title: "外国投資・外国株式",      subtitle: "為替・外貨建て資産",               color: "#1ABC9C", tabId: "products",  sections: { A: "外国投資" } },
-  { id: "ch12",  num: "第12章", title: "投資信託",                subtitle: "アクティブ・パッシブ・ESG（Environmental, Social, Governance）", color: "#F39C12", tabId: "products",  sections: { A: "投資信託" } },
+  { id: "ch12",  num: "第12章", title: "投資信託",                subtitle: "アクティブ・パッシブ・ESG（Environmental, Social, Governance：環境・社会・企業統治）", color: "#F39C12", tabId: "products",  sections: { A: "投資信託" } },
   { id: "supp2", num: "補論2",  title: "デリバティブ取引",        subtitle: "先物・オプション・スワップ",       color: "#E74C3C", tabId: "products",  sections: { A: "デリバティブ" } },
-  { id: "supp3", num: "補論3",  title: "オルタナティブ（Alternative）投資", subtitle: "REIT（Real Estate Investment Trust）・ヘッジファンド・不動産", color: "#95A5A6", tabId: "products",  sections: { A: "オルタナティブ" } },
+  { id: "supp3", num: "補論3",  title: "オルタナティブ（Alternative：代替投資）", subtitle: "REIT（Real Estate Investment Trust：不動産投資信託）・ヘッジファンド・不動産", color: "#95A5A6", tabId: "products",  sections: { A: "オルタナティブ" } },
 ];
 
 // 全章の進捗を統合して返すヘルパー
@@ -5025,7 +5025,7 @@ function SearchBar({ onNavigate }) {
 // フェーズ7: ①顧客本位・倫理タブ
 // ============================================================
 const ETHICS_SECTIONS = [
-  { id: "A", label: "A: FD（Fiduciary Duty）原則" },
+  { id: "A", label: "A: FD（Fiduciary Duty：受託者責任）原則" },
   { id: "B", label: "B: 信頼関係" },
   { id: "C", label: "C: 税制" },
   { id: "D", label: "D: 行動経済学" },
@@ -7313,7 +7313,7 @@ function AssetAllocationSection({ color }) {
 // --- ②基礎タブ（後半）拡張 ---
 const BASICS_SECTIONS_CDE = [
   { id: "C", label: "C: 現在価値" },
-  { id: "D", label: "D: 統計・VaR（Value at Risk）" },
+  { id: "D", label: "D: 統計・VaR（Value at Risk：予想最大損失額）" },
   { id: "E", label: "E: 資産配分" },
 ];
 
@@ -7830,8 +7830,8 @@ function PortfolioSectionD({ color, state, setState, onNext }) {
 // --- ③ポートフォリオ理論タブ本体 ---
 const PF_SECTIONS = [
   { id: "A", label: "A: 分散効果" },
-  { id: "B", label: "B: 効率的フロンティア（Efficient Frontier）" },
-  { id: "C", label: "C: CAPM（Capital Asset Pricing Model）" },
+  { id: "B", label: "B: 効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）" },
+  { id: "C", label: "C: CAPM（Capital Asset Pricing Model：資本資産評価モデル）" },
   { id: "D", label: "D: 評価指標" },
 ];
 
@@ -8334,7 +8334,7 @@ const PRODUCTS_SECTIONS = [
   { id: "B", label: "B: 債券" },
   { id: "C", label: "C: 外国証券" },
   { id: "D", label: "D: 投資信託" },
-  { id: "E", label: "E: オルタナティブ（Alternative）" },
+  { id: "E", label: "E: オルタナティブ（Alternative：代替投資）" },
   { id: "F", label: "F: デリバティブ" },
 ];
 
@@ -8789,7 +8789,7 @@ const MOCK_ADVICE_DATA = {
 const CALC_PRACTICE_ITEMS = [
   {
     key: "capm",
-    label: "CAPM（Capital Asset Pricing Model）期待リターン",
+    label: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）期待リターン",
     formula: "E(Ri) = Rf + β × (Rm − Rf)",
     question: (v) => `リスクフリーレート${v.rf}%、β=${v.beta}、市場リターン${v.rm}%のとき期待リターンは？`,
     generate: () => {
@@ -8888,7 +8888,7 @@ function AnalysisSectionA({ state }) {
     { key: "g_ethics",  label: "倫理・顧客本位", tabs: ["ch1","ch2","ethics"] },
     { key: "g_basics",  label: "資産運用基礎",   tabs: ["basics"] },
     { key: "g_fs",      label: "財務諸表",        tabs: ["ch6"] },
-    { key: "g_pf",      label: "ポートフォリオ理論・CAPM（Capital Asset Pricing Model）", tabs: ["portfolio"] },
+    { key: "g_pf",      label: "ポートフォリオ理論・CAPM（Capital Asset Pricing Model：資本資産評価モデル）", tabs: ["portfolio"] },
     { key: "g_prod",    label: "金融商品",         tabs: ["products"] },
     { key: "g_deriv",   label: "デリバティブ",     tabs: ["supp2"] },
     { key: "g_calc",    label: "計算問題",          tabs: ["__calc__"] },
@@ -9569,15 +9569,15 @@ function AIReviewWidget({ state }) {
 // --- AnalysisSectionD: AI解説・比較パネル集 ---
 function AnalysisSectionD() {
   const topics = [
-    { key: "capm",           label: "CAPM（資本資産評価モデル）" },
+    { key: "capm",           label: "CAPM（Capital Asset Pricing Model：資本資産評価モデル）" },
     { key: "sharpe_ratio",   label: "シャープレシオ" },
     { key: "portfolio_risk", label: "ポートフォリオリスクと分散効果" },
-    { key: "efficient_frontier", label: "効率的フロンティア（Efficient Frontier）・CML（Capital Market Line）" },
+    { key: "efficient_frontier", label: "効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）・CML（Capital Market Line：資本市場線）" },
     { key: "duration",       label: "デュレーション" },
     { key: "ddm",            label: "DDM（Dividend Discount Model：配当割引モデル）" },
-    { key: "fd_principle",   label: "フィデューシャリーデューティー" },
-    { key: "nisa",           label: "新NISA" },
-    { key: "ideco",          label: "iDeCo" },
+    { key: "fd_principle",   label: "FD（Fiduciary Duty：受託者責任）" },
+    { key: "nisa",           label: "新NISA（Nippon Individual Savings Account：少額投資非課税制度）" },
+    { key: "ideco",          label: "iDeCo（individual-type Defined Contribution pension：個人型確定拠出年金）" },
   ];
 
   return (
@@ -10075,18 +10075,18 @@ const FLASH_QUIZ_MAP = [
   { tab: "ethics",    sec: "E", label: "①顧客本位 E：ゴールベース",        quizzes: CH2_QUIZZES    },
   { tab: "basics",    sec: "A", label: "②基礎 A：リターン計算",            quizzes: BASICS_QUIZZES.A },
   { tab: "basics",    sec: "B", label: "②基礎 B：リスク・相関",            quizzes: BASICS_QUIZZES.B },
-  { tab: "basics",    sec: "C", label: "②基礎 C：現在価値・VaR（Value at Risk）", quizzes: BASICS_QUIZZES.C },
+  { tab: "basics",    sec: "C", label: "②基礎 C：現在価値・VaR（Value at Risk：予想最大損失額）", quizzes: BASICS_QUIZZES.C },
   { tab: "basics",    sec: "D", label: "②基礎 D：債券・リスクプレミアム", quizzes: BASICS_QUIZZES.D },
   { tab: "basics",    sec: "E", label: "②基礎 E：72の法則・実質価値",      quizzes: BASICS_QUIZZES.E },
   { tab: "portfolio", sec: "A", label: "③ポートフォリオ理論 A：分散効果",                                    quizzes: PORTFOLIO_QUIZZES.A },
-  { tab: "portfolio", sec: "B", label: "③ポートフォリオ理論 B：効率的フロンティア（Efficient Frontier）",    quizzes: PORTFOLIO_QUIZZES.B },
-  { tab: "portfolio", sec: "C", label: "③ポートフォリオ理論 C：CAPM（Capital Asset Pricing Model）・ベータ", quizzes: PORTFOLIO_QUIZZES.C },
+  { tab: "portfolio", sec: "B", label: "③ポートフォリオ理論 B：効率的フロンティア（Efficient Frontier：最適ポートフォリオ集合）",          quizzes: PORTFOLIO_QUIZZES.B },
+  { tab: "portfolio", sec: "C", label: "③ポートフォリオ理論 C：CAPM（Capital Asset Pricing Model：資本資産評価モデル）・ベータ", quizzes: PORTFOLIO_QUIZZES.C },
   { tab: "portfolio", sec: "D", label: "③ポートフォリオ理論 D：パフォーマンス評価",                          quizzes: PORTFOLIO_QUIZZES.D },
   { tab: "products",  sec: "A", label: "④金融商品 A：株式",               quizzes: PRODUCTS_QUIZZES.A },
   { tab: "products",  sec: "B", label: "④金融商品 B：債券",               quizzes: PRODUCTS_QUIZZES.B },
   { tab: "products",  sec: "C", label: "④金融商品 C：外貨",               quizzes: PRODUCTS_QUIZZES.C },
-  { tab: "products",  sec: "D", label: "④金融商品 D：投信・ETF（Exchange Traded Fund）",            quizzes: PRODUCTS_QUIZZES.D },
-  { tab: "products",  sec: "E", label: "④金融商品 E：REIT（Real Estate Investment Trust）",          quizzes: PRODUCTS_QUIZZES.E },
+  { tab: "products",  sec: "D", label: "④金融商品 D：投信・ETF（Exchange Traded Fund：上場投資信託）",             quizzes: PRODUCTS_QUIZZES.D },
+  { tab: "products",  sec: "E", label: "④金融商品 E：REIT（Real Estate Investment Trust：不動産投資信託）",          quizzes: PRODUCTS_QUIZZES.E },
   { tab: "casestudy", sec: "CS1", label: "⑤ケース CS1：リバランス",        quizzes: CASESTUDY_QUIZZES.CS1 },
   { tab: "casestudy", sec: "CS2", label: "⑤ケース CS2：ドルコスト平均法",  quizzes: CASESTUDY_QUIZZES.CS2 },
   { tab: "casestudy", sec: "CS3", label: "⑤ケース CS3：基準価額",          quizzes: CASESTUDY_QUIZZES.CS3 },
