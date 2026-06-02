@@ -1589,6 +1589,60 @@ const CH6_QUIZZES = [
     explanation: "インタレスト・カバレッジ・レシオ = 営業利益 ÷ 支払利息。利息支払い能力を示し、1倍を下回ると営業利益で利息を払えない危険な状態。通常3倍以上が望ましい。",
     keyword: "インタレスト・カバレッジ",
   },
+  {
+    id: "ch6-fs-13",
+    q: "配当性向の計算式として正しいものはどれか？",
+    choices: [
+      "配当性向 = 株価 ÷ 1株当たり配当金 × 100",
+      "配当性向 = 配当金支払総額 ÷ 当期純利益 × 100",
+      "配当性向 = 当期純利益 ÷ 配当金支払総額 × 100",
+      "配当性向 = 配当金 ÷ 総資産 × 100",
+    ],
+    answer: 1,
+    isCalc: true,
+    explanation: "配当性向 = 配当金支払額 ÷ 当期純利益 × 100。例：EPS500円で配当400円なら配当性向80%。利益の何%を株主に還元しているかを示す。",
+    keyword: "配当性向",
+  },
+  {
+    id: "ch6-fs-14",
+    q: "「クリーンサープラス関係」の説明として正しいものはどれか？",
+    choices: [
+      "売上高 = 売上原価 + 売上総利益",
+      "当期末の利益剰余金 = 前期末の利益剰余金 ＋ 当期純利益 − 配当金",
+      "資産 = 負債 ＋ 純資産",
+      "営業利益 = 経常利益 ＋ 営業外費用",
+    ],
+    answer: 1,
+    explanation: "クリーンサープラス関係：P/Lの当期純利益とB/Sの利益剰余金の関係式。「前期末利益剰余金 + 当期純利益 - 配当金 = 当期末利益剰余金」が成立する。",
+    keyword: "クリーンサープラス関係",
+  },
+  {
+    id: "ch6-fs-15",
+    q: "営業活動によるキャッシュフローと当期純利益の関係として正しいものはどれか？",
+    choices: [
+      "常に当期純利益 = 営業キャッシュフローとなる",
+      "減価償却費は現金支出がないため、営業CFは純利益より大きくなる傾向がある",
+      "営業CFが大きければ純利益も必ず大きい",
+      "純利益がマイナスなら営業CFも必ずマイナスになる",
+    ],
+    answer: 1,
+    explanation: "減価償却費は損益計算書上の費用だが現金支出を伴わないため、営業CFに加算される。その結果、営業CFは純利益より大きくなる傾向がある（間接法）。",
+    keyword: "営業キャッシュフロー",
+  },
+  {
+    id: "ch6-fs-16",
+    q: "企業の成長性を評価する指標として使用される「売上高成長率」の計算式として正しいものはどれか？",
+    choices: [
+      "（当期売上高 × 前期売上高） ÷ 2",
+      "（当期売上高 − 前期売上高） ÷ 前期売上高 × 100",
+      "当期売上高 ÷ 総資産 × 100",
+      "（当期純利益 − 前期純利益） ÷ 前期売上高 × 100",
+    ],
+    answer: 1,
+    isCalc: true,
+    explanation: "売上高成長率 = (当期売上高 - 前期売上高) / 前期売上高 × 100。前期比でどれだけ売上が伸びたかを示す成長性指標。",
+    keyword: "売上高成長率",
+  },
 ];
 
 // ============================================================
@@ -2043,37 +2097,6 @@ const BASICS_QUIZZES = {
       keyword: "単純リターン計算",
     },
     {
-      id: "b-a-3",
-      q: "2年間で保有期間リターンが44%だった場合、年率リターン（複利換算）はいくらか？",
-      choices: ["22%", "約20%", "約18%", "約16%"],
-      answer: 1,
-      isCalc: true,
-      explanation: "(1 + 0.44)^(1/2) - 1 ≈ 0.2000 = 20%。√1.44 = 1.2より年率約20%。",
-      keyword: "年率リターン計算",
-    },
-    {
-      id: "b-a-4",
-      q: "3年間のリターンが+20%, -10%, +15%だった場合、幾何平均リターンはいくらか？",
-      choices: ["約8.3%", "約7.8%", "約6.5%", "約9.0%"],
-      answer: 1,
-      isCalc: true,
-      explanation: "(1.20 × 0.90 × 1.15)^(1/3) - 1 = (1.2420)^(1/3) - 1 ≈ 7.78%",
-      keyword: "幾何平均リターン",
-    },
-    {
-      id: "b-a-5",
-      q: "「算術平均は常に幾何平均以上になる」という関係はいつ等号（=）が成立するか？",
-      choices: [
-        "リターンが常にプラスのとき",
-        "すべての期間のリターンが同じ値のとき",
-        "投資期間が長いとき",
-        "リスク（標準偏差）がゼロのとき",
-      ],
-      answer: 1,
-      explanation: "算術平均≥幾何平均（相加相乗平均の不等式）。等号はすべてのリターンが等しい時（例：毎年10%ずつ）にのみ成立します。",
-      keyword: "算術平均≥幾何平均",
-    },
-    {
       id: "b-a-6",
       q: "年率10%で5年間複利運用した場合、100万円はいくらになるか？",
       choices: ["約150万円", "約161万円", "約155万円", "約170万円"],
@@ -2108,17 +2131,43 @@ const BASICS_QUIZZES = {
       explanation: "一定額を定期購入するドルコスト平均法では、価格が安い時に多く購入できるため、平均取得単価が算術平均より低くなります。",
       keyword: "ドルコスト平均法",
     },
-  ],
-  B: [
     {
-      id: "b-b-1",
-      q: "リターンが10%, 20%, -5%, 15%（平均10%）のとき分散はいくらか？",
-      choices: ["約75", "約87.5", "約100", "約62.5"],
+      id: "b-a-new-1",
+      q: "株式への投資において、株価が上下に変動することによって生じるリスクを何というか？",
+      choices: [
+        "流動性リスク",
+        "信用リスク",
+        "価格変動リスク",
+        "為替リスク",
+      ],
+      answer: 2,
+      explanation: "株価の上下変動によるリスクを「価格変動リスク」という。投資における最もオーソドックスなリスクで、標準偏差（σ）で大きさを表す。",
+      keyword: "価格変動リスク",
+    },
+    {
+      id: "b-a-new-2",
+      q: "リターンとリスクの関係として正しいものはどれか？",
+      choices: [
+        "高リスク・低リターンが投資の基本原則である",
+        "低リスク・高リターンの投資商品が最適である",
+        "一般にリターンが高いほどリスクも高くなる（ハイリスク・ハイリターン）",
+        "リスクとリターンは無関係である",
+      ],
+      answer: 2,
+      explanation: "ハイリスク・ハイリターンが投資の基本原則。リスクを負担した対価としてより高いリターンが期待できる。低リスク・高リターンの投資は原則として存在しない。",
+      keyword: "リスクとリターンの関係",
+    },
+    {
+      id: "b-a-new-3",
+      q: "100万円を年率5%で3年間複利運用した場合の最終金額に最も近いものはどれか？",
+      choices: ["115万円", "115.8万円", "116万円", "120万円"],
       answer: 1,
       isCalc: true,
-      explanation: "各偏差²: (10-10)²=0, (20-10)²=100, (-5-10)²=225, (15-10)²=25。平均=(0+100+225+25)/4=87.5",
-      keyword: "分散計算",
+      explanation: "100万円 × (1.05)³ = 100万円 × 1.157625 ≈ 115.8万円。複利は「利息が利息を生む」効果がある。",
+      keyword: "複利計算",
     },
+  ],
+  B: [
     {
       id: "b-b-2",
       q: "標準偏差（リスク）が大きいほど、投資のリスクはどうなるか？",
@@ -2145,19 +2194,6 @@ const BASICS_QUIZZES = {
       explanation: "相関係数-1（完全逆相関）では、一方が上がる時他方が下がるため、適切な比率で組み合わせるとリスクを理論上ゼロにできます。これは試験頻出のひっかけです。",
       keyword: "相関係数-1",
       isHikakke: true,
-    },
-    {
-      id: "b-b-4",
-      q: "2資産の相関係数を求める式として正しいものはどれか？",
-      choices: [
-        "ρ = σA × σB / Cov(A,B)",
-        "ρ = Cov(A,B) / (σA × σB)",
-        "ρ = (σA + σB) / Cov(A,B)",
-        "ρ = Cov(A,B) × σA × σB",
-      ],
-      answer: 1,
-      explanation: "ρ(A,B) = Cov(A,B) / (σA × σB)。相関係数は共分散を両資産の標準偏差の積で割った値で、-1から+1の範囲に正規化されます。",
-      keyword: "相関係数の公式",
     },
     {
       id: "b-b-5",
@@ -2293,14 +2329,185 @@ const BASICS_QUIZZES = {
       keyword: "アセットロケーション",
       isHikakke: true,
     },
+  ],
+  D: [
     {
-      id: "b-c-8",
-      q: "95%信頼水準のVaRをCAPM的に計算する場合、使用するzスコアはいくらか？",
-      choices: ["1.28", "1.645", "1.96", "2.326"],
+      id: "b-d-1",
+      q: "リスクプレミアムの説明として正しいものはどれか？",
+      choices: [
+        "国債の利回りそのものをリスクプレミアムという",
+        "リスク資産の期待リターンから無リスク資産の利回りを引いた上乗せ分",
+        "株式投資の損失リスクを数値化したもの",
+        "インフレ率と名目金利の差",
+      ],
+      answer: 1,
+      explanation: "リスクプレミアム = リスク資産の利回り − 無リスク金利（国債利回り等）。リスクを負担することへの対価であり、株式 > 社債 > 国債の順に大きい。",
+      keyword: "リスクプレミアムの定義",
+    },
+    {
+      id: "b-d-2",
+      q: "購入価格280万円の割引債が3年後に300万円で償還される場合、この割引債のリスクプレミアムはいくらか。無リスク金利は年2%とする。",
+      choices: ["約5.1%", "約3.1%", "約7.1%", "約2.0%"],
+      answer: 0,
+      isCalc: true,
+      explanation: "割引債の利回り = (300 - 280) / 280 × 100 ≈ 7.14%。リスクプレミアム = 7.14% − 2% ≈ 5.14%",
+      keyword: "リスクプレミアム計算",
+    },
+    {
+      id: "b-d-3",
+      q: "利付債の理論価格の計算方法として正しいものはどれか？",
+      choices: [
+        "毎年のクーポンと満期の元本を割引率で割り引いた現在価値の合計",
+        "額面金額をそのまま使用する",
+        "クーポン合計と元本の単純な合計",
+        "市場価格に利回りを掛けた値",
+      ],
+      answer: 0,
+      explanation: "利付債の理論価格 = Σ[クーポン/(1+r)^t] + 額面/(1+r)^n。各年のキャッシュフローを割引率で現在価値に割り引き合計する。",
+      keyword: "利付債の理論価格",
+    },
+    {
+      id: "b-d-4",
+      q: "割引率4%のとき、3年後に満期となる利付債（年1回クーポン2円、額面100円）の理論価格に最も近いものはどれか？",
+      choices: ["約94.4円", "約96.0円", "約98.2円", "約100.0円"],
+      answer: 0,
+      isCalc: true,
+      explanation: "PV = 2/1.04 + 2/1.04² + 102/1.04³ ≈ 1.92 + 1.85 + 90.68 ≈ 94.45円。クーポンが低いほど理論価格は額面を下回る。",
+      keyword: "利付債PV計算",
+    },
+    {
+      id: "b-d-5",
+      q: "金利が上昇したとき、既存の利付債の価格はどうなるか？",
+      choices: [
+        "価格は上昇する",
+        "価格は変わらない",
+        "価格は下落する",
+        "クーポンが増える",
+      ],
+      answer: 2,
+      explanation: "金利上昇 → 割引率上昇 → 現在価値（債券価格）下落。金利と債券価格は逆相関の関係にある。これは試験最頻出の概念。",
+      keyword: "金利と債券価格の逆相関",
+    },
+    {
+      id: "b-d-6",
+      q: "期待リターンの計算方法として正しいものはどれか？",
+      choices: [
+        "最大リターンと最小リターンの平均",
+        "各シナリオの発生確率×予想リターンの合計（加重平均）",
+        "過去の実績リターンの単純平均",
+        "リスクフリーレートにベータを加えた値",
+      ],
+      answer: 1,
+      explanation: "期待リターン = Σ(発生確率 × 各シナリオのリターン)。例：好況(50%×20%)＋不況(50%×(-10%))＝期待リターン5%",
+      keyword: "期待リターンの計算",
+    },
+    {
+      id: "b-d-7",
+      q: "リスク資産の種類とリスクプレミアムの大小関係として最も適切なものはどれか？",
+      choices: [
+        "国債 > 社債 > 株式",
+        "株式 > 社債 > 国債",
+        "社債 > 株式 > 国債",
+        "すべて同じリスクプレミアムになる",
+      ],
+      answer: 1,
+      explanation: "株式は最もリスクが高いため最大のリスクプレミアムが要求される。社債は株式より安全だが国債よりリスクが高い。国債は無リスク資産のためリスクプレミアム≒0。",
+      keyword: "リスクプレミアムの大小",
+    },
+    {
+      id: "b-d-8",
+      q: "ある株式の期待リターンを確率で計算する。好況（確率40%、リターン+30%）、普通（確率40%、リターン+5%）、不況（確率20%、リターン-20%）の場合、期待リターンはいくらか？",
+      choices: ["約9%", "約10%", "約8%", "約12%"],
       answer: 1,
       isCalc: true,
-      explanation: "95%信頼水準（片側5%）のzスコアは1.645。VaR = 平均 - 1.645×σ。90%なら1.28、97.5%なら1.96、99%なら2.326です。",
-      keyword: "VaR計算・zスコア",
+      explanation: "0.40×30% + 0.40×5% + 0.20×(-20%) = 12% + 2% - 4% = 10%",
+      keyword: "期待リターン計算（確率）",
+    },
+  ],
+  E: [
+    {
+      id: "b-e-1",
+      q: "「72の法則」を使って、年利3%で運用した場合に資産が2倍になるまでの年数を求めるとどうなるか？",
+      choices: ["約20年", "約24年", "約18年", "約30年"],
+      answer: 1,
+      isCalc: true,
+      explanation: "72 ÷ 3(%) = 24年。72の法則は「72 ÷ 金利(%) ≈ 元本が2倍になる年数」という簡易計算法。",
+      keyword: "72の法則（年数）",
+    },
+    {
+      id: "b-e-2",
+      q: "150万円の資産を20年間で300万円（2倍）に増やしたい。72の法則を用いると必要な利回りはいくらか？",
+      choices: ["4.2%", "3.6%", "2.4%", "5.0%"],
+      answer: 1,
+      isCalc: true,
+      explanation: "72 ÷ 20年 = 3.6%。150万円が「4.2%では2倍にならない」点が試験のひっかけポイント。",
+      keyword: "72の法則（利回り）",
+    },
+    {
+      id: "b-e-3",
+      q: "名目値ベースの資産価格が100万円から5年後に120万円に上昇した。この間5%のインフレが生じた場合、実質ベースの上昇率はいくらか？",
+      choices: ["15.0%", "約14.3%", "約20.0%", "約19.0%"],
+      answer: 1,
+      isCalc: true,
+      explanation: "実質上昇率 = (1.20 / 1.05) - 1 ≈ 1.143 - 1 = 14.3%。「15%」はひっかけ（名目-インフレの単純引き算）。正確にはフィッシャー方程式を使う。",
+      keyword: "実質リターン計算",
+    },
+    {
+      id: "b-e-4",
+      q: "インフレ率が運用利回りを上回った場合、実質的な資産価値はどうなるか？",
+      choices: [
+        "実質価値は増加する",
+        "実質価値は変わらない",
+        "実質価値は目減りする（実質マイナスリターン）",
+        "インフレ率と運用利回りは無関係",
+      ],
+      answer: 2,
+      explanation: "例：運用利回り3%、インフレ率5% → 実質リターン≈ -2%。名目上は増えていても物価上昇に追いつかず、購買力（実質価値）は低下する。",
+      keyword: "インフレと実質価値",
+    },
+    {
+      id: "b-e-5",
+      q: "預金残高300万円が1年後に名目上315万円になった。インフレ率が10%の場合、実質ベースの残高に最も近いものはどれか？",
+      choices: ["315万円", "300万円", "約286万円", "約295万円"],
+      answer: 2,
+      isCalc: true,
+      explanation: "実質増減率 = (1.05 / 1.10) - 1 ≈ -4.5%。300万円 × (1 - 0.045) ≈ 286.4万円。名目では増えても実質では目減りしている。",
+      keyword: "実質残高計算",
+    },
+    {
+      id: "b-e-6",
+      q: "フィッシャー方程式による「実質リターン」の簡易計算式として正しいものはどれか？",
+      choices: [
+        "実質リターン ≒ 名目リターン × インフレ率",
+        "実質リターン ≒ 名目リターン ÷ インフレ率",
+        "実質リターン ≒ 名目リターン − インフレ率",
+        "実質リターン ≒ 名目リターン + インフレ率",
+      ],
+      answer: 2,
+      explanation: "簡易版フィッシャー方程式：実質リターン ≒ 名目リターン − インフレ率。厳密には (1+名目)/(1+インフレ)-1 だが、試験では簡易版でOK。",
+      keyword: "フィッシャー方程式",
+    },
+    {
+      id: "b-e-7",
+      q: "長期投資においてインフレへの対応として最も適切なものはどれか？",
+      choices: [
+        "現金で保有することでインフレリスクを避けられる",
+        "インフレ率を上回るリターンを目指した資産運用が重要",
+        "インフレが進むほど現金の価値は上がる",
+        "短期運用の方がインフレ対策に有効",
+      ],
+      answer: 1,
+      explanation: "現金はインフレによって実質価値が目減りする。インフレ率を上回るリターンを目指す長期・積立・分散投資が実質的な資産の維持・増加に重要。",
+      keyword: "インフレ対策",
+    },
+    {
+      id: "b-e-8",
+      q: "72の法則の応用として、年利2%のインフレが続いた場合、現金100万円の実質購買力が半分になるまでの年数はいくらか？",
+      choices: ["約24年", "約36年", "約48年", "約72年"],
+      answer: 1,
+      isCalc: true,
+      explanation: "72 ÷ 2% = 36年。72の法則は「資産が2倍になる年数」だけでなく「インフレで価値が半減する年数」の計算にも使える。",
+      keyword: "72の法則（インフレ応用）",
     },
   ],
 };
@@ -5255,8 +5462,8 @@ const ALL_BASICS_SECTIONS = [
   { id: "A", label: "A: リターン" },
   { id: "B", label: "B: リスク" },
   { id: "C", label: "C: 現在価値" },
-  { id: "D", label: "D: 統計" },
-  { id: "E", label: "E: 資産配分" },
+  { id: "D", label: "D: 債券・リスクプレミアム" },
+  { id: "E", label: "E: 72の法則・実質価値" },
   { id: "F", label: "F: 財務諸表" },
 ];
 
@@ -5298,7 +5505,7 @@ function BasicsTab({ state, setState }) {
     }
   };
 
-  const quizMap = { A: BASICS_QUIZZES.A, B: BASICS_QUIZZES.B, C: BASICS_QUIZZES.C, D: BASICS_QUIZZES.C, E: BASICS_QUIZZES.C };
+  const quizMap = { A: BASICS_QUIZZES.A, B: BASICS_QUIZZES.B, C: BASICS_QUIZZES.C, D: BASICS_QUIZZES.D, E: BASICS_QUIZZES.E };
   const quizKey = `_quizOpenBasics${section}`;
   const done    = section === "F" ? (state.chapProgress?.ch6?.A ?? false) : (state.progress.basics?.[section]);
 
@@ -6289,7 +6496,7 @@ function BasicsBackTab({ state, setState }) {
               : "理解度テストを受ける（8問）"}
           </button>
           {state._quizOpenBasicsD && (
-            <QuizComponent quizzes={BASICS_QUIZZES.C} tabId="basics" sectionId="D" accentColor={color} state={state} setState={setState} />
+            <QuizComponent quizzes={BASICS_QUIZZES.D} tabId="basics" sectionId="D" accentColor={color} state={state} setState={setState} />
           )}
         </div>
       )}
@@ -6312,7 +6519,7 @@ function BasicsBackTab({ state, setState }) {
               : "理解度テストを受ける（8問）"}
           </button>
           {state._quizOpenBasicsE && (
-            <QuizComponent quizzes={BASICS_QUIZZES.C} tabId="basics" sectionId="E" accentColor={color} state={state} setState={setState} />
+            <QuizComponent quizzes={BASICS_QUIZZES.E} tabId="basics" sectionId="E" accentColor={color} state={state} setState={setState} />
           )}
         </div>
       )}
@@ -8516,8 +8723,8 @@ function buildMockQuestions() {
   // 第1〜3章（フィデューシャリー・信頼関係・NISA）
   const ethicsPool  = tag([...ETHICS_QUIZZES.A, ...ETHICS_QUIZZES.B, ...ETHICS_QUIZZES.C], "ethics");
 
-  // 第4〜5章（リターン・リスク・現在価値・積立）
-  const basicsPool  = tag([...BASICS_QUIZZES.A, ...BASICS_QUIZZES.B, ...BASICS_QUIZZES.C], "basics");
+  // 第4〜5章（リターン・リスク・現在価値・債券・72の法則）
+  const basicsPool  = tag([...BASICS_QUIZZES.A, ...BASICS_QUIZZES.B, ...BASICS_QUIZZES.C, ...BASICS_QUIZZES.D, ...BASICS_QUIZZES.E], "basics");
 
   // 第6章（財務諸表）
   const ch6Pool     = tag(CH6_QUIZZES, "ch6");
@@ -8906,6 +9113,8 @@ const ALL_CALC_QUIZZES = [
   ...BASICS_QUIZZES.A.filter((q) => q.isCalc),
   ...BASICS_QUIZZES.B.filter((q) => q.isCalc),
   ...BASICS_QUIZZES.C.filter((q) => q.isCalc),
+  ...BASICS_QUIZZES.D.filter((q) => q.isCalc),
+  ...BASICS_QUIZZES.E.filter((q) => q.isCalc),
   ...PORTFOLIO_QUIZZES.A.filter((q) => q.isCalc),
   ...PORTFOLIO_QUIZZES.C.filter((q) => q.isCalc),
   ...PRODUCTS_QUIZZES.A.filter((q) => q.isCalc),
@@ -8917,6 +9126,8 @@ const CALC_QUIZ_MAP = [
   { tab: "basics",    sec: "A", quizzes: BASICS_QUIZZES.A.filter(q => q.isCalc) },
   { tab: "basics",    sec: "B", quizzes: BASICS_QUIZZES.B.filter(q => q.isCalc) },
   { tab: "basics",    sec: "C", quizzes: BASICS_QUIZZES.C.filter(q => q.isCalc) },
+  { tab: "basics",    sec: "D", quizzes: BASICS_QUIZZES.D.filter(q => q.isCalc) },
+  { tab: "basics",    sec: "E", quizzes: BASICS_QUIZZES.E.filter(q => q.isCalc) },
   { tab: "portfolio", sec: "A", quizzes: PORTFOLIO_QUIZZES.A.filter(q => q.isCalc) },
   { tab: "portfolio", sec: "C", quizzes: PORTFOLIO_QUIZZES.C.filter(q => q.isCalc) },
   { tab: "products",  sec: "A", quizzes: PRODUCTS_QUIZZES.A.filter(q => q.isCalc) },
@@ -8943,6 +9154,8 @@ const FLASH_QUIZ_MAP = [
   { tab: "basics",    sec: "A", label: "②基礎 A：リターン計算",            quizzes: BASICS_QUIZZES.A },
   { tab: "basics",    sec: "B", label: "②基礎 B：リスク・相関",            quizzes: BASICS_QUIZZES.B },
   { tab: "basics",    sec: "C", label: "②基礎 C：現在価値・VaR",          quizzes: BASICS_QUIZZES.C },
+  { tab: "basics",    sec: "D", label: "②基礎 D：債券・リスクプレミアム", quizzes: BASICS_QUIZZES.D },
+  { tab: "basics",    sec: "E", label: "②基礎 E：72の法則・実質価値",      quizzes: BASICS_QUIZZES.E },
   { tab: "portfolio", sec: "A", label: "③PF理論 A：分散効果",             quizzes: PORTFOLIO_QUIZZES.A },
   { tab: "portfolio", sec: "B", label: "③PF理論 B：効率的フロンティア",    quizzes: PORTFOLIO_QUIZZES.B },
   { tab: "portfolio", sec: "C", label: "③PF理論 C：CAPM・ベータ",         quizzes: PORTFOLIO_QUIZZES.C },
