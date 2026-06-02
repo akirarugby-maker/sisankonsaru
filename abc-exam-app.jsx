@@ -34,78 +34,78 @@ import {
 } from "recharts";
 
 // ============================================================
-// デザイントークン
+// デザイントークン（パステル × 柔らか系）
 // ============================================================
 const COLORS = {
-  primary:   "#4A90D9",
-  secondary: "#50C878",
-  accent:    "#FFB347",
-  highlight: "#9B59B6",
-  danger:    "#E74C3C",
-  bg:        "#FFFFFF",
-  text:      "#2C3E50",
-  cardBg:    "#F8FAFE",
-  border:    "#D5E8F8",
-  textLight: "#7F8C8D",
-  textMuted: "#BDC3C7",
+  primary:   "#FF8FAD",  // ピンク濃（メインアクセント）
+  secondary: "#7DCFB6",  // ミント濃（正解・完了）
+  accent:    "#F4A26B",  // ピーチオレンジ（基礎タブ）
+  highlight: "#B39DDB",  // ラベンダー紫（PFタブ）
+  danger:    "#F1948A",  // ソフトレッドピンク（警告・分析）
+  bg:        "#FDFCFF",  // ほぼ白（わずかにラベンダー）
+  text:      "#4A4A68",  // 深紫グレー（本文）
+  cardBg:    "#FFFFFF",
+  border:    "#EDE8F5",  // 薄ラベンダー
+  textLight: "#8888A8",
+  textMuted: "#BBBBCC",
 };
 
 const STYLES = {
   card: {
     background: COLORS.cardBg,
-    border: `1.5px solid ${COLORS.border}`,
-    borderRadius: 16,
-    boxShadow: "0 2px 8px rgba(74,144,217,0.15)",
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 24,
+    boxShadow: "0 4px 16px rgba(180,160,210,0.15)",
     padding: 16,
   },
   cardLg: {
     background: COLORS.cardBg,
-    border: `1.5px solid ${COLORS.border}`,
-    borderRadius: 24,
-    boxShadow: "0 4px 16px rgba(74,144,217,0.2)",
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 28,
+    boxShadow: "0 4px 20px rgba(180,160,210,0.20)",
     padding: 20,
   },
   btnPrimary: {
-    background: `linear-gradient(135deg, ${COLORS.primary}, #357ABD)`,
+    background: `linear-gradient(135deg, ${COLORS.primary}, #c77dff)`,
     color: "#fff",
     border: "none",
-    borderRadius: 12,
+    borderRadius: 32,
     padding: "10px 20px",
     cursor: "pointer",
     fontWeight: 700,
     fontSize: 14,
-    boxShadow: "0 3px 10px rgba(74,144,217,0.35)",
+    boxShadow: "0 4px 12px rgba(255,143,173,0.35)",
     fontFamily: "'Noto Sans JP', sans-serif",
   },
   btnSecondary: {
-    background: `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
+    background: `linear-gradient(135deg, ${COLORS.secondary}, #5BB8A0)`,
     color: "#fff",
     border: "none",
-    borderRadius: 12,
+    borderRadius: 32,
     padding: "10px 20px",
     cursor: "pointer",
     fontWeight: 700,
     fontSize: 14,
-    boxShadow: "0 3px 10px rgba(80,200,120,0.35)",
+    boxShadow: "0 3px 10px rgba(125,207,182,0.35)",
     fontFamily: "'Noto Sans JP', sans-serif",
   },
   btnAccent: {
-    background: `linear-gradient(135deg, ${COLORS.accent}, #E8922A)`,
+    background: `linear-gradient(135deg, ${COLORS.accent}, #E0864A)`,
     color: "#fff",
     border: "none",
-    borderRadius: 12,
+    borderRadius: 32,
     padding: "10px 20px",
     cursor: "pointer",
     fontWeight: 700,
     fontSize: 14,
-    boxShadow: "0 3px 10px rgba(255,179,71,0.35)",
+    boxShadow: "0 3px 10px rgba(244,162,107,0.35)",
     fontFamily: "'Noto Sans JP', sans-serif",
   },
   btnOutline: {
     background: "transparent",
     color: COLORS.primary,
     border: `2px solid ${COLORS.primary}`,
-    borderRadius: 12,
+    borderRadius: 32,
     padding: "8px 18px",
     cursor: "pointer",
     fontWeight: 600,
@@ -113,9 +113,9 @@ const STYLES = {
     fontFamily: "'Noto Sans JP', sans-serif",
   },
   input: {
-    background: "#fff",
-    border: `1.5px solid ${COLORS.border}`,
-    borderRadius: 10,
+    background: "#F8F5FF",
+    border: `2px solid ${COLORS.border}`,
+    borderRadius: 14,
     padding: "9px 13px",
     fontSize: 14,
     color: COLORS.text,
@@ -128,7 +128,7 @@ const STYLES = {
     display: "inline-block",
     background: color + "22",
     color: color,
-    borderRadius: 8,
+    borderRadius: 20,
     padding: "3px 10px",
     fontSize: 12,
     fontWeight: 700,
@@ -258,7 +258,7 @@ const TABS = [
     label: "④金融商品",
     icon:  DollarSign,
     emoji: "💹",
-    color: "#E67E22",
+    color: "#F4A26B",
     short: "商品",
   },
   {
@@ -266,7 +266,7 @@ const TABS = [
     label: "⑤ケース",
     icon:  Activity,
     emoji: "📋",
-    color: "#16A085",
+    color: "#7DCFB6",
     short: "ケース",
   },
   {
@@ -343,7 +343,7 @@ function NavigationBar({ activeTab, onTabChange }) {
         alignItems:      "center",
         padding:         "6px 0 8px",
         zIndex:          1000,
-        boxShadow:       "0 -4px 16px rgba(74,144,217,0.12)",
+        boxShadow:       "0 -4px 16px rgba(180,160,210,0.18)",
       }}
     >
       {TABS.map((tab) => {
@@ -393,14 +393,15 @@ function PageHeader({ title, subtitle, color = COLORS.primary, icon: Icon }) {
   return (
     <div
       style={{
-        background:   `linear-gradient(135deg, ${color}18, ${color}08)`,
-        border:       `1.5px solid ${color}33`,
-        borderRadius: 20,
+        background:   `linear-gradient(135deg, ${color}20, #EDE8F5)`,
+        border:       `1px solid ${color}40`,
+        borderRadius: 24,
         padding:      "16px 20px",
         marginBottom: 16,
         display:      "flex",
         alignItems:   "center",
         gap:          14,
+        boxShadow:    "0 2px 10px rgba(180,160,210,0.12)",
       }}
     >
       {Icon && (
@@ -408,8 +409,8 @@ function PageHeader({ title, subtitle, color = COLORS.primary, icon: Icon }) {
           style={{
             width:          48,
             height:         48,
-            borderRadius:   14,
-            background:     color + "25",
+            borderRadius:   16,
+            background:     color + "28",
             display:        "flex",
             alignItems:     "center",
             justifyContent: "center",
@@ -3811,7 +3812,7 @@ function SearchBar({ onNavigate }) {
             background:   "#fff",
             border:       `1.5px solid ${COLORS.border}`,
             borderRadius: 12,
-            boxShadow:    "0 8px 24px rgba(74,144,217,0.18)",
+            boxShadow:    "0 8px 24px rgba(180,160,210,0.20)",
             zIndex:       200,
             overflow:     "hidden",
             marginTop:    4,
