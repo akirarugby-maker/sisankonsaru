@@ -218,7 +218,8 @@ const INITIAL_STATE = {
   visitedSections: INITIAL_VISITED,
   testHistory: [],
   calcHistory: [],
-  reviewStatus: {}
+  reviewStatus: {},
+  weakQuestions: {}
 };
 const STORAGE_KEY = "abc-exam-app-data";
 function loadState() {
@@ -250,6 +251,9 @@ function loadState() {
         products: {
           ...(saved.visitedSections?.products ?? {})
         }
+      },
+      weakQuestions: {
+        ...(saved.weakQuestions ?? {})
       }
     };
   } catch {
@@ -2730,29 +2734,31 @@ function QuizComponent({
   const handleNext = () => {
     if (idx + 1 >= quizzes.length) {
       setFinished(true);
-      // 進捗をセクション完了として記録
-      const allCorrect = score + (selected === q.answer ? 1 : 0);
-      if (allCorrect / quizzes.length >= 0.6) {
-        setState(s => ({
-          ...s,
-          [progressField]: {
-            ...s[progressField],
-            [tabId]: {
-              ...(s[progressField]?.[tabId] ?? {}),
-              [sectionId]: true
-            }
-          },
-          testHistory: [...s.testHistory, ...quizzes.map((quiz, qi) => ({
-            date: new Date().toISOString(),
-            tab: tabId,
-            section: sectionId,
-            question: quiz.id,
-            correct: history[qi]?.correct ?? false,
-            keyword: quiz.keyword,
-            isCalc: !!quiz.isCalc
-          }))]
-        }));
-      }
+      const wrongQuizzes = quizzes.filter((_, qi) => !history[qi]?.correct);
+      const key = `${tabId}-${sectionId}`;
+      setState(s => ({
+        ...s,
+        [progressField]: {
+          ...s[progressField],
+          [tabId]: {
+            ...(s[progressField]?.[tabId] ?? {}),
+            [sectionId]: true
+          }
+        },
+        testHistory: [...s.testHistory, ...quizzes.map((quiz, qi) => ({
+          date: new Date().toISOString(),
+          tab: tabId,
+          section: sectionId,
+          question: quiz.id,
+          correct: history[qi]?.correct ?? false,
+          keyword: quiz.keyword,
+          isCalc: !!quiz.isCalc
+        }))],
+        weakQuestions: {
+          ...s.weakQuestions,
+          [key]: wrongQuizzes.length > 0 ? wrongQuizzes : null
+        }
+      }));
       return;
     }
     setIdx(i => i + 1);
@@ -2803,7 +2809,7 @@ function QuizComponent({
         fontSize: 14,
         marginBottom: 16
       }
-    }, passed ? "セクション完了！" : "もう少し！60点以上でクリア"), history.some(h => !h.correct) && /*#__PURE__*/React.createElement("div", {
+    }, passed ? "セクション完了！" : "再挑戦で苦手を克服！"), history.some(h => !h.correct) && /*#__PURE__*/React.createElement("div", {
       style: {
         textAlign: "left",
         marginBottom: 16
@@ -2859,7 +2865,7 @@ function QuizComponent({
         borderColor: accentColor
       },
       onClick: handleRetry
-    }, "\u3082\u3046\u4E00\u5EA6"), passed && (onNext ? /*#__PURE__*/React.createElement("button", {
+    }, "\u3082\u3046\u4E00\u5EA6"), onNext ? /*#__PURE__*/React.createElement("button", {
       style: {
         flex: 1,
         background: `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
@@ -2895,7 +2901,7 @@ function QuizComponent({
       }
     }, /*#__PURE__*/React.createElement(Check, {
       size: 14
-    }), " \u5B8C\u4E86\u6E08\u307F"))));
+    }), " \u5B8C\u4E86\u6E08\u307F \u2014 \u518D\u6311\u6226\u3059\u308B")));
   }
 
   // 出題画面
@@ -3288,6 +3294,140 @@ function FlashQuizSection({
     index: i,
     onNavigate: onNavigate
   })));
+}
+
+// --- WeakQuestionsPanel: 苦手問題表示 ---
+function WeakQuestionsPanel({
+  tabIds,
+  state,
+  setState
+}) {
+  const [open, setOpen] = useState(false);
+  const ids = Array.isArray(tabIds) ? tabIds : [tabIds];
+  const weakEntries = Object.entries(state.weakQuestions || {}).filter(([key, qs]) => ids.some(t => key.startsWith(t + "-")) && qs?.length > 0);
+  if (weakEntries.length === 0) return null;
+  const totalWeak = weakEntries.reduce((a, [, qs]) => a + qs.length, 0);
+  const clearWeak = key => {
+    setState(s => ({
+      ...s,
+      weakQuestions: {
+        ...s.weakQuestions,
+        [key]: null
+      }
+    }));
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12,
+      border: `1.5px solid ${COLORS.danger}44`,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(s => !s),
+    style: {
+      width: "100%",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: 0,
+      fontFamily: "inherit"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, "\u26A0\uFE0F"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: COLORS.danger,
+      flex: 1,
+      textAlign: "left"
+    }
+  }, "\u82E6\u624B\u554F\u984C ", totalWeak, "\u554F"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textMuted
+    }
+  }, open ? "▲ 閉じる" : "▼ 確認する")), open && weakEntries.map(([key, quizzes]) => {
+    const parts = key.split("-");
+    const sec = parts.slice(1).join("-");
+    return /*#__PURE__*/React.createElement("div", {
+      key: key,
+      style: {
+        marginTop: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...STYLES.badge(COLORS.danger),
+        fontSize: 11
+      }
+    }, sec, "\u30BB\u30AF\u30B7\u30E7\u30F3"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textMuted,
+        flex: 1
+      }
+    }, quizzes.length, "\u554F"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => clearWeak(key),
+      style: {
+        fontSize: 10,
+        color: COLORS.textMuted,
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        textDecoration: "underline"
+      }
+    }, "\u30AF\u30EA\u30A2")), quizzes.map((q, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        padding: "8px 10px",
+        background: COLORS.danger + "08",
+        border: `1px solid ${COLORS.danger}22`,
+        borderRadius: 12,
+        marginBottom: 6,
+        fontSize: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: COLORS.danger,
+        fontWeight: 700,
+        marginBottom: 4
+      }
+    }, "\u2717 ", q.keyword), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: COLORS.text,
+        lineHeight: 1.6
+      }
+    }, q.q), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 6,
+        padding: "6px 8px",
+        background: COLORS.secondary + "12",
+        borderRadius: 8,
+        fontSize: 11,
+        color: COLORS.text
+      }
+    }, "\u2705 \u6B63\u89E3: ", ["①", "②", "③", "④"][q.answer], " ", q.choices[q.answer]), q.explanation && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 4,
+        fontSize: 11,
+        color: COLORS.textLight,
+        lineHeight: 1.5
+      }
+    }, q.explanation))));
+  }));
 }
 
 // --- ExportImportPanel: 進捗バックアップ ---
@@ -3815,6 +3955,10 @@ function EthicsTab({
     subtitle: "\u30D5\u30A3\u30C7\u30E5\u30FC\u30B7\u30E3\u30EA\u30FC\u30FB\u7A0E\u5236\u30FB\u884C\u52D5\u7D4C\u6E08\u5B66\u30FB\u30B4\u30FC\u30EB\u30D9\u30FC\u30B9",
     color: color,
     icon: Shield
+  }), /*#__PURE__*/React.createElement(WeakQuestionsPanel, {
+    tabIds: ["ethics", "ch1", "ch2"],
+    state: state,
+    setState: setState
   }), /*#__PURE__*/React.createElement(SectionTab, {
     sections: ETHICS_SECTIONS,
     activeSection: section,
@@ -5125,6 +5269,10 @@ function BasicsTab({
     subtitle: "\u30EA\u30BF\u30FC\u30F3\u30FB\u30EA\u30B9\u30AF\u30FB\u73FE\u5728\u4FA1\u5024\u30FB\u7D71\u8A08\u30FB\u8CA1\u52D9\u8AF8\u8868",
     color: color,
     icon: BookOpen
+  }), /*#__PURE__*/React.createElement(WeakQuestionsPanel, {
+    tabIds: ["basics", "ch6"],
+    state: state,
+    setState: setState
   }), /*#__PURE__*/React.createElement(SectionTab, {
     sections: ALL_BASICS_SECTIONS,
     activeSection: section,
@@ -6984,6 +7132,10 @@ function PortfolioTab({
     subtitle: "\u5206\u6563\u6295\u8CC7\u30FB\u52B9\u7387\u7684\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u30FBCAPM\u30FB\u8A55\u4FA1\u6307\u6A19",
     color: color,
     icon: TrendingUp
+  }), /*#__PURE__*/React.createElement(WeakQuestionsPanel, {
+    tabIds: ["portfolio"],
+    state: state,
+    setState: setState
   }), /*#__PURE__*/React.createElement(SectionTab, {
     sections: PF_SECTIONS,
     activeSection: section,
@@ -7985,6 +8137,10 @@ function ProductsTab({
     subtitle: "\u682A\u5F0F\u30FB\u50B5\u5238\u30FB\u5916\u56FD\u8A3C\u5238\u30FB\u6295\u8CC7\u4FE1\u8A17\u30FB\u30AA\u30EB\u30BF\u30CA\u30FB\u30C7\u30EA\u30D0\u30C6\u30A3\u30D6",
     color: color,
     icon: DollarSign
+  }), /*#__PURE__*/React.createElement(WeakQuestionsPanel, {
+    tabIds: ["products", "supp2"],
+    state: state,
+    setState: setState
   }), /*#__PURE__*/React.createElement(SectionTab, {
     sections: PRODUCTS_SECTIONS,
     activeSection: section,
