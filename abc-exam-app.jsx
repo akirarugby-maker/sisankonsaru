@@ -4312,23 +4312,323 @@ function EthicsSectionC({ color, state, setState, onNext }) {
 
 // --- 単純リターン電卓 ---
 function ReturnCalculatorSection({ color }) {
+  const [p0ex, setP0ex] = useState(100);
+  const [p1ex, setP1ex] = useState(118);
+  const [divEx, setDivEx] = useState(2);
+  const [nEx, setNEx] = useState(2);
+
+  const hprEx = ((p1ex - p0ex + divEx) / p0ex * 100);
+  const annEx = (Math.pow(1 + (p1ex - p0ex + divEx) / p0ex, 1 / Math.max(nEx, 0.1)) - 1) * 100;
+
   return (
     <div>
-      <InfoBox title="リターンの種類と使い分け" color={color} youtubeQuery="投資リターン 算術平均 幾何平均 年率換算 計算">
-        <strong>単純リターン（保有期間）</strong>：R = (期末価格 − 期初価格 + 配当) / 期初価格<br />
-        <strong>年率リターン（複利換算）</strong>：年率R = (1 + 保有期間R)^(1/年数) − 1<br />
-        <strong>算術平均</strong>：各期リターンの単純平均 → 将来予測に使用<br />
-        <strong>幾何平均</strong>：複利ベースの平均 → 過去実績評価に使用
-      </InfoBox>
+      {/* ===== STEP 0: そもそもリターンって何？ ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📖 リターンって何だろう？
+        </div>
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.9, marginBottom: 12 }}>
+          投資の「もうけ」のことです。<br />
+          たとえば <strong>100円で買ったりんご</strong> が <strong>120円で売れた</strong> なら、もうけは20円。<br />
+          これを最初の100円に対する割合で表すのが<strong style={{ color }}>リターン</strong>です。
+        </div>
 
-      {/* 公式カード */}
-      <FormulaCard {...FORMULA_DATA.simpleReturn} color={color} />
-      <FormulaCard {...FORMULA_DATA.annualReturn} color={color} />
-      <FormulaCard {...FORMULA_DATA.geoMean}      color={color} />
+        {/* りんご図解 */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 32 }}>🍎</div>
+            <div style={{ fontSize: 11, color: COLORS.textLight }}>買ったとき</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: COLORS.text }}>100円</div>
+          </div>
+          <div style={{ fontSize: 24, color: COLORS.textMuted }}>→</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 32 }}>🍎</div>
+            <div style={{ fontSize: 11, color: COLORS.textLight }}>売ったとき</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: COLORS.secondary }}>120円</div>
+          </div>
+          <div style={{ fontSize: 24, color: COLORS.textMuted }}>＋</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 32 }}>💰</div>
+            <div style={{ fontSize: 11, color: COLORS.textLight }}>おまけ(配当)</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: COLORS.accent }}>3円</div>
+          </div>
+        </div>
 
-      {/* 単純リターン電卓 */}
+        <div style={{ background: color + "12", borderRadius: 12, padding: "10px 14px", fontSize: 13 }}>
+          <div style={{ textAlign: "center", fontWeight: 800, color, fontSize: 15 }}>
+            リターン = (120 + 3 − 100) ÷ 100 = <span style={{ fontSize: 20 }}>23%</span>
+          </div>
+          <div style={{ textAlign: "center", fontSize: 11, color: COLORS.textLight, marginTop: 4 }}>
+            「100円を投資して、23円分のもうけが出た」という意味
+          </div>
+        </div>
+      </div>
+
+      {/* ===== STEP 1: 単純リターン ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📐 STEP 1｜単純リターン（保有期間リターン）
+        </div>
+
+        {/* タイムライン図 */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 6 }}>▼ 投資の流れ</div>
+          <div style={{ position: "relative", height: 80 }}>
+            {/* 横線 */}
+            <div style={{ position: "absolute", top: 28, left: 20, right: 20, height: 3, background: color + "40", borderRadius: 2 }} />
+            {/* 矢印 */}
+            <div style={{ position: "absolute", top: 20, right: 16, fontSize: 14, color }}>▶</div>
+            {/* 購入 */}
+            <div style={{ position: "absolute", top: 0, left: 10, textAlign: "center", width: 60 }}>
+              <div style={{ width: 18, height: 18, borderRadius: "50%", background: color, margin: "0 auto 4px" }} />
+              <div style={{ fontSize: 10, color: COLORS.text, fontWeight: 700 }}>購入</div>
+              <div style={{ fontSize: 12, fontWeight: 900, color }}>期初価格</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>（P₀）</div>
+            </div>
+            {/* 配当（中間） */}
+            <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
+              <div style={{ fontSize: 18 }}>💰</div>
+              <div style={{ fontSize: 10, color: COLORS.accent, fontWeight: 700 }}>配当（D）</div>
+            </div>
+            {/* 売却 */}
+            <div style={{ position: "absolute", top: 0, right: 10, textAlign: "center", width: 60 }}>
+              <div style={{ width: 18, height: 18, borderRadius: "50%", background: COLORS.secondary, margin: "0 auto 4px" }} />
+              <div style={{ fontSize: 10, color: COLORS.text, fontWeight: 700 }}>売却</div>
+              <div style={{ fontSize: 12, fontWeight: 900, color: COLORS.secondary }}>期末価格</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>（P₁）</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 公式の分解 */}
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 6, fontWeight: 700 }}>公式をバラバラに読もう</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color: COLORS.text, textAlign: "center", marginBottom: 10 }}>
+            R = (P₁ − P₀ + D) ÷ P₀
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {[
+              { symbol: "P₁", label: "期末価格", desc: "売ったときの値段", color: COLORS.secondary, emoji: "🏷️" },
+              { symbol: "P₀", label: "期初価格", desc: "買ったときの値段（＝投資額）", color, emoji: "💵" },
+              { symbol: "D",  label: "配当",     desc: "保有中にもらったお金", color: COLORS.accent, emoji: "💰" },
+            ].map(({ symbol, label, desc, color: c, emoji }) => (
+              <div key={symbol} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 8, padding: "6px 10px" }}>
+                <span style={{ fontSize: 16 }}>{emoji}</span>
+                <span style={{ fontWeight: 900, fontSize: 13, color: c, minWidth: 24 }}>{symbol}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.text }}>{label}</span>
+                <span style={{ fontSize: 11, color: COLORS.textLight }}>… {desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 具体例 */}
+        <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 6 }}>▼ 具体例で計算してみよう</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
+          {[
+            { label: "期初価格 P₀", val: p0ex, set: setP0ex, color, unit: "円" },
+            { label: "期末価格 P₁", val: p1ex, set: setP1ex, color: COLORS.secondary, unit: "円" },
+            { label: "配当 D", val: divEx, set: setDivEx, color: COLORS.accent, unit: "円" },
+            { label: "保有年数 n", val: nEx, set: setNEx, color: COLORS.highlight, unit: "年" },
+          ].map(({ label, val, set, color: c, unit }) => (
+            <div key={label} style={{ background: c + "10", borderRadius: 10, padding: "8px 10px" }}>
+              <div style={{ fontSize: 11, color: c, fontWeight: 700, marginBottom: 4 }}>{label}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <input
+                  type="number"
+                  value={val}
+                  onChange={e => set(Number(e.target.value))}
+                  style={{ width: "100%", border: `1.5px solid ${c}44`, borderRadius: 8, padding: "4px 8px",
+                    fontSize: 14, fontWeight: 700, color: COLORS.text, background: "#fff", fontFamily: "inherit" }}
+                />
+                <span style={{ fontSize: 11, color: COLORS.textLight, whiteSpace: "nowrap" }}>{unit}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 計算過程を可視化 */}
+        <div style={{ background: color + "08", borderRadius: 12, padding: "12px 14px", border: `1px solid ${color}20` }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 8, fontWeight: 700 }}>📊 計算の過程</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: COLORS.textLight }}>① 値上がり益</span>
+              <span style={{ fontWeight: 700, color: p1ex >= p0ex ? COLORS.secondary : COLORS.danger }}>
+                {p1ex} − {p0ex} = <strong>{p1ex - p0ex}</strong>円
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: COLORS.textLight }}>② もうけ合計（＋配当）</span>
+              <span style={{ fontWeight: 700, color: COLORS.accent }}>
+                {p1ex - p0ex} + {divEx} = <strong>{p1ex - p0ex + divEx}</strong>円
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: COLORS.textLight }}>③ 投資額で割る</span>
+              <span style={{ fontWeight: 700, color }}>
+                {p1ex - p0ex + divEx} ÷ {p0ex}
+              </span>
+            </div>
+            <div style={{ height: 1, background: COLORS.border }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontWeight: 800, color: COLORS.text }}>保有期間リターン</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: hprEx >= 0 ? color : COLORS.danger }}>
+                {hprEx.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== STEP 2: 年率リターン ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📅 STEP 2｜年率リターン（複利換算）
+        </div>
+
+        <div style={{ background: COLORS.accent + "15", borderRadius: 12, padding: "10px 14px", marginBottom: 12, fontSize: 13, lineHeight: 1.8 }}>
+          <strong>なぜ年率に換算するの？</strong><br />
+          「2年で20%」と「3年で25%」どちらが良い投資？<br />
+          期間が違うと比べにくいので、<strong>「1年あたり何%？」</strong>に揃えます。
+        </div>
+
+        {/* 複利の可視化 */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 8 }}>▼ 複利のイメージ（100円が毎年同じ率で増える）</div>
+          {(() => {
+            const rate = annEx / 100;
+            const years = Math.min(Math.max(Math.round(nEx), 1), 5);
+            const bars = Array.from({ length: years + 1 }, (_, i) => ({
+              year: i,
+              val: Math.round(p0ex * Math.pow(1 + rate, i)),
+            }));
+            const maxVal = Math.max(...bars.map(b => b.val));
+            return (
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
+                {bars.map(({ year, val }) => (
+                  <div key={year} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <div style={{ fontSize: 9, color: COLORS.textLight, fontWeight: 700 }}>{val}円</div>
+                    <div style={{
+                      width: "100%",
+                      height: `${Math.max(10, (val / maxVal) * 56)}px`,
+                      background: year === 0 ? color + "60" : `linear-gradient(180deg, ${COLORS.secondary}, ${color})`,
+                      borderRadius: "6px 6px 0 0",
+                      transition: "height 0.3s",
+                    }} />
+                    <div style={{ fontSize: 9, color: COLORS.textLight }}>{year}年後</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* 公式 */}
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 6 }}>公式</div>
+          <div style={{ fontSize: 13, fontWeight: 900, color: COLORS.text, textAlign: "center", marginBottom: 8 }}>
+            年率R = (1 + 保有期間R)^(1/年数) − 1
+          </div>
+          <div style={{ fontSize: 11, color: COLORS.textLight, textAlign: "center" }}>
+            ↑「^」はべき乗（例：2^3 = 2×2×2 = 8）
+          </div>
+        </div>
+
+        <div style={{ background: COLORS.secondary + "15", borderRadius: 12, padding: "12px 14px", border: `1px solid ${COLORS.secondary}30` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 12, color: COLORS.textLight }}>上の入力値から計算</div>
+              <div style={{ fontSize: 12, color: COLORS.text }}>
+                (1 + {(hprEx/100).toFixed(3)})^(1/{nEx}) − 1
+              </div>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: COLORS.secondary }}>
+              {annEx.toFixed(2)}%<div style={{ fontSize: 10, color: COLORS.textLight, fontWeight: 400 }}>年率</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== STEP 3: 算術平均 vs 幾何平均 ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          ⚖️ STEP 3｜算術平均 vs 幾何平均
+        </div>
+
+        {/* 衝撃の例え */}
+        <div style={{ background: COLORS.danger + "12", borderRadius: 12, padding: "12px 14px", marginBottom: 12, border: `1px solid ${COLORS.danger}30` }}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: COLORS.danger, marginBottom: 8 }}>
+            🤔 なぞなぞ：100円が最終的にいくらになる？
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+            <div style={{ textAlign: "center", background: "#fff", borderRadius: 10, padding: "8px 12px" }}>
+              <div style={{ fontSize: 22 }}>💰</div>
+              <div style={{ fontSize: 13, fontWeight: 900 }}>100円</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: COLORS.secondary, fontWeight: 700 }}>1年目</div>
+              <div style={{ fontSize: 16 }}>→</div>
+              <div style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 900 }}>+50%</div>
+            </div>
+            <div style={{ textAlign: "center", background: "#fff", borderRadius: 10, padding: "8px 12px" }}>
+              <div style={{ fontSize: 22 }}>💰</div>
+              <div style={{ fontSize: 13, fontWeight: 900 }}>150円</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: COLORS.danger, fontWeight: 700 }}>2年目</div>
+              <div style={{ fontSize: 16 }}>→</div>
+              <div style={{ fontSize: 12, color: COLORS.danger, fontWeight: 900 }}>−50%</div>
+            </div>
+            <div style={{ textAlign: "center", background: "#fff", borderRadius: 10, padding: "8px 12px" }}>
+              <div style={{ fontSize: 22 }}>💰</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: COLORS.danger }}>75円</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.7 }}>
+            算術平均 = (+50% − 50%) ÷ 2 = <strong>0%</strong> → 「損してないはず？」<br />
+            でも実際は 100円 → 75円で <strong style={{ color: COLORS.danger }}>25円の損失！</strong><br />
+            → だから実態を表すのは<strong style={{ color: COLORS.secondary }}>幾何平均</strong>が正確です。
+          </div>
+        </div>
+
+        {/* 2つの平均の違い */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {[
+            {
+              name: "算術平均",
+              formula: "(R₁ + R₂ + … Rn) ÷ n",
+              use: "将来の予測に使う",
+              merit: "計算が簡単",
+              color: COLORS.highlight,
+              emoji: "📊",
+            },
+            {
+              name: "幾何平均",
+              formula: "((1+R₁)×…×(1+Rn))^(1/n) − 1",
+              use: "過去の実績評価に使う",
+              merit: "実際の複利を正確に反映",
+              color: COLORS.secondary,
+              emoji: "📈",
+            },
+          ].map(({ name, formula, use, merit, color: c, emoji }) => (
+            <div key={name} style={{ background: c + "12", borderRadius: 12, padding: "10px 12px", border: `1px solid ${c}30` }}>
+              <div style={{ fontSize: 20, marginBottom: 4 }}>{emoji}</div>
+              <div style={{ fontWeight: 900, fontSize: 13, color: c, marginBottom: 4 }}>{name}</div>
+              <div style={{ fontSize: 10, color: COLORS.text, marginBottom: 6, fontFamily: "monospace", background: "#fff", borderRadius: 6, padding: "4px 6px" }}>{formula}</div>
+              <div style={{ fontSize: 11, color: COLORS.text, marginBottom: 2 }}>✅ {merit}</div>
+              <div style={{ fontSize: 11, color: c, fontWeight: 700 }}>用途：{use}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: color + "10", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: COLORS.text, textAlign: "center", fontWeight: 700 }}>
+          💡 算術平均 ≥ 幾何平均（常にこの関係が成立）
+        </div>
+      </div>
+
+      {/* ===== 電卓 ===== */}
       <CalcComponent
-        formulaName="単純リターン計算機"
+        formulaName="🧮 リターン計算機（数値を変えて試そう）"
         accentColor={color}
         inputs={[
           { label: "期初価格", key: "p0",  unit: "円", defaultValue: "100" },
@@ -4338,15 +4638,17 @@ function ReturnCalculatorSection({ color }) {
         ]}
         calculate={({ p0, p1, div, n }) => {
           const hpr     = (p1 - p0 + div) / p0;
-          const annualR = Math.pow(1 + hpr, 1 / n) - 1;
+          const annualR = Math.pow(1 + hpr, 1 / Math.max(n, 0.1)) - 1;
           return {
             results: [
               { label: "保有期間リターン", value: (hpr * 100).toFixed(2), unit: "%", color },
               { label: "年率リターン（複利）", value: (annualR * 100).toFixed(2), unit: "%", color: COLORS.secondary },
             ],
             steps: [
-              `保有期間リターン = (${p1} − ${p0} + ${div}) / ${p0} = ${(hpr * 100).toFixed(2)}%`,
-              `年率リターン = (1 + ${(hpr * 100).toFixed(2)}%)^(1/${n}) − 1 = ${(annualR * 100).toFixed(2)}%`,
+              `① 値上がり益 = ${p1} − ${p0} = ${p1 - p0}円`,
+              `② もうけ合計 = ${p1 - p0} + ${div}（配当） = ${p1 - p0 + div}円`,
+              `③ 保有期間R = ${p1 - p0 + div} ÷ ${p0} = ${(hpr * 100).toFixed(2)}%`,
+              `④ 年率R = (1 + ${(hpr).toFixed(3)})^(1/${n}) − 1 = ${(annualR * 100).toFixed(2)}%`,
             ],
           };
         }}
@@ -4356,7 +4658,7 @@ function ReturnCalculatorSection({ color }) {
             const rate = -0.1 + i * 0.04;
             const p1   = p0 * (1 + rate);
             const hpr  = (p1 - p0 + div) / p0;
-            const ann  = Math.pow(1 + hpr, 1 / n) - 1;
+            const ann  = Math.pow(1 + hpr, 1 / Math.max(n, 0.1)) - 1;
             return {
               price:  Math.round(p1),
               hpr:    parseFloat((hpr * 100).toFixed(1)),
@@ -4364,7 +4666,7 @@ function ReturnCalculatorSection({ color }) {
             };
           });
           return (
-            <ChartCard title="期末価格別リターン比較" color={color} height={180}>
+            <ChartCard title="期末価格が変わるとリターンはどう変わる？" color={color} height={180}>
               <LineChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
                 <XAxis dataKey="price" tick={{ fontSize: 10 }} label={{ value: "期末(円)", position: "insideRight", offset: -4, fontSize: 10 }} />
@@ -4380,33 +4682,42 @@ function ReturnCalculatorSection({ color }) {
         }}
       />
 
-      {/* 算術vs幾何平均 電卓 */}
       <CalcComponent
-        formulaName="算術平均 vs 幾何平均"
+        formulaName="⚖️ 算術平均 vs 幾何平均 計算機"
         accentColor={COLORS.highlight}
         inputs={[
-          { label: "1期リターン", key: "r1", unit: "%", defaultValue: "20" },
-          { label: "2期リターン", key: "r2", unit: "%", defaultValue: "-10" },
-          { label: "3期リターン", key: "r3", unit: "%", defaultValue: "15" },
+          { label: "1年目リターン", key: "r1", unit: "%", defaultValue: "20" },
+          { label: "2年目リターン", key: "r2", unit: "%", defaultValue: "-10" },
+          { label: "3年目リターン", key: "r3", unit: "%", defaultValue: "15" },
         ]}
         calculate={({ r1, r2, r3 }) => {
           const r = [r1, r2, r3].map((v) => v / 100);
           const arith = (r1 + r2 + r3) / 3;
           const geo   = (Math.pow((1 + r[0]) * (1 + r[1]) * (1 + r[2]), 1 / 3) - 1) * 100;
+          const final = 100 * (1 + r[0]) * (1 + r[1]) * (1 + r[2]);
           return {
             results: [
-              { label: "算術平均", value: arith.toFixed(2), unit: "%", color: COLORS.highlight },
-              { label: "幾何平均", value: geo.toFixed(2),   unit: "%", color: COLORS.secondary },
+              { label: "算術平均（単純平均）", value: arith.toFixed(2), unit: "%", color: COLORS.highlight },
+              { label: "幾何平均（実態）",     value: geo.toFixed(2),   unit: "%", color: COLORS.secondary },
+              { label: "100円→3年後",          value: final.toFixed(1), unit: "円", color: COLORS.accent },
             ],
             steps: [
-              `算術平均 = (${r1} + ${r2} + ${r3}) / 3 = ${arith.toFixed(2)}%`,
+              `算術平均 = (${r1} + ${r2} + ${r3}) ÷ 3 = ${arith.toFixed(2)}%`,
               `幾何平均 = ((1+${r1/100})(1+${r2/100})(1+${r3/100}))^(1/3) − 1 = ${geo.toFixed(2)}%`,
-              `算術平均 ≥ 幾何平均（等号は全リターンが同値のとき）`,
+              `実際：100 × ${(1+r[0]).toFixed(2)} × ${(1+r[1]).toFixed(2)} × ${(1+r[2]).toFixed(2)} = ${final.toFixed(1)}円`,
+              `算術平均 ≥ 幾何平均（常にこの関係が成立）`,
               `将来予測 → 算術平均 ／ 過去の実績評価 → 幾何平均`,
             ],
           };
         }}
       />
+
+      <InfoBox title="リターン まとめ" color={color} youtubeQuery="投資リターン 算術平均 幾何平均 年率換算 計算">
+        <strong>単純リターン</strong>：R = (P₁ − P₀ + D) / P₀　← 基本のもうけ率<br />
+        <strong>年率リターン</strong>：(1 + R)^(1/n) − 1　← 期間をそろえて比較するため<br />
+        <strong>算術平均</strong>：単純な足し算の平均 → <strong>将来予測</strong>に使う<br />
+        <strong>幾何平均</strong>：複利ベースの平均 → <strong>過去実績評価</strong>に使う
+      </InfoBox>
     </div>
   );
 }
