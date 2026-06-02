@@ -300,7 +300,7 @@ const TABS = [{
   short: "基礎"
 }, {
   id: "portfolio",
-  label: "③PF理論",
+  label: "③ポートフォリオ理論",
   icon: TrendingUp,
   emoji: "📈",
   color: COLORS.highlight,
@@ -355,7 +355,7 @@ const CHAPTERS_META = [{
   id: "ch3",
   num: "第3章",
   title: "資産運用と税制",
-  subtitle: "NISA・iDeCo・税制優遇",
+  subtitle: "NISA（Nippon Individual Savings Account）・iDeCo（individual-type Defined Contribution pension）・税制優遇",
   color: "#E67E22",
   tabId: "ethics",
   sections: {
@@ -388,7 +388,7 @@ const CHAPTERS_META = [{
   id: "ch6",
   num: "第6章",
   title: "財務諸表の活用",
-  subtitle: "PER・PBR・ROE・財務分析",
+  subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・ROE（Return on Equity）・財務分析",
   color: "#27AE60",
   tabId: "basics",
   sections: {
@@ -398,7 +398,7 @@ const CHAPTERS_META = [{
   id: "ch7",
   num: "第7章",
   title: "ポートフォリオ理論",
-  subtitle: "相関係数・分散効果・効率的PF",
+  subtitle: "相関係数・分散効果・効率的ポートフォリオ（Efficient Portfolio）",
   color: "#8E44AD",
   tabId: "portfolio",
   sections: {
@@ -408,8 +408,8 @@ const CHAPTERS_META = [{
 }, {
   id: "ch8",
   num: "第8章",
-  title: "CAPM・評価モデル",
-  subtitle: "ベータ・シャープ・情報レシオ",
+  title: "CAPM（Capital Asset Pricing Model）・評価モデル",
+  subtitle: "ベータ・シャープレシオ・情報レシオ（Information Ratio）",
   color: "#C0392B",
   tabId: "portfolio",
   sections: {
@@ -420,7 +420,7 @@ const CHAPTERS_META = [{
   id: "ch9",
   num: "第9章",
   title: "株式投資",
-  subtitle: "PER・PBR・配当割引モデル",
+  subtitle: "PER（Price Earnings Ratio）・PBR（Price Book-value Ratio）・DDM（Dividend Discount Model）",
   color: "#2ECC71",
   tabId: "products",
   sections: {
@@ -450,7 +450,7 @@ const CHAPTERS_META = [{
   id: "ch12",
   num: "第12章",
   title: "投資信託",
-  subtitle: "アクティブ・パッシブ・ESG",
+  subtitle: "アクティブ・パッシブ・ESG（Environmental, Social, Governance）",
   color: "#F39C12",
   tabId: "products",
   sections: {
@@ -469,8 +469,8 @@ const CHAPTERS_META = [{
 }, {
   id: "supp3",
   num: "補論3",
-  title: "オルタナティブ投資",
-  subtitle: "REIT・ヘッジファンド・不動産",
+  title: "オルタナティブ（Alternative）投資",
+  subtitle: "REIT（Real Estate Investment Trust）・ヘッジファンド・不動産",
   color: "#95A5A6",
   tabId: "products",
   sections: {
@@ -4556,7 +4556,7 @@ function SearchBar({
 // ============================================================
 const ETHICS_SECTIONS = [{
   id: "A",
-  label: "A: FD原則"
+  label: "A: FD（Fiduciary Duty）原則"
 }, {
   id: "B",
   label: "B: 信頼関係"
@@ -7697,7 +7697,7 @@ function BasicsSectionF({
       srcColor: COLORS.highlight
     },
     den: {
-      label: "EPS（純利益÷株数）",
+      label: "EPS（Earnings Per Share：純利益÷株数）",
       src: "P/L",
       srcColor: PL
     },
@@ -7713,7 +7713,7 @@ function BasicsSectionF({
       srcColor: COLORS.highlight
     },
     den: {
-      label: "BPS（自己資本÷株数）",
+      label: "BPS（Book-value Per Share：自己資本÷株数）",
       src: "B/S",
       srcColor: BS
     },
@@ -8557,7 +8557,7 @@ function PVSection({
     formulaName: "\uD83E\uDDEE \u73FE\u5728\u4FA1\u5024\u30FB\u5C06\u6765\u4FA1\u5024\u8A08\u7B97\u6A5F",
     accentColor: color,
     inputs: [{
-      label: "将来価値 FV",
+      label: "将来価値 FV（Future Value）",
       key: "fv",
       unit: "万円",
       defaultValue: "100"
@@ -9561,7 +9561,7 @@ const BASICS_SECTIONS_CDE = [{
   label: "C: 現在価値"
 }, {
   id: "D",
-  label: "D: 統計・VaR"
+  label: "D: 統計・VaR（Value at Risk）"
 }, {
   id: "E",
   label: "E: 資産配分"
@@ -10373,7 +10373,7 @@ function PortfolioSectionD({
       unit: "%",
       defaultValue: "11"
     }, {
-      label: "追跡誤差 TE",
+      label: "追跡誤差 TE（Tracking Error）",
       key: "te",
       unit: "%",
       defaultValue: "4"
@@ -10512,10 +10512,10 @@ const PF_SECTIONS = [{
   label: "A: 分散効果"
 }, {
   id: "B",
-  label: "B: 効率的FT"
+  label: "B: 効率的フロンティア（Efficient Frontier）"
 }, {
   id: "C",
-  label: "C: CAPM"
+  label: "C: CAPM（Capital Asset Pricing Model）"
 }, {
   id: "D",
   label: "D: 評価指標"
@@ -10634,12 +10634,12 @@ function ProductsSectionA({
       unit: "円",
       defaultValue: "2000"
     }, {
-      label: "EPS（1株利益）",
+      label: "EPS（Earnings Per Share：1株利益）",
       key: "eps",
       unit: "円",
       defaultValue: "150"
     }, {
-      label: "BPS（1株純資産）",
+      label: "BPS（Book-value Per Share：1株純資産）",
       key: "bps",
       unit: "円",
       defaultValue: "1200"
@@ -11497,7 +11497,7 @@ const PRODUCTS_SECTIONS = [{
   label: "D: 投資信託"
 }, {
   id: "E",
-  label: "E: オルタナ"
+  label: "E: オルタナティブ（Alternative）"
 }, {
   id: "F",
   label: "F: デリバティブ"
@@ -12230,7 +12230,7 @@ const MOCK_ADVICE_DATA = {
 };
 const CALC_PRACTICE_ITEMS = [{
   key: "capm",
-  label: "CAPM期待リターン",
+  label: "CAPM（Capital Asset Pricing Model）期待リターン",
   formula: "E(Ri) = Rf + β × (Rm − Rf)",
   question: v => `リスクフリーレート${v.rf}%、β=${v.beta}、市場リターン${v.rm}%のとき期待リターンは？`,
   generate: () => {
@@ -12313,7 +12313,7 @@ const CALC_PRACTICE_ITEMS = [{
   }
 }, {
   key: "ddm",
-  label: "DDM（配当割引モデル）",
+  label: "DDM（Dividend Discount Model：配当割引モデル）",
   formula: "P = D₁ / (r − g)",
   question: v => `来期配当${v.d}円、期待収益率${v.r}%、配当成長率${v.g}%のとき理論株価は？`,
   generate: () => {
@@ -12388,7 +12388,7 @@ function AnalysisSectionA({
     tabs: ["ch6"]
   }, {
     key: "g_pf",
-    label: "PF・CAPM",
+    label: "ポートフォリオ理論・CAPM（Capital Asset Pricing Model）",
     tabs: ["portfolio"]
   }, {
     key: "g_prod",
@@ -12424,7 +12424,7 @@ function AnalysisSectionA({
     ethics: "倫理・税制",
     basics: "資産運用基礎",
     ch6: "財務諸表",
-    portfolio: "PF・CAPM",
+    portfolio: "ポートフォリオ理論",
     products: "金融商品",
     supp2: "デリバティブ",
     casestudy: "ケース"
@@ -13682,13 +13682,13 @@ function AnalysisSectionD() {
     label: "ポートフォリオリスクと分散効果"
   }, {
     key: "efficient_frontier",
-    label: "効率的フロンティア・CML"
+    label: "効率的フロンティア（Efficient Frontier）・CML（Capital Market Line）"
   }, {
     key: "duration",
     label: "デュレーション"
   }, {
     key: "ddm",
-    label: "DDM（配当割引モデル）"
+    label: "DDM（Dividend Discount Model：配当割引モデル）"
   }, {
     key: "fd_principle",
     label: "フィデューシャリーデューティー"
@@ -13868,7 +13868,7 @@ const MOCK_EXAM_TABS = {
     color: "#27AE60"
   },
   portfolio: {
-    label: "PF・CAPM",
+    label: "ポートフォリオ理論",
     color: COLORS.highlight
   },
   products: {
@@ -14615,7 +14615,7 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "basics",
   sec: "C",
-  label: "②基礎 C：現在価値・VaR",
+  label: "②基礎 C：現在価値・VaR（Value at Risk）",
   quizzes: BASICS_QUIZZES.C
 }, {
   tab: "basics",
@@ -14630,22 +14630,22 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "portfolio",
   sec: "A",
-  label: "③PF理論 A：分散効果",
+  label: "③ポートフォリオ理論 A：分散効果",
   quizzes: PORTFOLIO_QUIZZES.A
 }, {
   tab: "portfolio",
   sec: "B",
-  label: "③PF理論 B：効率的フロンティア",
+  label: "③ポートフォリオ理論 B：効率的フロンティア（Efficient Frontier）",
   quizzes: PORTFOLIO_QUIZZES.B
 }, {
   tab: "portfolio",
   sec: "C",
-  label: "③PF理論 C：CAPM・ベータ",
+  label: "③ポートフォリオ理論 C：CAPM（Capital Asset Pricing Model）・ベータ",
   quizzes: PORTFOLIO_QUIZZES.C
 }, {
   tab: "portfolio",
   sec: "D",
-  label: "③PF理論 D：パフォーマンス評価",
+  label: "③ポートフォリオ理論 D：パフォーマンス評価",
   quizzes: PORTFOLIO_QUIZZES.D
 }, {
   tab: "products",
@@ -14665,12 +14665,12 @@ const FLASH_QUIZ_MAP = [{
 }, {
   tab: "products",
   sec: "D",
-  label: "④金融商品 D：投信・ETF",
+  label: "④金融商品 D：投信・ETF（Exchange Traded Fund）",
   quizzes: PRODUCTS_QUIZZES.D
 }, {
   tab: "products",
   sec: "E",
-  label: "④金融商品 E：REIT",
+  label: "④金融商品 E：REIT（Real Estate Investment Trust）",
   quizzes: PRODUCTS_QUIZZES.E
 }, {
   tab: "casestudy",
