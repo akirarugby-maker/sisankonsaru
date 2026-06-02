@@ -4730,19 +4730,157 @@ function RiskCalculatorSection({ color }) {
 
   return (
     <div>
-      <InfoBox title="リスク（標準偏差）とは" color={color} youtubeQuery="投資リスク 標準偏差 相関係数 シャープレシオ 計算">
-        リスク＝リターンの「ばらつき」を標準偏差で表す。<br />
-        <strong>分散 σ²</strong> = Σ(Ri − Ra)² / n<br />
-        <strong>標準偏差 σ</strong> = √分散　（σが大きい＝高リスク）<br />
-        <strong>相関係数 ρ</strong> = Cov(A,B) / (σA × σB)　−1 ≤ ρ ≤ 1
-      </InfoBox>
+      {/* === リスクとは？ === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📖 リスクって何だろう？
+        </div>
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.9, marginBottom: 12 }}>
+          投資でいう「リスク」は「危険」ではなく<strong>「リターンのばらつき」</strong>のことです。<br />
+          ばらつきが大きい＝ハイリスク、ばらつきが小さい＝ローリスク。
+        </div>
 
-      <FormulaCard {...FORMULA_DATA.stdDev}      color={color} />
-      <FormulaCard {...FORMULA_DATA.correlation} color={color} />
+        {/* 2つの株の比較図 */}
+        <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 8 }}>▼ 2つの株のリターンを比べてみよう</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {[
+            { name: "株A（ローリスク）", returns: [5, 6, 4, 5, 6], color: COLORS.secondary, emoji: "🏦" },
+            { name: "株B（ハイリスク）", returns: [20, -10, 30, -5, 15], color: COLORS.danger, emoji: "🎢" },
+          ].map(({ name, returns, color: c, emoji }) => {
+            const avg = returns.reduce((s, v) => s + v, 0) / returns.length;
+            return (
+              <div key={name} style={{ background: c + "10", borderRadius: 12, padding: "10px 12px", border: `1px solid ${c}30` }}>
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{emoji}</div>
+                <div style={{ fontWeight: 800, fontSize: 12, color: c, marginBottom: 8 }}>{name}</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 50, marginBottom: 6 }}>
+                  {returns.map((r, i) => (
+                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div style={{ fontSize: 8, color: c, fontWeight: 700, marginBottom: 2 }}>{r > 0 ? `+${r}` : r}%</div>
+                      <div style={{
+                        width: "100%",
+                        height: `${Math.abs(r) / 30 * 36 + 4}px`,
+                        background: r >= 0 ? c : COLORS.danger,
+                        borderRadius: 3,
+                        opacity: 0.8,
+                      }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: COLORS.text }}>
+                  平均: <strong style={{ color: c }}>{avg.toFixed(1)}%</strong>
+                  　σ: <strong style={{ color: c }}>{Math.sqrt(returns.reduce((s, v) => s + (v - avg) ** 2, 0) / returns.length).toFixed(1)}%</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ background: color + "12", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: COLORS.text, lineHeight: 1.7 }}>
+          💡 両方とも平均リターンは同じでも、<strong>ばらつき（σ）が大きい方がハイリスク</strong>。<br />
+          このばらつきを数値化したものが<strong style={{ color }}>標準偏差（σ）</strong>です。
+        </div>
+      </div>
 
-      {/* リスク電卓 */}
+      {/* === STEP 1: 標準偏差の計算 === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📐 STEP 1｜標準偏差（σ）の計算
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 8 }}>▼ 4年間のリターンから計算する手順</div>
+          {(() => {
+            const rs = [10, 20, -5, 15];
+            const avg = rs.reduce((s, v) => s + v, 0) / rs.length;
+            const devs = rs.map(r => r - avg);
+            const devs2 = devs.map(d => d * d);
+            const variance = devs2.reduce((s, v) => s + v, 0) / rs.length;
+            const sigma = Math.sqrt(variance);
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {/* Step1: 平均 */}
+                <div style={{ background: "#F8F5FF", borderRadius: 10, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 4 }}>① 平均を求める</div>
+                  <div style={{ fontSize: 12 }}>({rs.join(" + ")}) ÷ 4 = <strong style={{ color }}>{avg.toFixed(1)}%</strong></div>
+                </div>
+                {/* Step2: 偏差 */}
+                <div style={{ background: "#F8F5FF", borderRadius: 10, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 6 }}>② 各年のリターンと平均の差（偏差）を計算</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {rs.map((r, i) => (
+                      <div key={i} style={{ background: "#fff", borderRadius: 8, padding: "4px 8px", fontSize: 11, textAlign: "center", border: `1px solid ${color}30` }}>
+                        <div style={{ color: COLORS.textLight }}>{i + 1}年目</div>
+                        <div style={{ fontWeight: 700 }}>{r}%</div>
+                        <div style={{ color: devs[i] >= 0 ? COLORS.secondary : COLORS.danger, fontWeight: 700 }}>
+                          {devs[i] > 0 ? `+${devs[i]}` : devs[i]}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Step3: 二乗 */}
+                <div style={{ background: "#F8F5FF", borderRadius: 10, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 4 }}>③ 偏差を二乗して平均 → 分散</div>
+                  <div style={{ fontSize: 12 }}>{devs2.map(d => d.toFixed(0)).join(" + ")} ÷ 4 = <strong style={{ color }}>{variance.toFixed(1)}</strong></div>
+                </div>
+                {/* Step4: √ */}
+                <div style={{ background: color + "15", borderRadius: 10, padding: "8px 12px", border: `1px solid ${color}30` }}>
+                  <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 4 }}>④ 分散の平方根 → 標準偏差</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontSize: 12 }}>√{variance.toFixed(1)} =</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color }}>σ = {sigma.toFixed(2)}%</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 4 }}>公式まとめ</div>
+          <div style={{ fontSize: 13, fontWeight: 900, color: COLORS.text, marginBottom: 4 }}>σ² (分散) = Σ(Ri − Ra)² ÷ n</div>
+          <div style={{ fontSize: 13, fontWeight: 900, color }}>σ (標準偏差) = √分散</div>
+        </div>
+      </div>
+
+      {/* === STEP 2: 相関係数 === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          🔗 STEP 2｜相関係数（ρ）― 2つの資産の動き方
+        </div>
+
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.8, marginBottom: 12 }}>
+          2つの資産が<strong>同じ方向</strong>に動くか<strong>逆方向</strong>に動くかを −1〜+1 で表します。
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+          {[
+            { rho: "+1.0", label: "完全な正の相関", desc: "AとBは常に同じ方向に動く。分散効果ゼロ。", icon: "⬆⬆", color: COLORS.danger },
+            { rho: "0",   label: "相関なし",       desc: "AとBは無関係。ある程度の分散効果あり。", icon: "⬆➡", color: COLORS.accent },
+            { rho: "−1.0",label: "完全な負の相関", desc: "AとBは常に逆方向。理論上リスクゼロに！", icon: "⬆⬇", color: COLORS.secondary },
+          ].map(({ rho, label, desc, icon, color: c }) => (
+            <div key={rho} style={{ display: "flex", alignItems: "center", gap: 12, background: c + "12", borderRadius: 10, padding: "10px 14px", border: `1px solid ${c}30` }}>
+              <div style={{ textAlign: "center", minWidth: 40 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: c }}>ρ={rho}</div>
+                <div style={{ fontSize: 18 }}>{icon}</div>
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 12, color: c, marginBottom: 2 }}>{label}</div>
+                <div style={{ fontSize: 11, color: COLORS.text, lineHeight: 1.6 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 4 }}>公式</div>
+          <div style={{ fontSize: 13, fontWeight: 900, color: COLORS.text }}>ρ = Cov(A,B) ÷ (σA × σB)</div>
+          <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 4 }}>Cov(A,B) = 共分散（2資産のリターンが一緒に動く度合い）</div>
+        </div>
+      </div>
+
+      {/* 計算機類（既存） */}
       <CalcComponent
-        formulaName="標準偏差・相関係数計算機"
+        formulaName="🧮 標準偏差・分散計算機"
         accentColor={color}
         inputs={[
           { label: "リターン1期(%)", key: "r1", defaultValue: "10"  },
@@ -4762,10 +4900,10 @@ function RiskCalculatorSection({ color }) {
               { label: "標準偏差(σ)", value: sigma.toFixed(2),    unit: "%", color: COLORS.danger },
             ],
             steps: [
-              `平均 Ra = (${rs.join(" + ")}) / 4 = ${mean.toFixed(2)}%`,
-              `偏差² の合計 = ${rs.map((r) => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`,
-              `分散 = ${variance.toFixed(2)}`,
-              `標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`,
+              `① 平均 Ra = (${rs.join(" + ")}) ÷ 4 = ${mean.toFixed(2)}%`,
+              `② 偏差² の合計 = ${rs.map((r) => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`,
+              `③ 分散 = ${variance.toFixed(2)}`,
+              `④ 標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`,
             ],
           };
         }}
@@ -4791,9 +4929,8 @@ function RiskCalculatorSection({ color }) {
         }}
       />
 
-      {/* 2資産相関係数電卓 */}
       <CalcComponent
-        formulaName="2資産の相関係数計算機"
+        formulaName="🔗 2資産の相関係数計算機"
         accentColor={COLORS.highlight}
         inputs={[
           { label: "資産Aリターン1(%)", key: "a1", defaultValue: "10" },
@@ -4830,8 +4967,11 @@ function RiskCalculatorSection({ color }) {
 
       {/* インタラクティブ正規分布グラフ */}
       <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={{ ...STYLES.sectionTitle, fontSize: 14, color }}>
-          <Activity size={15} color={color} /> 正規分布（インタラクティブ）
+        <div style={{ fontSize: 14, fontWeight: 800, color, marginBottom: 10 }}>
+          📊 正規分布グラフ（スライダーで動かしてみよう）
+        </div>
+        <div style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.7, marginBottom: 10 }}>
+          σ（リスク）が大きくなるほどグラフが<strong>横に広がる</strong>（＝ばらつきが増える）ことを確認しよう。
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
           <div>
@@ -4845,12 +4985,12 @@ function RiskCalculatorSection({ color }) {
               style={{ width: "100%" }} />
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
           {[
-            { label: `±1σ ≈ 68%`, lo: meanVal - sigmaVal,   hi: meanVal + sigmaVal },
-            { label: `±2σ ≈ 95%`, lo: meanVal - 2 * sigmaVal, hi: meanVal + 2 * sigmaVal },
+            { label: `±1σ = 68%`, lo: meanVal - sigmaVal,     hi: meanVal + sigmaVal },
+            { label: `±2σ = 95%`, lo: meanVal - 2 * sigmaVal, hi: meanVal + 2 * sigmaVal },
           ].map((band) => (
-            <span key={band.label} style={STYLES.badge(color)}>
+            <span key={band.label} style={{ ...STYLES.badge(color), fontSize: 11 }}>
               {band.label}（{band.lo.toFixed(1)}〜{band.hi.toFixed(1)}%）
             </span>
           ))}
@@ -4879,9 +5019,9 @@ function RiskCalculatorSection({ color }) {
         tips={[
           "標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク",
           "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）",
-          "相関係数ρ=-1：リスクをゼロにできる（理論上）",
+          "相関係数ρ=−1：リスクをゼロにできる（理論上）",
           "ρ=+1：分散効果なし、リスクは加重平均に等しい",
-          "シャープレシオ高い＝必ず良い投資ではない（比較対象による）",
+          "σ（リスク）とμ（平均）は正規分布を完全に決める2つの数",
         ]}
       />
     </div>
@@ -5271,17 +5411,154 @@ function BasicsSectionF({ color, state, setState }) {
 function PVSection({ color }) {
   return (
     <div>
-      <InfoBox title="現在価値（PV）の考え方" color={color} youtubeQuery="現在価値 将来価値 割引率 DCF 計算 わかりやすく">
-        「今の1万円は将来の1万円より価値が高い」＝時間価値の概念。<br />
-        <strong>PV = FV / (1 + r)^n</strong>　割引率が高い・期間が長いほどPVは小さくなる。<br />
-        NPV（正味現在価値）= 将来CFの現在価値合計 − 初期投資
-      </InfoBox>
+      {/* === 時間価値とは？ === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          ⏰ 「今の1万円」と「1年後の1万円」どちらが得？
+        </div>
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.9, marginBottom: 12 }}>
+          同じ1万円でも、<strong>今もらう方が価値が高い</strong>！<br />
+          なぜなら今もらえば銀行に預けて増やせるから。この考え方を<strong style={{ color }}>お金の時間価値</strong>といいます。
+        </div>
 
-      <FormulaCard {...FORMULA_DATA.pv} color={color} />
+        {/* 時間価値の図 */}
+        <div style={{ background: color + "10", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: COLORS.textLight, fontWeight: 700, marginBottom: 10 }}>▼ 年利3%のとき</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+            <div style={{ textAlign: "center", background: "#fff", borderRadius: 12, padding: "10px 16px", border: `2px solid ${color}` }}>
+              <div style={{ fontSize: 24 }}>💰</div>
+              <div style={{ fontWeight: 900, fontSize: 14, color }}>今 もらう</div>
+              <div style={{ fontWeight: 900, fontSize: 18 }}>10,000円</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>銀行に入れると…</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28 }}>→</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>1年後</div>
+            </div>
+            <div style={{ textAlign: "center", background: "#fff", borderRadius: 12, padding: "10px 16px", border: `2px solid ${COLORS.secondary}` }}>
+              <div style={{ fontSize: 24 }}>💰</div>
+              <div style={{ fontWeight: 900, fontSize: 14, color: COLORS.secondary }}>1年後に同額</div>
+              <div style={{ fontWeight: 900, fontSize: 18 }}>10,300円</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>+300円の利息</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 10, fontSize: 12, color: COLORS.text, textAlign: "center", lineHeight: 1.7 }}>
+            つまり「1年後の10,000円」の今の価値は <strong style={{ color }}>10,000 ÷ 1.03 ≈ 9,709円</strong> です。
+          </div>
+        </div>
+      </div>
 
-      {/* PV電卓 */}
+      {/* === STEP 1: 現在価値の公式 === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          📐 STEP 1｜現在価値（PV）と将来価値（FV）
+        </div>
+
+        {/* 矢印図 */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8 }}>
+            <div style={{ textAlign: "center", background: color + "15", borderRadius: "12px 0 0 12px", padding: "10px 14px", flex: 1, border: `1.5px solid ${color}40` }}>
+              <div style={{ fontSize: 20 }}>📍</div>
+              <div style={{ fontWeight: 900, fontSize: 13, color }}>PV</div>
+              <div style={{ fontSize: 11, color: COLORS.textLight }}>現在価値<br />（Present Value）</div>
+            </div>
+            <div style={{ textAlign: "center", padding: "0 4px", fontSize: 11, color: COLORS.textLight }}>
+              <div>× (1+r)ⁿ →</div>
+              <div style={{ fontSize: 18 }}>↔</div>
+              <div>← ÷ (1+r)ⁿ</div>
+            </div>
+            <div style={{ textAlign: "center", background: COLORS.secondary + "15", borderRadius: "0 12px 12px 0", padding: "10px 14px", flex: 1, border: `1.5px solid ${COLORS.secondary}40` }}>
+              <div style={{ fontSize: 20 }}>🎯</div>
+              <div style={{ fontWeight: 900, fontSize: 13, color: COLORS.secondary }}>FV</div>
+              <div style={{ fontSize: 11, color: COLORS.textLight }}>将来価値<br />（Future Value）</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px" }}>
+            <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 4 }}>現在価値を求める（割り引く）</div>
+            <div style={{ fontSize: 14, fontWeight: 900, color, marginBottom: 4 }}>PV = FV ÷ (1 + r)ⁿ</div>
+            <div style={{ fontSize: 11, color: COLORS.text }}>「n年後のFV円は、今いくらの価値？」を計算</div>
+          </div>
+          <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px" }}>
+            <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 700, marginBottom: 4 }}>将来価値を求める（増やす）</div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: COLORS.secondary, marginBottom: 4 }}>FV = PV × (1 + r)ⁿ</div>
+            <div style={{ fontSize: 11, color: COLORS.text }}>「今のPV円を、n年後にいくらに増やせる？」を計算</div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+          {[
+            { symbol: "r", label: "割引率（期待利回り）", desc: "年利・期待リターン", color, emoji: "📊" },
+            { symbol: "n", label: "期間（年数）",         desc: "何年後か",           color: COLORS.secondary, emoji: "📅" },
+          ].map(({ symbol, label, desc, color: c, emoji }) => (
+            <div key={symbol} style={{ display: "flex", alignItems: "center", gap: 8, background: c + "10", borderRadius: 8, padding: "6px 10px" }}>
+              <span style={{ fontSize: 16 }}>{emoji}</span>
+              <span style={{ fontWeight: 900, fontSize: 13, color: c, minWidth: 16 }}>{symbol}</span>
+              <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.text }}>{label}</span>
+              <span style={{ fontSize: 11, color: COLORS.textLight }}>… {desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* === STEP 2: NPV === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          💼 STEP 2｜NPV（正味現在価値）― 投資すべきか？
+        </div>
+
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.8, marginBottom: 12 }}>
+          「この機械を買うべきか？」を判断するのに使います。<br />
+          将来入ってくるお金を全部「今の価値」に直し、初期投資と比べます。
+        </div>
+
+        {/* NPVの具体例 */}
+        <div style={{ background: COLORS.accent + "12", borderRadius: 12, padding: "12px 14px", marginBottom: 10, border: `1px solid ${COLORS.accent}30` }}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: COLORS.accent, marginBottom: 8 }}>📝 例：100万円の機械を買うべき？（割引率5%）</div>
+          {(() => {
+            const r = 0.05;
+            const cfs = [40, 40, 40];
+            const pvs = cfs.map((cf, i) => cf / Math.pow(1 + r, i + 1));
+            const npv = pvs.reduce((s, v) => s + v, 0) - 100;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12 }}>
+                {cfs.map((cf, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", background: "#fff", borderRadius: 8, padding: "6px 10px" }}>
+                    <span style={{ color: COLORS.textLight }}>{i + 1}年後に {cf}万円入る</span>
+                    <span style={{ fontWeight: 700, color }}>今の価値: {pvs[i].toFixed(1)}万円</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", background: "#fff", borderRadius: 8, padding: "6px 10px" }}>
+                  <span style={{ color: COLORS.textLight }}>PV合計</span>
+                  <span style={{ fontWeight: 700, color }}>{pvs.reduce((s, v) => s + v, 0).toFixed(1)}万円</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", background: "#fff", borderRadius: 8, padding: "6px 10px" }}>
+                  <span style={{ color: COLORS.textLight }}>初期投資</span>
+                  <span style={{ fontWeight: 700, color: COLORS.danger }}>−100万円</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", background: npv >= 0 ? COLORS.secondary + "20" : COLORS.danger + "15", borderRadius: 8, padding: "8px 10px", border: `1.5px solid ${npv >= 0 ? COLORS.secondary : COLORS.danger}50` }}>
+                  <span style={{ fontWeight: 800, color: COLORS.text }}>NPV =</span>
+                  <span style={{ fontWeight: 900, fontSize: 16, color: npv >= 0 ? COLORS.secondary : COLORS.danger }}>{npv.toFixed(1)}万円 → {npv >= 0 ? "✅ 投資すべき！" : "❌ 見送り"}</span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px" }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: COLORS.text, marginBottom: 4 }}>NPV = Σ[CFt ÷ (1+r)ᵗ] − 初期投資</div>
+          <div style={{ display: "flex", gap: 12, fontSize: 12 }}>
+            <span style={{ color: COLORS.secondary }}>✅ NPV &gt; 0 → 投資OK</span>
+            <span style={{ color: COLORS.danger }}>❌ NPV &lt; 0 → 投資見送り</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 計算機類（既存） */}
       <CalcComponent
-        formulaName="現在価値・将来価値計算機"
+        formulaName="🧮 現在価値・将来価値計算機"
         accentColor={color}
         inputs={[
           { label: "将来価値 FV", key: "fv", unit: "万円", defaultValue: "100" },
@@ -5298,9 +5575,9 @@ function PVSection({ color }) {
               { label: "複利後（FV→）",  value: fv2.toFixed(2), unit: "万円", color: COLORS.secondary },
             ],
             steps: [
-              `PV = ${fv} / (1 + ${rate})^${n}`,
+              `PV = ${fv} ÷ (1 + ${rate})^${n}`,
               `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`,
-              `PV = ${fv} / ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`,
+              `PV = ${fv} ÷ ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`,
               `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`,
             ],
           };
@@ -5334,9 +5611,8 @@ function PVSection({ color }) {
         }}
       />
 
-      {/* 複利成長シミュレーター */}
       <CalcComponent
-        formulaName="複利成長シミュレーター"
+        formulaName="📈 複利成長シミュレーター"
         accentColor={COLORS.secondary}
         inputs={[
           { label: "元本",     key: "pv0", unit: "万円", defaultValue: "100" },
@@ -5348,9 +5624,7 @@ function PVSection({ color }) {
           const rate  = r / 100;
           const mRate = rate / 12;
           const months = n * 12;
-          // 元本一括の複利
           const lump = pv0 * Math.pow(1 + rate, n);
-          // 積立分の将来価値（月複利）
           const accum = mo * (Math.pow(1 + mRate, months) - 1) / mRate;
           const total = lump + accum;
           const invest = pv0 + mo * months;
@@ -5411,17 +5685,142 @@ function PVSection({ color }) {
 function StatsSection({ color }) {
   return (
     <div>
-      <InfoBox title="VaR（バリュー・アット・リスク）" color={color} youtubeQuery="VaR バリューアットリスク リスク管理 投資 計算">
-        一定の信頼水準で一定期間内に発生しうる最大損失額。<br />
-        <strong>95%VaR = μ − 1.645σ</strong>　（z値：90%→1.28、99%→2.326）<br />
-        例: μ=5%, σ=15%のとき 95%VaR = 5 − 1.645×15 = <strong>−19.7%</strong>
-      </InfoBox>
+      {/* === VaRとは？ === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          🎲 VaR（バリュー・アット・リスク）とは？
+        </div>
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.9, marginBottom: 12 }}>
+          「<strong>100日間のうち、最悪何日かは大きく損するか</strong>」を数値で示したものです。
+        </div>
 
-      <FormulaCard {...FORMULA_DATA.sharpe} color={color} />
+        {/* VaRの直感的説明 */}
+        <div style={{ background: COLORS.danger + "10", borderRadius: 12, padding: "12px 14px", marginBottom: 12, border: `1px solid ${COLORS.danger}30` }}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: COLORS.danger, marginBottom: 8 }}>🗓️ 95%VaR の意味を図で理解しよう</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
+            {Array.from({ length: 20 }, (_, i) => (
+              <div key={i} style={{
+                width: 28, height: 28, borderRadius: 6, fontSize: 11, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: i < 19 ? COLORS.secondary + "30" : COLORS.danger + "40",
+                color: i < 19 ? COLORS.secondary : COLORS.danger,
+                border: `1px solid ${i < 19 ? COLORS.secondary : COLORS.danger}50`,
+              }}>
+                {i < 19 ? "✓" : "✗"}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.7 }}>
+            20日間のうち19日は✓（正常範囲）、<strong style={{ color: COLORS.danger }}>1日は✗（損失が大きい）</strong><br />
+            これが「95%の確率で損失は○○%以内」という意味です。
+          </div>
+        </div>
 
-      {/* シャープレシオ電卓 */}
+        {/* VaR公式 */}
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 6 }}>公式（正規分布を仮定）</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color, marginBottom: 8, textAlign: "center" }}>
+            95%VaR = μ − 1.645 × σ
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
+            {[
+              { label: "μ（ミュー）", desc: "平均リターン", color: COLORS.primary },
+              { label: "σ（シグマ）", desc: "標準偏差（リスク）", color: COLORS.accent },
+              { label: "1.645",       desc: "95%信頼水準に対応するz値", color: COLORS.highlight },
+            ].map(({ label, desc, color: c }) => (
+              <div key={label} style={{ display: "flex", gap: 8, background: "#fff", borderRadius: 8, padding: "5px 10px" }}>
+                <span style={{ fontWeight: 900, color: c, minWidth: 70 }}>{label}</span>
+                <span style={{ color: COLORS.textLight }}>… {desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 具体例 */}
+        <div style={{ background: color + "10", borderRadius: 12, padding: "12px 14px", border: `1px solid ${color}30` }}>
+          <div style={{ fontWeight: 700, fontSize: 12, color: COLORS.textLight, marginBottom: 6 }}>例：μ=5%、σ=15%のとき</div>
+          <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+            95%VaR = 5% − 1.645 × 15% = <strong style={{ color: COLORS.danger, fontSize: 16 }}>−19.7%</strong>
+          </div>
+          <div style={{ fontSize: 12, color: COLORS.text, marginTop: 6, lineHeight: 1.6 }}>
+            「100日のうち95日は −19.7%以内の損失」<br />
+            「残り5日は−19.7%を超える損失が出る可能性がある」
+          </div>
+        </div>
+      </div>
+
+      {/* === シャープレシオ === */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontSize: 15, fontWeight: 900, color, marginBottom: 10 }}>
+          ⚡ シャープレシオ ― リスク対比のコスパ
+        </div>
+
+        <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.9, marginBottom: 12 }}>
+          「リスクを1%取ったとき、どれだけ余分なリターンを稼げるか？」のコスパ指標です。
+        </div>
+
+        {/* たとえ */}
+        <div style={{ background: COLORS.accent + "12", borderRadius: 12, padding: "12px 14px", marginBottom: 12, border: `1px solid ${COLORS.accent}30` }}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: COLORS.accent, marginBottom: 8 }}>🍔 食べ物で例えると…</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12 }}>
+            {[
+              { name: "お弁当A", rp: 10, rf: 2, sp: 8,  emoji: "🍱" },
+              { name: "お弁当B", rp: 12, rf: 2, sp: 20, emoji: "🥡" },
+            ].map(({ name, rp, rf, sp, emoji }) => {
+              const sr = ((rp - rf) / sp).toFixed(2);
+              return (
+                <div key={name} style={{ background: "#fff", borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 24 }}>{emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700 }}>{name}</div>
+                    <div style={{ color: COLORS.textLight }}>リターン{rp}%、リスク{sp}%</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 10, color: COLORS.textLight }}>SR</div>
+                    <div style={{ fontWeight: 900, fontSize: 16, color: Number(sr) >= 0.5 ? COLORS.secondary : COLORS.accent }}>{sr}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: COLORS.text, marginTop: 8, lineHeight: 1.6 }}>
+            リターンが高くてもリスクが大きければコスパ悪。<strong>SRが高い方が効率的な投資</strong>です。
+          </div>
+        </div>
+
+        {/* 公式 */}
+        <div style={{ background: "#F8F5FF", borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.textLight, marginBottom: 4 }}>公式</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color, marginBottom: 4 }}>SR = (Rp − Rf) ÷ σp</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
+            {[
+              { s: "Rp", d: "ポートフォリオのリターン", c: color },
+              { s: "Rf", d: "リスクフリーレート（国債利回りなど）", c: COLORS.secondary },
+              { s: "σp", d: "ポートフォリオの標準偏差（リスク）", c: COLORS.accent },
+            ].map(({ s, d, c }) => (
+              <div key={s} style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontWeight: 900, color: c, minWidth: 30 }}>{s}</span>
+                <span style={{ color: COLORS.textLight }}>… {d}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ flex: 1, background: COLORS.secondary + "15", borderRadius: 10, padding: "8px 12px", textAlign: "center", border: `1px solid ${COLORS.secondary}30` }}>
+            <div style={{ fontWeight: 900, color: COLORS.secondary }}>SR ≥ 1.0</div>
+            <div style={{ fontSize: 11, color: COLORS.text }}>優良ファンドの目安</div>
+          </div>
+          <div style={{ flex: 1, background: COLORS.danger + "12", borderRadius: 10, padding: "8px 12px", textAlign: "center", border: `1px solid ${COLORS.danger}30` }}>
+            <div style={{ fontWeight: 900, color: COLORS.danger }}>SR &lt; 0</div>
+            <div style={{ fontSize: 11, color: COLORS.text }}>超過リターンがマイナス</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 計算機（既存） */}
       <CalcComponent
-        formulaName="シャープレシオ計算機"
+        formulaName="🧮 シャープレシオ・VaR計算機"
         accentColor={color}
         inputs={[
           { label: "ポートフォリオR Rp", key: "rp", unit: "%", defaultValue: "12" },
@@ -5439,7 +5838,7 @@ function StatsSection({ color }) {
               { label: "VaR 99%",       value: var99.toFixed(2), unit: "%",  color: COLORS.danger },
             ],
             steps: [
-              `SR = (${rp}% − ${rf}%) / ${sp}% = ${((rp - rf) / sp).toFixed(3)}`,
+              `SR = (${rp}% − ${rf}%) ÷ ${sp}% = ${((rp - rf) / sp).toFixed(3)}`,
               `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`,
               `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`,
               `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`,

@@ -5373,16 +5373,427 @@ function RiskCalculatorSection({
   const [sigmaVal, setSigmaVal] = useState(15);
   const [meanVal, setMeanVal] = useState(5);
   const normalData = generateNormalDist(meanVal, sigmaVal);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
-    title: "\u30EA\u30B9\u30AF\uFF08\u6A19\u6E96\u504F\u5DEE\uFF09\u3068\u306F",
-    color: color,
-    youtubeQuery: "\u6295\u8CC7\u30EA\u30B9\u30AF \u6A19\u6E96\u504F\u5DEE \u76F8\u95A2\u4FC2\u6570 \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA \u8A08\u7B97"
-  }, "\u30EA\u30B9\u30AF\uFF1D\u30EA\u30BF\u30FC\u30F3\u306E\u300C\u3070\u3089\u3064\u304D\u300D\u3092\u6A19\u6E96\u504F\u5DEE\u3067\u8868\u3059\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u5206\u6563 \u03C3\xB2"), " = \u03A3(Ri \u2212 Ra)\xB2 / n", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u6A19\u6E96\u504F\u5DEE \u03C3"), " = \u221A\u5206\u6563\u3000\uFF08\u03C3\u304C\u5927\u304D\u3044\uFF1D\u9AD8\u30EA\u30B9\u30AF\uFF09", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u76F8\u95A2\u4FC2\u6570 \u03C1"), " = Cov(A,B) / (\u03C3A \xD7 \u03C3B)\u3000\u22121 \u2264 \u03C1 \u2264 1"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.stdDev, {
-    color: color
-  })), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.correlation, {
-    color: color
-  })), /*#__PURE__*/React.createElement(CalcComponent, {
-    formulaName: "\u6A19\u6E96\u504F\u5DEE\u30FB\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83D\uDCD6 \u30EA\u30B9\u30AF\u3063\u3066\u4F55\u3060\u308D\u3046\uFF1F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.9,
+      marginBottom: 12
+    }
+  }, "\u6295\u8CC7\u3067\u3044\u3046\u300C\u30EA\u30B9\u30AF\u300D\u306F\u300C\u5371\u967A\u300D\u3067\u306F\u306A\u304F", /*#__PURE__*/React.createElement("strong", null, "\u300C\u30EA\u30BF\u30FC\u30F3\u306E\u3070\u3089\u3064\u304D\u300D"), "\u306E\u3053\u3068\u3067\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u3070\u3089\u3064\u304D\u304C\u5927\u304D\u3044\uFF1D\u30CF\u30A4\u30EA\u30B9\u30AF\u3001\u3070\u3089\u3064\u304D\u304C\u5C0F\u3055\u3044\uFF1D\u30ED\u30FC\u30EA\u30B9\u30AF\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      fontWeight: 700,
+      marginBottom: 8
+    }
+  }, "\u25BC 2\u3064\u306E\u682A\u306E\u30EA\u30BF\u30FC\u30F3\u3092\u6BD4\u3079\u3066\u307F\u3088\u3046"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, [{
+    name: "株A（ローリスク）",
+    returns: [5, 6, 4, 5, 6],
+    color: COLORS.secondary,
+    emoji: "🏦"
+  }, {
+    name: "株B（ハイリスク）",
+    returns: [20, -10, 30, -5, 15],
+    color: COLORS.danger,
+    emoji: "🎢"
+  }].map(({
+    name,
+    returns,
+    color: c,
+    emoji
+  }) => {
+    const avg = returns.reduce((s, v) => s + v, 0) / returns.length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: name,
+      style: {
+        background: c + "10",
+        borderRadius: 12,
+        padding: "10px 12px",
+        border: `1px solid ${c}30`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        marginBottom: 4
+      }
+    }, emoji), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 800,
+        fontSize: 12,
+        color: c,
+        marginBottom: 8
+      }
+    }, name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-end",
+        gap: 3,
+        height: 50,
+        marginBottom: 6
+      }
+    }, returns.map((r, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 8,
+        color: c,
+        fontWeight: 700,
+        marginBottom: 2
+      }
+    }, r > 0 ? `+${r}` : r, "%"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: "100%",
+        height: `${Math.abs(r) / 30 * 36 + 4}px`,
+        background: r >= 0 ? c : COLORS.danger,
+        borderRadius: 3,
+        opacity: 0.8
+      }
+    })))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: COLORS.text
+      }
+    }, "\u5E73\u5747: ", /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color: c
+      }
+    }, avg.toFixed(1), "%"), "\u3000\u03C3: ", /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color: c
+      }
+    }, Math.sqrt(returns.reduce((s, v) => s + (v - avg) ** 2, 0) / returns.length).toFixed(1), "%")));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: color + "12",
+      borderRadius: 10,
+      padding: "8px 12px",
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, "\uD83D\uDCA1 \u4E21\u65B9\u3068\u3082\u5E73\u5747\u30EA\u30BF\u30FC\u30F3\u306F\u540C\u3058\u3067\u3082\u3001", /*#__PURE__*/React.createElement("strong", null, "\u3070\u3089\u3064\u304D\uFF08\u03C3\uFF09\u304C\u5927\u304D\u3044\u65B9\u304C\u30CF\u30A4\u30EA\u30B9\u30AF"), "\u3002", /*#__PURE__*/React.createElement("br", null), "\u3053\u306E\u3070\u3089\u3064\u304D\u3092\u6570\u5024\u5316\u3057\u305F\u3082\u306E\u304C", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color
+    }
+  }, "\u6A19\u6E96\u504F\u5DEE\uFF08\u03C3\uFF09"), "\u3067\u3059\u3002")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83D\uDCD0 STEP 1\uFF5C\u6A19\u6E96\u504F\u5DEE\uFF08\u03C3\uFF09\u306E\u8A08\u7B97"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      fontWeight: 700,
+      marginBottom: 8
+    }
+  }, "\u25BC 4\u5E74\u9593\u306E\u30EA\u30BF\u30FC\u30F3\u304B\u3089\u8A08\u7B97\u3059\u308B\u624B\u9806"), (() => {
+    const rs = [10, 20, -5, 15];
+    const avg = rs.reduce((s, v) => s + v, 0) / rs.length;
+    const devs = rs.map(r => r - avg);
+    const devs2 = devs.map(d => d * d);
+    const variance = devs2.reduce((s, v) => s + v, 0) / rs.length;
+    const sigma = Math.sqrt(variance);
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: "#F8F5FF",
+        borderRadius: 10,
+        padding: "8px 12px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        fontWeight: 700,
+        marginBottom: 4
+      }
+    }, "\u2460 \u5E73\u5747\u3092\u6C42\u3081\u308B"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12
+      }
+    }, "(", rs.join(" + "), ") \xF7 4 = ", /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color
+      }
+    }, avg.toFixed(1), "%"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: "#F8F5FF",
+        borderRadius: 10,
+        padding: "8px 12px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        fontWeight: 700,
+        marginBottom: 6
+      }
+    }, "\u2461 \u5404\u5E74\u306E\u30EA\u30BF\u30FC\u30F3\u3068\u5E73\u5747\u306E\u5DEE\uFF08\u504F\u5DEE\uFF09\u3092\u8A08\u7B97"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap"
+      }
+    }, rs.map((r, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        background: "#fff",
+        borderRadius: 8,
+        padding: "4px 8px",
+        fontSize: 11,
+        textAlign: "center",
+        border: `1px solid ${color}30`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: COLORS.textLight
+      }
+    }, i + 1, "\u5E74\u76EE"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700
+      }
+    }, r, "%"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: devs[i] >= 0 ? COLORS.secondary : COLORS.danger,
+        fontWeight: 700
+      }
+    }, devs[i] > 0 ? `+${devs[i]}` : devs[i]))))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: "#F8F5FF",
+        borderRadius: 10,
+        padding: "8px 12px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        fontWeight: 700,
+        marginBottom: 4
+      }
+    }, "\u2462 \u504F\u5DEE\u3092\u4E8C\u4E57\u3057\u3066\u5E73\u5747 \u2192 \u5206\u6563"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12
+      }
+    }, devs2.map(d => d.toFixed(0)).join(" + "), " \xF7 4 = ", /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color
+      }
+    }, variance.toFixed(1)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: color + "15",
+        borderRadius: 10,
+        padding: "8px 12px",
+        border: `1px solid ${color}30`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        fontWeight: 700,
+        marginBottom: 4
+      }
+    }, "\u2463 \u5206\u6563\u306E\u5E73\u65B9\u6839 \u2192 \u6A19\u6E96\u504F\u5DEE"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12
+      }
+    }, "\u221A", variance.toFixed(1), " ="), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        fontWeight: 900,
+        color
+      }
+    }, "\u03C3 = ", sigma.toFixed(2), "%"))));
+  })()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 4
+    }
+  }, "\u516C\u5F0F\u307E\u3068\u3081"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 900,
+      color: COLORS.text,
+      marginBottom: 4
+    }
+  }, "\u03C3\xB2 (\u5206\u6563) = \u03A3(Ri \u2212 Ra)\xB2 \xF7 n"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 900,
+      color
+    }
+  }, "\u03C3 (\u6A19\u6E96\u504F\u5DEE) = \u221A\u5206\u6563"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83D\uDD17 STEP 2\uFF5C\u76F8\u95A2\u4FC2\u6570\uFF08\u03C1\uFF09\u2015 2\u3064\u306E\u8CC7\u7523\u306E\u52D5\u304D\u65B9"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.8,
+      marginBottom: 12
+    }
+  }, "2\u3064\u306E\u8CC7\u7523\u304C", /*#__PURE__*/React.createElement("strong", null, "\u540C\u3058\u65B9\u5411"), "\u306B\u52D5\u304F\u304B", /*#__PURE__*/React.createElement("strong", null, "\u9006\u65B9\u5411"), "\u306B\u52D5\u304F\u304B\u3092 \u22121\u301C+1 \u3067\u8868\u3057\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, [{
+    rho: "+1.0",
+    label: "完全な正の相関",
+    desc: "AとBは常に同じ方向に動く。分散効果ゼロ。",
+    icon: "⬆⬆",
+    color: COLORS.danger
+  }, {
+    rho: "0",
+    label: "相関なし",
+    desc: "AとBは無関係。ある程度の分散効果あり。",
+    icon: "⬆➡",
+    color: COLORS.accent
+  }, {
+    rho: "−1.0",
+    label: "完全な負の相関",
+    desc: "AとBは常に逆方向。理論上リスクゼロに！",
+    icon: "⬆⬇",
+    color: COLORS.secondary
+  }].map(({
+    rho,
+    label,
+    desc,
+    icon,
+    color: c
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: rho,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      background: c + "12",
+      borderRadius: 10,
+      padding: "10px 14px",
+      border: `1px solid ${c}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      minWidth: 40
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 900,
+      color: c
+    }
+  }, "\u03C1=", rho), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18
+    }
+  }, icon)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 12,
+      color: c,
+      marginBottom: 2
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      lineHeight: 1.6
+    }
+  }, desc))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 4
+    }
+  }, "\u516C\u5F0F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 900,
+      color: COLORS.text
+    }
+  }, "\u03C1 = Cov(A,B) \xF7 (\u03C3A \xD7 \u03C3B)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      marginTop: 4
+    }
+  }, "Cov(A,B) = \u5171\u5206\u6563\uFF082\u8CC7\u7523\u306E\u30EA\u30BF\u30FC\u30F3\u304C\u4E00\u7DD2\u306B\u52D5\u304F\u5EA6\u5408\u3044\uFF09"))), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\uD83E\uDDEE \u6A19\u6E96\u504F\u5DEE\u30FB\u5206\u6563\u8A08\u7B97\u6A5F",
     accentColor: color,
     inputs: [{
       label: "リターン1期(%)",
@@ -5428,7 +5839,7 @@ function RiskCalculatorSection({
           unit: "%",
           color: COLORS.danger
         }],
-        steps: [`平均 Ra = (${rs.join(" + ")}) / 4 = ${mean.toFixed(2)}%`, `偏差² の合計 = ${rs.map(r => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`, `分散 = ${variance.toFixed(2)}`, `標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`]
+        steps: [`① 平均 Ra = (${rs.join(" + ")}) ÷ 4 = ${mean.toFixed(2)}%`, `② 偏差² の合計 = ${rs.map(r => `(${r}−${mean.toFixed(1)})²`).join(" + ")}`, `③ 分散 = ${variance.toFixed(2)}`, `④ 標準偏差 σ = √${variance.toFixed(2)} = ${sigma.toFixed(2)}%`]
       };
     },
     chartBuilder: vals => {
@@ -5500,7 +5911,7 @@ function RiskCalculatorSection({
       })));
     }
   }), /*#__PURE__*/React.createElement(CalcComponent, {
-    formulaName: "2\u8CC7\u7523\u306E\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
+    formulaName: "\uD83D\uDD17 2\u8CC7\u7523\u306E\u76F8\u95A2\u4FC2\u6570\u8A08\u7B97\u6A5F",
     accentColor: COLORS.highlight,
     inputs: [{
       label: "資産Aリターン1(%)",
@@ -5575,14 +5986,19 @@ function RiskCalculatorSection({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      ...STYLES.sectionTitle,
       fontSize: 14,
-      color
+      fontWeight: 800,
+      color,
+      marginBottom: 10
     }
-  }, /*#__PURE__*/React.createElement(Activity, {
-    size: 15,
-    color: color
-  }), " \u6B63\u898F\u5206\u5E03\uFF08\u30A4\u30F3\u30BF\u30E9\u30AF\u30C6\u30A3\u30D6\uFF09"), /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDCCA \u6B63\u898F\u5206\u5E03\u30B0\u30E9\u30D5\uFF08\u30B9\u30E9\u30A4\u30C0\u30FC\u3067\u52D5\u304B\u3057\u3066\u307F\u3088\u3046\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.7,
+      marginBottom: 10
+    }
+  }, "\u03C3\uFF08\u30EA\u30B9\u30AF\uFF09\u304C\u5927\u304D\u304F\u306A\u308B\u307B\u3069\u30B0\u30E9\u30D5\u304C", /*#__PURE__*/React.createElement("strong", null, "\u6A2A\u306B\u5E83\u304C\u308B"), "\uFF08\uFF1D\u3070\u3089\u3064\u304D\u304C\u5897\u3048\u308B\uFF09\u3053\u3068\u3092\u78BA\u8A8D\u3057\u3088\u3046\u3002"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -5614,21 +6030,24 @@ function RiskCalculatorSection({
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
-      gap: 8,
+      gap: 6,
       marginBottom: 8,
       flexWrap: "wrap"
     }
   }, [{
-    label: `±1σ ≈ 68%`,
+    label: `±1σ = 68%`,
     lo: meanVal - sigmaVal,
     hi: meanVal + sigmaVal
   }, {
-    label: `±2σ ≈ 95%`,
+    label: `±2σ = 95%`,
     lo: meanVal - 2 * sigmaVal,
     hi: meanVal + 2 * sigmaVal
   }].map(band => /*#__PURE__*/React.createElement("span", {
     key: band.label,
-    style: STYLES.badge(color)
+    style: {
+      ...STYLES.badge(color),
+      fontSize: 11
+    }
   }, band.label, "\uFF08", band.lo.toFixed(1), "\u301C", band.hi.toFixed(1), "%\uFF09"))), /*#__PURE__*/React.createElement(ResponsiveContainer, {
     width: "100%",
     height: 160
@@ -5696,7 +6115,7 @@ function RiskCalculatorSection({
     }
   }, "\u8D64\u7DDA: \xB11\u03C3\uFF0868%\uFF09\u3000\u6A59\u7DDA: \xB12\u03C3\uFF0895%\uFF09\u3000VaR95% = \u03BC \u2212 1.645\u03C3 = ", (meanVal - 1.645 * sigmaVal).toFixed(1), "%")), /*#__PURE__*/React.createElement(ExamTipCard, {
     color: COLORS.accent,
-    tips: ["標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク", "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）", "相関係数ρ=-1：リスクをゼロにできる（理論上）", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "シャープレシオ高い＝必ず良い投資ではない（比較対象による）"]
+    tips: ["標準偏差が大きい ＝ リターンのばらつきが大きい ＝ ハイリスク", "±1σ: 68%、±2σ: 95%、±3σ: 99.7%（3シグマルール）", "相関係数ρ=−1：リスクをゼロにできる（理論上）", "ρ=+1：分散効果なし、リスクは加重平均に等しい", "σ（リスク）とμ（平均）は正規分布を完全に決める2つの数"]
   }));
 }
 
@@ -6334,14 +6753,475 @@ function BasicsSectionF({
 function PVSection({
   color
 }) {
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
-    title: "\u73FE\u5728\u4FA1\u5024\uFF08PV\uFF09\u306E\u8003\u3048\u65B9",
-    color: color,
-    youtubeQuery: "\u73FE\u5728\u4FA1\u5024 \u5C06\u6765\u4FA1\u5024 \u5272\u5F15\u7387 DCF \u8A08\u7B97 \u308F\u304B\u308A\u3084\u3059\u304F"
-  }, "\u300C\u4ECA\u306E1\u4E07\u5186\u306F\u5C06\u6765\u306E1\u4E07\u5186\u3088\u308A\u4FA1\u5024\u304C\u9AD8\u3044\u300D\uFF1D\u6642\u9593\u4FA1\u5024\u306E\u6982\u5FF5\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "PV = FV / (1 + r)^n"), "\u3000\u5272\u5F15\u7387\u304C\u9AD8\u3044\u30FB\u671F\u9593\u304C\u9577\u3044\u307B\u3069PV\u306F\u5C0F\u3055\u304F\u306A\u308B\u3002", /*#__PURE__*/React.createElement("br", null), "NPV\uFF08\u6B63\u5473\u73FE\u5728\u4FA1\u5024\uFF09= \u5C06\u6765CF\u306E\u73FE\u5728\u4FA1\u5024\u5408\u8A08 \u2212 \u521D\u671F\u6295\u8CC7"), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.pv, {
-    color: color
-  })), /*#__PURE__*/React.createElement(CalcComponent, {
-    formulaName: "\u73FE\u5728\u4FA1\u5024\u30FB\u5C06\u6765\u4FA1\u5024\u8A08\u7B97\u6A5F",
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\u23F0 \u300C\u4ECA\u306E1\u4E07\u5186\u300D\u3068\u300C1\u5E74\u5F8C\u306E1\u4E07\u5186\u300D\u3069\u3061\u3089\u304C\u5F97\uFF1F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.9,
+      marginBottom: 12
+    }
+  }, "\u540C\u30581\u4E07\u5186\u3067\u3082\u3001", /*#__PURE__*/React.createElement("strong", null, "\u4ECA\u3082\u3089\u3046\u65B9\u304C\u4FA1\u5024\u304C\u9AD8\u3044"), "\uFF01", /*#__PURE__*/React.createElement("br", null), "\u306A\u305C\u306A\u3089\u4ECA\u3082\u3089\u3048\u3070\u9280\u884C\u306B\u9810\u3051\u3066\u5897\u3084\u305B\u308B\u304B\u3089\u3002\u3053\u306E\u8003\u3048\u65B9\u3092", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color
+    }
+  }, "\u304A\u91D1\u306E\u6642\u9593\u4FA1\u5024"), "\u3068\u3044\u3044\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: color + "10",
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.textLight,
+      fontWeight: 700,
+      marginBottom: 10
+    }
+  }, "\u25BC \u5E74\u52293%\u306E\u3068\u304D"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      justifyContent: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      background: "#fff",
+      borderRadius: 12,
+      padding: "10px 16px",
+      border: `2px solid ${color}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24
+    }
+  }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 14,
+      color
+    }
+  }, "\u4ECA \u3082\u3089\u3046"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 18
+    }
+  }, "10,000\u5186"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "\u9280\u884C\u306B\u5165\u308C\u308B\u3068\u2026")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28
+    }
+  }, "\u2192"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "1\u5E74\u5F8C")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      background: "#fff",
+      borderRadius: 12,
+      padding: "10px 16px",
+      border: `2px solid ${COLORS.secondary}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24
+    }
+  }, "\uD83D\uDCB0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 14,
+      color: COLORS.secondary
+    }
+  }, "1\u5E74\u5F8C\u306B\u540C\u984D"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 18
+    }
+  }, "10,300\u5186"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "+300\u5186\u306E\u5229\u606F"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      fontSize: 12,
+      color: COLORS.text,
+      textAlign: "center",
+      lineHeight: 1.7
+    }
+  }, "\u3064\u307E\u308A\u300C1\u5E74\u5F8C\u306E10,000\u5186\u300D\u306E\u4ECA\u306E\u4FA1\u5024\u306F ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color
+    }
+  }, "10,000 \xF7 1.03 \u2248 9,709\u5186"), " \u3067\u3059\u3002"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83D\uDCD0 STEP 1\uFF5C\u73FE\u5728\u4FA1\u5024\uFF08PV\uFF09\u3068\u5C06\u6765\u4FA1\u5024\uFF08FV\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 0,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      background: color + "15",
+      borderRadius: "12px 0 0 12px",
+      padding: "10px 14px",
+      flex: 1,
+      border: `1.5px solid ${color}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20
+    }
+  }, "\uD83D\uDCCD"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      color
+    }
+  }, "PV"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, "\u73FE\u5728\u4FA1\u5024", /*#__PURE__*/React.createElement("br", null), "\uFF08Present Value\uFF09")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "0 4px",
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, /*#__PURE__*/React.createElement("div", null, "\xD7 (1+r)\u207F \u2192"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18
+    }
+  }, "\u2194"), /*#__PURE__*/React.createElement("div", null, "\u2190 \xF7 (1+r)\u207F")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      background: COLORS.secondary + "15",
+      borderRadius: "0 12px 12px 0",
+      padding: "10px 14px",
+      flex: 1,
+      border: `1.5px solid ${COLORS.secondary}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20
+    }
+  }, "\uD83C\uDFAF"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      color: COLORS.secondary
+    }
+  }, "FV"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, "\u5C06\u6765\u4FA1\u5024", /*#__PURE__*/React.createElement("br", null), "\uFF08Future Value\uFF09")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, "\u73FE\u5728\u4FA1\u5024\u3092\u6C42\u3081\u308B\uFF08\u5272\u308A\u5F15\u304F\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 900,
+      color,
+      marginBottom: 4
+    }
+  }, "PV = FV \xF7 (1 + r)\u207F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text
+    }
+  }, "\u300Cn\u5E74\u5F8C\u306EFV\u5186\u306F\u3001\u4ECA\u3044\u304F\u3089\u306E\u4FA1\u5024\uFF1F\u300D\u3092\u8A08\u7B97")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, "\u5C06\u6765\u4FA1\u5024\u3092\u6C42\u3081\u308B\uFF08\u5897\u3084\u3059\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 900,
+      color: COLORS.secondary,
+      marginBottom: 4
+    }
+  }, "FV = PV \xD7 (1 + r)\u207F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text
+    }
+  }, "\u300C\u4ECA\u306EPV\u5186\u3092\u3001n\u5E74\u5F8C\u306B\u3044\u304F\u3089\u306B\u5897\u3084\u305B\u308B\uFF1F\u300D\u3092\u8A08\u7B97"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      display: "flex",
+      flexDirection: "column",
+      gap: 4
+    }
+  }, [{
+    symbol: "r",
+    label: "割引率（期待利回り）",
+    desc: "年利・期待リターン",
+    color,
+    emoji: "📊"
+  }, {
+    symbol: "n",
+    label: "期間（年数）",
+    desc: "何年後か",
+    color: COLORS.secondary,
+    emoji: "📅"
+  }].map(({
+    symbol,
+    label,
+    desc,
+    color: c,
+    emoji
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: symbol,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      background: c + "10",
+      borderRadius: 8,
+      padding: "6px 10px"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, emoji), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      color: c,
+      minWidth: 16
+    }
+  }, symbol), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12,
+      color: COLORS.text
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, "\u2026 ", desc))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83D\uDCBC STEP 2\uFF5CNPV\uFF08\u6B63\u5473\u73FE\u5728\u4FA1\u5024\uFF09\u2015 \u6295\u8CC7\u3059\u3079\u304D\u304B\uFF1F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.8,
+      marginBottom: 12
+    }
+  }, "\u300C\u3053\u306E\u6A5F\u68B0\u3092\u8CB7\u3046\u3079\u304D\u304B\uFF1F\u300D\u3092\u5224\u65AD\u3059\u308B\u306E\u306B\u4F7F\u3044\u307E\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u5C06\u6765\u5165\u3063\u3066\u304F\u308B\u304A\u91D1\u3092\u5168\u90E8\u300C\u4ECA\u306E\u4FA1\u5024\u300D\u306B\u76F4\u3057\u3001\u521D\u671F\u6295\u8CC7\u3068\u6BD4\u3079\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.accent + "12",
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginBottom: 10,
+      border: `1px solid ${COLORS.accent}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: COLORS.accent,
+      marginBottom: 8
+    }
+  }, "\uD83D\uDCDD \u4F8B\uFF1A100\u4E07\u5186\u306E\u6A5F\u68B0\u3092\u8CB7\u3046\u3079\u304D\uFF1F\uFF08\u5272\u5F15\u73875%\uFF09"), (() => {
+    const r = 0.05;
+    const cfs = [40, 40, 40];
+    const pvs = cfs.map((cf, i) => cf / Math.pow(1 + r, i + 1));
+    const npv = pvs.reduce((s, v) => s + v, 0) - 100;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+        fontSize: 12
+      }
+    }, cfs.map((cf, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        background: "#fff",
+        borderRadius: 8,
+        padding: "6px 10px"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.textLight
+      }
+    }, i + 1, "\u5E74\u5F8C\u306B ", cf, "\u4E07\u5186\u5165\u308B"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 700,
+        color
+      }
+    }, "\u4ECA\u306E\u4FA1\u5024: ", pvs[i].toFixed(1), "\u4E07\u5186"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        background: "#fff",
+        borderRadius: 8,
+        padding: "6px 10px"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.textLight
+      }
+    }, "PV\u5408\u8A08"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 700,
+        color
+      }
+    }, pvs.reduce((s, v) => s + v, 0).toFixed(1), "\u4E07\u5186")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        background: "#fff",
+        borderRadius: 8,
+        padding: "6px 10px"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.textLight
+      }
+    }, "\u521D\u671F\u6295\u8CC7"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 700,
+        color: COLORS.danger
+      }
+    }, "\u2212100\u4E07\u5186")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        background: npv >= 0 ? COLORS.secondary + "20" : COLORS.danger + "15",
+        borderRadius: 8,
+        padding: "8px 10px",
+        border: `1.5px solid ${npv >= 0 ? COLORS.secondary : COLORS.danger}50`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 800,
+        color: COLORS.text
+      }
+    }, "NPV ="), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 900,
+        fontSize: 16,
+        color: npv >= 0 ? COLORS.secondary : COLORS.danger
+      }
+    }, npv.toFixed(1), "\u4E07\u5186 \u2192 ", npv >= 0 ? "✅ 投資すべき！" : "❌ 見送り")));
+  })()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 900,
+      color: COLORS.text,
+      marginBottom: 4
+    }
+  }, "NPV = \u03A3[CFt \xF7 (1+r)\u1D57] \u2212 \u521D\u671F\u6295\u8CC7"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 12,
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.secondary
+    }
+  }, "\u2705 NPV > 0 \u2192 \u6295\u8CC7OK"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.danger
+    }
+  }, "\u274C NPV < 0 \u2192 \u6295\u8CC7\u898B\u9001\u308A")))), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\uD83E\uDDEE \u73FE\u5728\u4FA1\u5024\u30FB\u5C06\u6765\u4FA1\u5024\u8A08\u7B97\u6A5F",
     accentColor: color,
     inputs: [{
       label: "将来価値 FV",
@@ -6379,7 +7259,7 @@ function PVSection({
           unit: "万円",
           color: COLORS.secondary
         }],
-        steps: [`PV = ${fv} / (1 + ${rate})^${n}`, `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`, `PV = ${fv} / ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`, `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`]
+        steps: [`PV = ${fv} ÷ (1 + ${rate})^${n}`, `(1 + ${rate})^${n} = ${Math.pow(1 + rate, n).toFixed(4)}`, `PV = ${fv} ÷ ${Math.pow(1 + rate, n).toFixed(4)} = ${pv.toFixed(2)} 万円`, `（逆方向）FV = ${fv} × (1+${rate})^${n} = ${fv2.toFixed(2)} 万円`]
       };
     },
     chartBuilder: vals => {
@@ -6449,7 +7329,7 @@ function PVSection({
       }))));
     }
   }), /*#__PURE__*/React.createElement(CalcComponent, {
-    formulaName: "\u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC",
+    formulaName: "\uD83D\uDCC8 \u8907\u5229\u6210\u9577\u30B7\u30DF\u30E5\u30EC\u30FC\u30BF\u30FC",
     accentColor: COLORS.secondary,
     inputs: [{
       label: "元本",
@@ -6481,9 +7361,7 @@ function PVSection({
       const rate = r / 100;
       const mRate = rate / 12;
       const months = n * 12;
-      // 元本一括の複利
       const lump = pv0 * Math.pow(1 + rate, n);
-      // 積立分の将来価値（月複利）
       const accum = mo * (Math.pow(1 + mRate, months) - 1) / mRate;
       const total = lump + accum;
       const invest = pv0 + mo * months;
@@ -6586,14 +7464,384 @@ function PVSection({
 function StatsSection({
   color
 }) {
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
-    title: "VaR\uFF08\u30D0\u30EA\u30E5\u30FC\u30FB\u30A2\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\uFF09",
-    color: color,
-    youtubeQuery: "VaR \u30D0\u30EA\u30E5\u30FC\u30A2\u30C3\u30C8\u30EA\u30B9\u30AF \u30EA\u30B9\u30AF\u7BA1\u7406 \u6295\u8CC7 \u8A08\u7B97"
-  }, "\u4E00\u5B9A\u306E\u4FE1\u983C\u6C34\u6E96\u3067\u4E00\u5B9A\u671F\u9593\u5185\u306B\u767A\u751F\u3057\u3046\u308B\u6700\u5927\u640D\u5931\u984D\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "95%VaR = \u03BC \u2212 1.645\u03C3"), "\u3000\uFF08z\u5024\uFF1A90%\u21921.28\u300199%\u21922.326\uFF09", /*#__PURE__*/React.createElement("br", null), "\u4F8B: \u03BC=5%, \u03C3=15%\u306E\u3068\u304D 95%VaR = 5 \u2212 1.645\xD715 = ", /*#__PURE__*/React.createElement("strong", null, "\u221219.7%")), /*#__PURE__*/React.createElement(FormulaCard, _extends({}, FORMULA_DATA.sharpe, {
-    color: color
-  })), /*#__PURE__*/React.createElement(CalcComponent, {
-    formulaName: "\u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u8A08\u7B97\u6A5F",
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\uD83C\uDFB2 VaR\uFF08\u30D0\u30EA\u30E5\u30FC\u30FB\u30A2\u30C3\u30C8\u30FB\u30EA\u30B9\u30AF\uFF09\u3068\u306F\uFF1F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.9,
+      marginBottom: 12
+    }
+  }, "\u300C", /*#__PURE__*/React.createElement("strong", null, "100\u65E5\u9593\u306E\u3046\u3061\u3001\u6700\u60AA\u4F55\u65E5\u304B\u306F\u5927\u304D\u304F\u640D\u3059\u308B\u304B"), "\u300D\u3092\u6570\u5024\u3067\u793A\u3057\u305F\u3082\u306E\u3067\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.danger + "10",
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginBottom: 12,
+      border: `1px solid ${COLORS.danger}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: COLORS.danger,
+      marginBottom: 8
+    }
+  }, "\uD83D\uDDD3\uFE0F 95%VaR \u306E\u610F\u5473\u3092\u56F3\u3067\u7406\u89E3\u3057\u3088\u3046"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 4,
+      flexWrap: "wrap",
+      marginBottom: 8
+    }
+  }, Array.from({
+    length: 20
+  }, (_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      width: 28,
+      height: 28,
+      borderRadius: 6,
+      fontSize: 11,
+      fontWeight: 700,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: i < 19 ? COLORS.secondary + "30" : COLORS.danger + "40",
+      color: i < 19 ? COLORS.secondary : COLORS.danger,
+      border: `1px solid ${i < 19 ? COLORS.secondary : COLORS.danger}50`
+    }
+  }, i < 19 ? "✓" : "✗"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, "20\u65E5\u9593\u306E\u3046\u306119\u65E5\u306F\u2713\uFF08\u6B63\u5E38\u7BC4\u56F2\uFF09\u3001", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.danger
+    }
+  }, "1\u65E5\u306F\u2717\uFF08\u640D\u5931\u304C\u5927\u304D\u3044\uFF09"), /*#__PURE__*/React.createElement("br", null), "\u3053\u308C\u304C\u300C95%\u306E\u78BA\u7387\u3067\u640D\u5931\u306F\u25CB\u25CB%\u4EE5\u5185\u300D\u3068\u3044\u3046\u610F\u5473\u3067\u3059\u3002")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 6
+    }
+  }, "\u516C\u5F0F\uFF08\u6B63\u898F\u5206\u5E03\u3092\u4EEE\u5B9A\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 900,
+      color,
+      marginBottom: 8,
+      textAlign: "center"
+    }
+  }, "95%VaR = \u03BC \u2212 1.645 \xD7 \u03C3"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4,
+      fontSize: 12
+    }
+  }, [{
+    label: "μ（ミュー）",
+    desc: "平均リターン",
+    color: COLORS.primary
+  }, {
+    label: "σ（シグマ）",
+    desc: "標準偏差（リスク）",
+    color: COLORS.accent
+  }, {
+    label: "1.645",
+    desc: "95%信頼水準に対応するz値",
+    color: COLORS.highlight
+  }].map(({
+    label,
+    desc,
+    color: c
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      display: "flex",
+      gap: 8,
+      background: "#fff",
+      borderRadius: 8,
+      padding: "5px 10px"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 900,
+      color: c,
+      minWidth: 70
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textLight
+    }
+  }, "\u2026 ", desc))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: color + "10",
+      borderRadius: 12,
+      padding: "12px 14px",
+      border: `1px solid ${color}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12,
+      color: COLORS.textLight,
+      marginBottom: 6
+    }
+  }, "\u4F8B\uFF1A\u03BC=5%\u3001\u03C3=15%\u306E\u3068\u304D"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      lineHeight: 1.8
+    }
+  }, "95%VaR = 5% \u2212 1.645 \xD7 15% = ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: COLORS.danger,
+      fontSize: 16
+    }
+  }, "\u221219.7%")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: COLORS.text,
+      marginTop: 6,
+      lineHeight: 1.6
+    }
+  }, "\u300C100\u65E5\u306E\u3046\u306195\u65E5\u306F \u221219.7%\u4EE5\u5185\u306E\u640D\u5931\u300D", /*#__PURE__*/React.createElement("br", null), "\u300C\u6B8B\u308A5\u65E5\u306F\u221219.7%\u3092\u8D85\u3048\u308B\u640D\u5931\u304C\u51FA\u308B\u53EF\u80FD\u6027\u304C\u3042\u308B\u300D"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 900,
+      color,
+      marginBottom: 10
+    }
+  }, "\u26A1 \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA \u2015 \u30EA\u30B9\u30AF\u5BFE\u6BD4\u306E\u30B3\u30B9\u30D1"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: COLORS.text,
+      lineHeight: 1.9,
+      marginBottom: 12
+    }
+  }, "\u300C\u30EA\u30B9\u30AF\u30921%\u53D6\u3063\u305F\u3068\u304D\u3001\u3069\u308C\u3060\u3051\u4F59\u5206\u306A\u30EA\u30BF\u30FC\u30F3\u3092\u7A3C\u3052\u308B\u304B\uFF1F\u300D\u306E\u30B3\u30B9\u30D1\u6307\u6A19\u3067\u3059\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.accent + "12",
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginBottom: 12,
+      border: `1px solid ${COLORS.accent}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: COLORS.accent,
+      marginBottom: 8
+    }
+  }, "\uD83C\uDF54 \u98DF\u3079\u7269\u3067\u4F8B\u3048\u308B\u3068\u2026"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      fontSize: 12
+    }
+  }, [{
+    name: "お弁当A",
+    rp: 10,
+    rf: 2,
+    sp: 8,
+    emoji: "🍱"
+  }, {
+    name: "お弁当B",
+    rp: 12,
+    rf: 2,
+    sp: 20,
+    emoji: "🥡"
+  }].map(({
+    name,
+    rp,
+    rf,
+    sp,
+    emoji
+  }) => {
+    const sr = ((rp - rf) / sp).toFixed(2);
+    return /*#__PURE__*/React.createElement("div", {
+      key: name,
+      style: {
+        background: "#fff",
+        borderRadius: 10,
+        padding: "8px 12px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 24
+      }
+    }, emoji), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700
+      }
+    }, name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: COLORS.textLight
+      }
+    }, "\u30EA\u30BF\u30FC\u30F3", rp, "%\u3001\u30EA\u30B9\u30AF", sp, "%")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "right"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: COLORS.textLight
+      }
+    }, "SR"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900,
+        fontSize: 16,
+        color: Number(sr) >= 0.5 ? COLORS.secondary : COLORS.accent
+      }
+    }, sr)));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      marginTop: 8,
+      lineHeight: 1.6
+    }
+  }, "\u30EA\u30BF\u30FC\u30F3\u304C\u9AD8\u304F\u3066\u3082\u30EA\u30B9\u30AF\u304C\u5927\u304D\u3051\u308C\u3070\u30B3\u30B9\u30D1\u60AA\u3002", /*#__PURE__*/React.createElement("strong", null, "SR\u304C\u9AD8\u3044\u65B9\u304C\u52B9\u7387\u7684\u306A\u6295\u8CC7"), "\u3067\u3059\u3002")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 12,
+      padding: "10px 14px",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: COLORS.textLight,
+      marginBottom: 4
+    }
+  }, "\u516C\u5F0F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 900,
+      color,
+      marginBottom: 4
+    }
+  }, "SR = (Rp \u2212 Rf) \xF7 \u03C3p"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4,
+      fontSize: 12
+    }
+  }, [{
+    s: "Rp",
+    d: "ポートフォリオのリターン",
+    c: color
+  }, {
+    s: "Rf",
+    d: "リスクフリーレート（国債利回りなど）",
+    c: COLORS.secondary
+  }, {
+    s: "σp",
+    d: "ポートフォリオの標準偏差（リスク）",
+    c: COLORS.accent
+  }].map(({
+    s,
+    d,
+    c
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: s,
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 900,
+      color: c,
+      minWidth: 30
+    }
+  }, s), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.textLight
+    }
+  }, "\u2026 ", d))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: COLORS.secondary + "15",
+      borderRadius: 10,
+      padding: "8px 12px",
+      textAlign: "center",
+      border: `1px solid ${COLORS.secondary}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      color: COLORS.secondary
+    }
+  }, "SR \u2265 1.0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text
+    }
+  }, "\u512A\u826F\u30D5\u30A1\u30F3\u30C9\u306E\u76EE\u5B89")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: COLORS.danger + "12",
+      borderRadius: 10,
+      padding: "8px 12px",
+      textAlign: "center",
+      border: `1px solid ${COLORS.danger}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      color: COLORS.danger
+    }
+  }, "SR < 0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text
+    }
+  }, "\u8D85\u904E\u30EA\u30BF\u30FC\u30F3\u304C\u30DE\u30A4\u30CA\u30B9")))), /*#__PURE__*/React.createElement(CalcComponent, {
+    formulaName: "\uD83E\uDDEE \u30B7\u30E3\u30FC\u30D7\u30EC\u30B7\u30AA\u30FBVaR\u8A08\u7B97\u6A5F",
     accentColor: color,
     inputs: [{
       label: "ポートフォリオR Rp",
@@ -6636,7 +7884,7 @@ function StatsSection({
           unit: "%",
           color: COLORS.danger
         }],
-        steps: [`SR = (${rp}% − ${rf}%) / ${sp}% = ${((rp - rf) / sp).toFixed(3)}`, `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`, `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`, `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`]
+        steps: [`SR = (${rp}% − ${rf}%) ÷ ${sp}% = ${((rp - rf) / sp).toFixed(3)}`, `SR > 1.0 なら優良、< 0 なら超過リターンがマイナス`, `95%VaR = ${rp} − 1.645 × ${sp} = ${var95.toFixed(2)}%`, `99%VaR = ${rp} − 2.326 × ${sp} = ${var99.toFixed(2)}%`]
       };
     },
     chartBuilder: vals => {
