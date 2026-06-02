@@ -186,6 +186,7 @@ const INITIAL_STATE = {
   testHistory:      [],
   calcHistory:      [],
   reviewStatus:     {},
+  weakQuestions:    {},
 };
 
 const STORAGE_KEY = "abc-exam-app-data";
@@ -206,6 +207,7 @@ function loadState() {
         portfolio: { ...(saved.visitedSections?.portfolio ?? {}) },
         products:  { ...(saved.visitedSections?.products  ?? {}) },
       },
+      weakQuestions: { ...(saved.weakQuestions ?? {}) },
     };
   } catch {
     return INITIAL_STATE;
@@ -3144,29 +3146,31 @@ function QuizComponent({
   const handleNext = () => {
     if (idx + 1 >= quizzes.length) {
       setFinished(true);
-      // 進捗をセクション完了として記録
-      const allCorrect = score + (selected === q.answer ? 1 : 0);
-      if (allCorrect / quizzes.length >= 0.6) {
-        setState((s) => ({
-          ...s,
-          [progressField]: {
-            ...s[progressField],
-            [tabId]: { ...(s[progressField]?.[tabId] ?? {}), [sectionId]: true },
-          },
-          testHistory: [
-            ...s.testHistory,
-            ...quizzes.map((quiz, qi) => ({
-              date:     new Date().toISOString(),
-              tab:      tabId,
-              section:  sectionId,
-              question: quiz.id,
-              correct:  history[qi]?.correct ?? false,
-              keyword:  quiz.keyword,
-              isCalc:   !!quiz.isCalc,
-            })),
-          ],
-        }));
-      }
+      const wrongQuizzes = quizzes.filter((_, qi) => !history[qi]?.correct);
+      const key = `${tabId}-${sectionId}`;
+      setState((s) => ({
+        ...s,
+        [progressField]: {
+          ...s[progressField],
+          [tabId]: { ...(s[progressField]?.[tabId] ?? {}), [sectionId]: true },
+        },
+        testHistory: [
+          ...s.testHistory,
+          ...quizzes.map((quiz, qi) => ({
+            date:     new Date().toISOString(),
+            tab:      tabId,
+            section:  sectionId,
+            question: quiz.id,
+            correct:  history[qi]?.correct ?? false,
+            keyword:  quiz.keyword,
+            isCalc:   !!quiz.isCalc,
+          })),
+        ],
+        weakQuestions: {
+          ...s.weakQuestions,
+          [key]: wrongQuizzes.length > 0 ? wrongQuizzes : null,
+        },
+      }));
       return;
     }
     setIdx((i) => i + 1);
@@ -3211,7 +3215,7 @@ function QuizComponent({
             marginBottom: 16,
           }}
         >
-          {passed ? "セクション完了！" : "もう少し！60点以上でクリア"}
+          {passed ? "セクション完了！" : "再挑戦で苦手を克服！"}
         </div>
 
         {/* 間違えた問題一覧 */}
@@ -3249,48 +3253,46 @@ function QuizComponent({
           <button style={{ ...STYLES.btnOutline, flex: 1, color: accentColor, borderColor: accentColor }} onClick={handleRetry}>
             もう一度
           </button>
-          {passed && (
-            onNext ? (
-              <button
-                style={{
-                  flex:           1,
-                  background:     `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
-                  border:         "none",
-                  borderRadius:   12,
-                  padding:        "10px 0",
-                  fontSize:       13,
-                  fontWeight:     700,
-                  color:          "#fff",
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "center",
-                  gap:            4,
-                  cursor:         "pointer",
-                }}
-                onClick={onNext}
-              >
-                <Check size={14} /> 次のセクションへ →
-              </button>
-            ) : (
-              <div
-                style={{
-                  flex:         1,
-                  background:   COLORS.secondary + "20",
-                  border:       `1.5px solid ${COLORS.secondary}`,
-                  borderRadius: 12,
-                  padding:      "8px 0",
-                  fontSize:     13,
-                  fontWeight:   700,
-                  color:        COLORS.secondary,
-                  display:      "flex",
-                  alignItems:   "center",
-                  justifyContent: "center",
-                  gap:          4,
-                }}
-              >
-                <Check size={14} /> 完了済み
-              </div>
-            )
+          {onNext ? (
+            <button
+              style={{
+                flex:           1,
+                background:     `linear-gradient(135deg, ${COLORS.secondary}, #3DAA60)`,
+                border:         "none",
+                borderRadius:   12,
+                padding:        "10px 0",
+                fontSize:       13,
+                fontWeight:     700,
+                color:          "#fff",
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+                gap:            4,
+                cursor:         "pointer",
+              }}
+              onClick={onNext}
+            >
+              <Check size={14} /> 次のセクションへ →
+            </button>
+          ) : (
+            <div
+              style={{
+                flex:         1,
+                background:   COLORS.secondary + "20",
+                border:       `1.5px solid ${COLORS.secondary}`,
+                borderRadius: 12,
+                padding:      "8px 0",
+                fontSize:     13,
+                fontWeight:   700,
+                color:        COLORS.secondary,
+                display:      "flex",
+                alignItems:   "center",
+                justifyContent: "center",
+                gap:          4,
+              }}
+            >
+              <Check size={14} /> 完了済み — 再挑戦する
+            </div>
           )}
         </div>
       </div>
@@ -3582,6 +3584,81 @@ function FlashQuizSection({ state, onNavigate }) {
           <FlashQuizCard key={`${q.id || q.keyword}-${i}`} quiz={q} index={i} onNavigate={onNavigate} />
         ))
       )}
+    </div>
+  );
+}
+
+// --- WeakQuestionsPanel: 苦手問題表示 ---
+function WeakQuestionsPanel({ tabIds, state, setState }) {
+  const [open, setOpen] = useState(false);
+
+  const ids = Array.isArray(tabIds) ? tabIds : [tabIds];
+  const weakEntries = Object.entries(state.weakQuestions || {})
+    .filter(([key, qs]) => ids.some(t => key.startsWith(t + "-")) && qs?.length > 0);
+
+  if (weakEntries.length === 0) return null;
+
+  const totalWeak = weakEntries.reduce((a, [, qs]) => a + qs.length, 0);
+
+  const clearWeak = (key) => {
+    setState(s => ({ ...s, weakQuestions: { ...s.weakQuestions, [key]: null } }));
+  };
+
+  return (
+    <div style={{ ...STYLES.card, marginBottom: 12, border: `1.5px solid ${COLORS.danger}44`, padding: "12px 14px" }}>
+      <button
+        onClick={() => setOpen(s => !s)}
+        style={{ width: "100%", background: "none", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 8, padding: 0, fontFamily: "inherit" }}
+      >
+        <span style={{ fontSize: 18 }}>⚠️</span>
+        <span style={{ fontWeight: 800, fontSize: 14, color: COLORS.danger, flex: 1, textAlign: "left" }}>
+          苦手問題 {totalWeak}問
+        </span>
+        <span style={{ fontSize: 11, color: COLORS.textMuted }}>
+          {open ? "▲ 閉じる" : "▼ 確認する"}
+        </span>
+      </button>
+
+      {open && weakEntries.map(([key, quizzes]) => {
+        const parts = key.split("-");
+        const sec = parts.slice(1).join("-");
+        return (
+          <div key={key} style={{ marginTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{ ...STYLES.badge(COLORS.danger), fontSize: 11 }}>
+                {sec}セクション
+              </span>
+              <span style={{ fontSize: 11, color: COLORS.textMuted, flex: 1 }}>
+                {quizzes.length}問
+              </span>
+              <button
+                onClick={() => clearWeak(key)}
+                style={{ fontSize: 10, color: COLORS.textMuted, background: "none", border: "none",
+                  cursor: "pointer", textDecoration: "underline" }}
+              >
+                クリア
+              </button>
+            </div>
+            {quizzes.map((q, i) => (
+              <div key={i} style={{ padding: "8px 10px", background: COLORS.danger + "08",
+                border: `1px solid ${COLORS.danger}22`, borderRadius: 12, marginBottom: 6, fontSize: 12 }}>
+                <div style={{ color: COLORS.danger, fontWeight: 700, marginBottom: 4 }}>✗ {q.keyword}</div>
+                <div style={{ color: COLORS.text, lineHeight: 1.6 }}>{q.q}</div>
+                <div style={{ marginTop: 6, padding: "6px 8px", background: COLORS.secondary + "12",
+                  borderRadius: 8, fontSize: 11, color: COLORS.text }}>
+                  ✅ 正解: {["①","②","③","④"][q.answer]} {q.choices[q.answer]}
+                </div>
+                {q.explanation && (
+                  <div style={{ marginTop: 4, fontSize: 11, color: COLORS.textLight, lineHeight: 1.5 }}>
+                    {q.explanation}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -3902,6 +3979,7 @@ function EthicsTab({ state, setState }) {
         color={color}
         icon={Shield}
       />
+      <WeakQuestionsPanel tabIds={["ethics","ch1","ch2"]} state={state} setState={setState} />
 
       <SectionTab
         sections={ETHICS_SECTIONS}
@@ -4781,6 +4859,7 @@ function BasicsTab({ state, setState }) {
         color={color}
         icon={BookOpen}
       />
+      <WeakQuestionsPanel tabIds={["basics","ch6"]} state={state} setState={setState} />
       <SectionTab sections={ALL_BASICS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
       <SectionProgress tabId="basics" sections={ALL_BASICS_SECTIONS} progress={combinedProgress} color={color} onSelect={setSection} />
 
@@ -5774,6 +5853,7 @@ function PortfolioTab({ state, setState }) {
         color={color}
         icon={TrendingUp}
       />
+      <WeakQuestionsPanel tabIds={["portfolio"]} state={state} setState={setState} />
       <SectionTab sections={PF_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
       <SectionProgress tabId="portfolio" sections={PF_SECTIONS} progress={state.progress} color={color} onSelect={setSection} />
       {renderSection()}
@@ -6287,6 +6367,7 @@ function ProductsTab({ state, setState }) {
         color={color}
         icon={DollarSign}
       />
+      <WeakQuestionsPanel tabIds={["products","supp2"]} state={state} setState={setState} />
       <SectionTab sections={PRODUCTS_SECTIONS} activeSection={section} onSelect={setSection} color={color} />
       <SectionProgress tabId="products" sections={PRODUCTS_SECTIONS} progress={combinedProgress} color={color} onSelect={setSection} />
       {renderSection()}
