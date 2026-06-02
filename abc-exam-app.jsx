@@ -176,6 +176,7 @@ const INITIAL_VISITED = {
   basics:    {},
   portfolio: {},
   products:  {},
+  casestudy: {},
 };
 
 const INITIAL_STATE = {
@@ -206,6 +207,7 @@ function loadState() {
         basics:    { ...(saved.visitedSections?.basics    ?? {}) },
         portfolio: { ...(saved.visitedSections?.portfolio ?? {}) },
         products:  { ...(saved.visitedSections?.products  ?? {}) },
+        casestudy: { ...(saved.visitedSections?.casestudy ?? {}) },
       },
       weakQuestions: { ...(saved.weakQuestions ?? {}) },
     };
@@ -10038,6 +10040,7 @@ const ALL_CALC_QUIZZES = [
   ...PORTFOLIO_QUIZZES.C.filter((q) => q.isCalc),
   ...PRODUCTS_QUIZZES.A.filter((q) => q.isCalc),
   ...PRODUCTS_QUIZZES.B.filter((q) => q.isCalc),
+  ...Object.values(CASESTUDY_QUIZZES).flat().filter((q) => q.isCalc),
 ];
 
 // 既習セクションと計算問題の対応表
@@ -10084,6 +10087,14 @@ const FLASH_QUIZ_MAP = [
   { tab: "products",  sec: "C", label: "④金融商品 C：外貨",               quizzes: PRODUCTS_QUIZZES.C },
   { tab: "products",  sec: "D", label: "④金融商品 D：投信・ETF",          quizzes: PRODUCTS_QUIZZES.D },
   { tab: "products",  sec: "E", label: "④金融商品 E：REIT",              quizzes: PRODUCTS_QUIZZES.E },
+  { tab: "casestudy", sec: "CS1", label: "⑤ケース CS1：リバランス",        quizzes: CASESTUDY_QUIZZES.CS1 },
+  { tab: "casestudy", sec: "CS2", label: "⑤ケース CS2：ドルコスト平均法",  quizzes: CASESTUDY_QUIZZES.CS2 },
+  { tab: "casestudy", sec: "CS3", label: "⑤ケース CS3：基準価額",          quizzes: CASESTUDY_QUIZZES.CS3 },
+  { tab: "casestudy", sec: "CS4", label: "⑤ケース CS4：理論株価",          quizzes: CASESTUDY_QUIZZES.CS4 },
+  { tab: "casestudy", sec: "CS5", label: "⑤ケース CS5：社債と発行条件",    quizzes: CASESTUDY_QUIZZES.CS5 },
+  { tab: "casestudy", sec: "CS6", label: "⑤ケース CS6：ポートフォリオ効果",quizzes: CASESTUDY_QUIZZES.CS6 },
+  { tab: "casestudy", sec: "CS7", label: "⑤ケース CS7：収益率評価手法",    quizzes: CASESTUDY_QUIZZES.CS7 },
+  { tab: "casestudy", sec: "CS8", label: "⑤ケース CS8：分配金と元本",      quizzes: CASESTUDY_QUIZZES.CS8 },
 ];
 
 // 既習セクションの全問題プールを返す（未学習なら空配列）
