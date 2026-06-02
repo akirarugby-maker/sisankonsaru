@@ -5345,37 +5345,256 @@ function BasicsTab({ state, setState }) {
 function BasicsSectionF({ color, state, setState }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch6?.A ?? false;
+
+  // 色定義
+  const BS  = "#4A90D9";   // B/S カラー（青）
+  const PL  = "#27AE60";   // P/L カラー（緑）
+  const KPI_COLORS = {
+    roe: "#E74C3C", roa: "#E67E22", per: "#9B59B6",
+    pbr: "#3498DB", ryudo: "#16A085", jiko: "#2ECC71", div: "#F39C12",
+  };
+
   return (
     <div>
       <InfoBox title="財務諸表の活用" color={color} youtubeQuery="財務諸表 貸借対照表 損益計算書 投資分析 わかりやすく">
-        企業分析・株式評価の基礎となる財務諸表の読み方と主要指標。
-        ABC試験では第6章で出題される重要テーマ。<br /><br />
-        <strong>主要財務指標：</strong>ROE（収益性）／ROA（資産効率）／PBR（株価純資産倍率）／
-        PER（株価収益率）／流動比率（安全性）／自己資本比率
+        企業分析・株式評価の基礎。KPIがB/SとP/Lのどの数字から計算されるかを理解しよう。
       </InfoBox>
-      <div style={{ ...STYLES.card, marginBottom: 12 }}>
-        <div style={{ fontWeight: 800, fontSize: 13, color, marginBottom: 10 }}>財務指標早見表</div>
-        {[
-          { name: "ROE",      formula: "当期純利益 ÷ 自己資本 × 100",      memo: "株主目線の収益性（目安: 10%以上）" },
-          { name: "ROA",      formula: "純利益（営業利益）÷ 総資産 × 100", memo: "資産効率（業種平均と比較）" },
-          { name: "PBR",      formula: "株価 ÷ BPS",                        memo: "1倍未満＝理論上割安" },
-          { name: "PER",      formula: "株価 ÷ EPS",                        memo: "業種平均との比較が重要" },
-          { name: "配当利回り", formula: "年間配当 ÷ 株価 × 100",           memo: "高利回り＝必ずしも優良ではない" },
-          { name: "流動比率",  formula: "流動資産 ÷ 流動負債 × 100",        memo: "200%以上が目安（短期安全性）" },
-          { name: "自己資本比率", formula: "自己資本 ÷ 総資産 × 100",       memo: "40%以上が目安（財務健全性）" },
-          { name: "デュポン分析", formula: "ROE = 純利益率 × 総資産回転率 × レバレッジ", memo: "ROEを3要素に分解" },
-        ].map((item) => (
-          <div key={item.name} style={{ padding: "7px 0", borderBottom: `1px solid ${COLORS.border}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-              <span style={{ fontWeight: 800, fontSize: 12, color: COLORS.text }}>{item.name}</span>
-              <span style={{ fontSize: 10, color: COLORS.textLight }}>{item.memo}</span>
+
+      {/* ===== 財務諸表2種類の説明 ===== */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+        <div style={{ background: BS + "12", borderRadius: 14, padding: "10px 12px", border: `2px solid ${BS}40` }}>
+          <div style={{ fontWeight: 900, fontSize: 13, color: BS, marginBottom: 4 }}>🏛️ B/S（貸借対照表）</div>
+          <div style={{ fontSize: 11, color: COLORS.text, lineHeight: 1.7 }}>
+            ある時点での<strong>財産の状況</strong>を示す。<br />
+            「何を持っていて、どう調達したか」
+          </div>
+        </div>
+        <div style={{ background: PL + "12", borderRadius: 14, padding: "10px 12px", border: `2px solid ${PL}40` }}>
+          <div style={{ fontWeight: 900, fontSize: 13, color: PL, marginBottom: 4 }}>📊 P/L（損益計算書）</div>
+          <div style={{ fontSize: 11, color: COLORS.text, lineHeight: 1.7 }}>
+            1年間の<strong>もうけの経緯</strong>を示す。<br />
+            「売上から利益が生まれるまで」
+          </div>
+        </div>
+      </div>
+
+      {/* ===== B/S 構造図 ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 8 }}>
+        <div style={{ fontWeight: 900, fontSize: 14, color: BS, marginBottom: 10 }}>🏛️ B/S（貸借対照表）の構造</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, border: `2px solid ${BS}40`, borderRadius: 12, overflow: "hidden" }}>
+          {/* 左：資産の部 */}
+          <div style={{ borderRight: `1px solid ${BS}30` }}>
+            <div style={{ background: BS + "20", padding: "6px 10px", fontWeight: 800, fontSize: 12, color: BS, textAlign: "center" }}>
+              資産の部（何を持っているか）
             </div>
-            <div style={{ fontFamily: "monospace", fontSize: 12, color, fontWeight: 600 }}>{item.formula}</div>
+            {[
+              { label: "流動資産", items: ["現金・預金", "売掛金", "棚卸資産"], id: "ryudo-shisan", color: "#E8F4FD" },
+              { label: "固定資産", items: ["建物・設備", "土地", "投資有価証券"], id: "kotei-shisan", color: "#D6EAF8" },
+            ].map(({ label, items, id, color: bg }) => (
+              <div key={id} id={id} style={{ background: bg, padding: "8px 10px", borderTop: `1px solid ${BS}20` }}>
+                <div style={{ fontWeight: 800, fontSize: 11, color: BS, marginBottom: 4 }}>{label}</div>
+                {items.map(it => <div key={it} style={{ fontSize: 10, color: COLORS.textLight, paddingLeft: 8 }}>・{it}</div>)}
+              </div>
+            ))}
+            <div style={{ background: "#D5F5E3", padding: "8px 10px", borderTop: `1px solid ${BS}20` }}>
+              <div style={{ fontWeight: 800, fontSize: 11, color: "#1A5276" }}>総資産 = 流動＋固定</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>ROA・自己資本比率の分母</div>
+            </div>
+          </div>
+          {/* 右：負債・純資産の部 */}
+          <div>
+            <div style={{ background: BS + "20", padding: "6px 10px", fontWeight: 800, fontSize: 12, color: BS, textAlign: "center" }}>
+              負債＋純資産（どう調達したか）
+            </div>
+            {[
+              { label: "流動負債", items: ["買掛金", "短期借入金"], bg: "#FDEDEC" },
+              { label: "固定負債", items: ["長期借入金", "社債"], bg: "#FADBD8" },
+            ].map(({ label, items, bg }) => (
+              <div key={label} style={{ background: bg, padding: "8px 10px", borderTop: `1px solid ${BS}20` }}>
+                <div style={{ fontWeight: 800, fontSize: 11, color: COLORS.danger, marginBottom: 4 }}>{label}</div>
+                {items.map(it => <div key={it} style={{ fontSize: 10, color: COLORS.textLight, paddingLeft: 8 }}>・{it}</div>)}
+              </div>
+            ))}
+            <div style={{ background: "#D5F5E3", padding: "8px 10px", borderTop: `2px solid ${PL}40` }}>
+              <div style={{ fontWeight: 900, fontSize: 11, color: "#1E8449", marginBottom: 2 }}>自己資本（純資産）</div>
+              <div style={{ fontSize: 10, color: COLORS.textLight }}>・資本金　・利益剰余金</div>
+              <div style={{ fontSize: 10, color: "#1E8449", fontWeight: 700, marginTop: 2 }}>ROE・PBRの分母</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: COLORS.textLight, textAlign: "center", marginTop: 6 }}>
+          左辺（資産）= 右辺（負債＋自己資本）が常に等しい ← これが「貸借対照表」の意味
+        </div>
+      </div>
+
+      {/* ===== P/L 構造図 ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 900, fontSize: 14, color: PL, marginBottom: 10 }}>📊 P/L（損益計算書）の構造</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, border: `2px solid ${PL}40`, borderRadius: 12, overflow: "hidden" }}>
+          {[
+            { label: "売上高", sub: "商品・サービスの売上", bg: "#EBF5EB", color: PL, bold: true, kpi: null },
+            { label: "− 売上原価", sub: "商品の仕入れ・製造コスト", bg: "#F9F9F9", color: COLORS.danger, bold: false, kpi: null },
+            { label: "= 売上総利益（粗利）", sub: "売上高 − 売上原価", bg: "#D5F5E3", color: PL, bold: true, kpi: null },
+            { label: "− 販管費", sub: "広告費・人件費・家賃など", bg: "#F9F9F9", color: COLORS.danger, bold: false, kpi: null },
+            { label: "= 営業利益", sub: "本業でのもうけ", bg: "#D5F5E3", color: PL, bold: true, kpi: "ROA（営業利益÷総資産）" },
+            { label: "± 営業外損益", sub: "受取利息・支払利息など", bg: "#F9F9F9", color: COLORS.textLight, bold: false, kpi: null },
+            { label: "= 経常利益", sub: "通常の企業活動での利益", bg: "#D5F5E3", color: PL, bold: true, kpi: null },
+            { label: "± 特別損益", sub: "資産売却益・災害損失など", bg: "#F9F9F9", color: COLORS.textLight, bold: false, kpi: null },
+            { label: "= 当期純利益", sub: "最終的な利益（税引後）", bg: "#A9DFBF", color: "#1E8449", bold: true, kpi: "ROE・ROA・PER・デュポンの分子" },
+          ].map(({ label, sub, bg, color: c, bold, kpi }, i) => (
+            <div key={i} style={{ background: bg, padding: "7px 12px", borderTop: i > 0 ? `1px solid ${PL}20` : "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: bold ? 800 : 400, fontSize: 12, color: c }}>{label}</div>
+                <div style={{ fontSize: 10, color: COLORS.textLight }}>{sub}</div>
+              </div>
+              {kpi && (
+                <div style={{ fontSize: 9, color: "#fff", background: KPI_COLORS.roe, borderRadius: 6, padding: "2px 6px", fontWeight: 700, maxWidth: 100, textAlign: "right", lineHeight: 1.4 }}>
+                  {kpi}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ===== KPI対応図 ===== */}
+      <div style={{ ...STYLES.card, marginBottom: 12 }}>
+        <div style={{ fontWeight: 900, fontSize: 14, color, marginBottom: 12 }}>
+          🔗 KPI早見図 ― どの財務数値から計算するか
+        </div>
+
+        {[
+          {
+            name: "ROE", nameJp: "自己資本利益率", key: "roe",
+            formula: "当期純利益 ÷ 自己資本 × 100",
+            num: { label: "当期純利益", src: "P/L", srcColor: PL },
+            den: { label: "自己資本", src: "B/S", srcColor: BS },
+            memo: "株主目線の収益性。目安：10%以上",
+          },
+          {
+            name: "ROA", nameJp: "総資産利益率", key: "roa",
+            formula: "当期純利益 ÷ 総資産 × 100",
+            num: { label: "当期純利益", src: "P/L", srcColor: PL },
+            den: { label: "総資産", src: "B/S", srcColor: BS },
+            memo: "資産の活用効率。業種平均と比較",
+          },
+          {
+            name: "PER", nameJp: "株価収益率", key: "per",
+            formula: "株価 ÷ EPS（1株当期純利益）",
+            num: { label: "株価", src: "市場", srcColor: COLORS.highlight },
+            den: { label: "EPS（純利益÷株数）", src: "P/L", srcColor: PL },
+            memo: "割高・割安の目安。業種比較が重要",
+          },
+          {
+            name: "PBR", nameJp: "株価純資産倍率", key: "pbr",
+            formula: "株価 ÷ BPS（1株純資産）",
+            num: { label: "株価", src: "市場", srcColor: COLORS.highlight },
+            den: { label: "BPS（自己資本÷株数）", src: "B/S", srcColor: BS },
+            memo: "1倍未満＝理論上割安（解散価値以下）",
+          },
+          {
+            name: "流動比率", nameJp: "短期安全性", key: "ryudo",
+            formula: "流動資産 ÷ 流動負債 × 100",
+            num: { label: "流動資産", src: "B/S", srcColor: BS },
+            den: { label: "流動負債", src: "B/S", srcColor: BS },
+            memo: "200%以上が目安。1年内の支払い能力",
+          },
+          {
+            name: "自己資本比率", nameJp: "財務健全性", key: "jiko",
+            formula: "自己資本 ÷ 総資産 × 100",
+            num: { label: "自己資本", src: "B/S", srcColor: BS },
+            den: { label: "総資産", src: "B/S", srcColor: BS },
+            memo: "40%以上が目安。借金依存度の裏返し",
+          },
+          {
+            name: "配当利回り", nameJp: "インカムゲイン率", key: "div",
+            formula: "年間配当 ÷ 株価 × 100",
+            num: { label: "年間配当", src: "P/L", srcColor: PL },
+            den: { label: "株価", src: "市場", srcColor: COLORS.highlight },
+            memo: "高利回り＝必ずしも優良ではない",
+          },
+        ].map(({ name, nameJp, key, formula, num, den, memo }) => (
+          <div key={key} style={{ marginBottom: 10, background: KPI_COLORS[key] + "08", borderRadius: 14, padding: "10px 14px", border: `1.5px solid ${KPI_COLORS[key]}30` }}>
+            {/* KPI名 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div style={{ background: KPI_COLORS[key], borderRadius: 8, padding: "3px 10px", fontWeight: 900, fontSize: 13, color: "#fff" }}>{name}</div>
+              <div style={{ fontSize: 11, color: COLORS.textLight }}>{nameJp}</div>
+            </div>
+            {/* 分子÷分母 可視化 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              {/* 分子 */}
+              <div style={{ flex: 1, textAlign: "center", background: num.srcColor + "18", borderRadius: 10, padding: "6px 8px", border: `1.5px solid ${num.srcColor}40` }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: num.srcColor, marginBottom: 2 }}>[{num.src}]</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.text }}>{num.label}</div>
+              </div>
+              {/* ÷ */}
+              <div style={{ textAlign: "center", fontSize: 18, fontWeight: 900, color: KPI_COLORS[key], minWidth: 20 }}>÷</div>
+              {/* 分母 */}
+              <div style={{ flex: 1, textAlign: "center", background: den.srcColor + "18", borderRadius: 10, padding: "6px 8px", border: `1.5px solid ${den.srcColor}40` }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: den.srcColor, marginBottom: 2 }}>[{den.src}]</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.text }}>{den.label}</div>
+              </div>
+              {/* = */}
+              <div style={{ textAlign: "center", fontSize: 14, fontWeight: 900, color: KPI_COLORS[key], minWidth: 16 }}>=</div>
+              {/* 結果 */}
+              <div style={{ flex: 1, textAlign: "center", background: KPI_COLORS[key] + "20", borderRadius: 10, padding: "6px 8px", border: `1.5px solid ${KPI_COLORS[key]}50` }}>
+                <div style={{ fontSize: 9, color: KPI_COLORS[key], fontWeight: 700, marginBottom: 2 }}>KPI</div>
+                <div style={{ fontSize: 12, fontWeight: 900, color: KPI_COLORS[key] }}>{name}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 11, color: COLORS.textLight, lineHeight: 1.5 }}>💡 {memo}</div>
+          </div>
+        ))}
+
+        {/* デュポン分析 */}
+        <div style={{ background: "#F8F5FF", borderRadius: 14, padding: "12px 14px", border: `1.5px solid ${COLORS.highlight}30` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <div style={{ background: COLORS.highlight, borderRadius: 8, padding: "3px 10px", fontWeight: 900, fontSize: 13, color: "#fff" }}>デュポン分析</div>
+            <div style={{ fontSize: 11, color: COLORS.textLight }}>ROEを3つに分解して原因を分析</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+            {[
+              { label: "純利益率", sub: "純利益÷売上", src: "P/L÷P/L", srcColor: PL },
+              { op: "×" },
+              { label: "総資産回転率", sub: "売上÷総資産", src: "P/L÷B/S", srcColor: "#9B59B6" },
+              { op: "×" },
+              { label: "財務レバレッジ", sub: "総資産÷自己資本", src: "B/S÷B/S", srcColor: BS },
+              { op: "=" },
+              { label: "ROE", sub: "純利益÷自己資本", src: "P/L÷B/S", srcColor: KPI_COLORS.roe, highlight: true },
+            ].map((item, i) => (
+              item.op ? (
+                <div key={i} style={{ fontSize: 16, fontWeight: 900, color: COLORS.highlight }}>{item.op}</div>
+              ) : (
+                <div key={i} style={{ textAlign: "center", background: item.srcColor + "15", borderRadius: 10, padding: "6px 8px", border: `1.5px solid ${item.srcColor}${item.highlight ? "80" : "30"}`, flex: "1 1 60px", minWidth: 60 }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: item.srcColor, marginBottom: 2 }}>{item.src}</div>
+                  <div style={{ fontSize: 10, fontWeight: item.highlight ? 900 : 700, color: item.highlight ? item.srcColor : COLORS.text }}>{item.label}</div>
+                  <div style={{ fontSize: 9, color: COLORS.textLight }}>{item.sub}</div>
+                </div>
+              )
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 8, lineHeight: 1.6 }}>
+            💡 ROEが低い原因が「利益率の低さ」「資産回転率の低さ」「自己資本比率の高さ」のどれかを特定できる
+          </div>
+        </div>
+      </div>
+
+      {/* 凡例 */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        {[
+          { label: "B/S（貸借対照表）から", color: BS },
+          { label: "P/L（損益計算書）から", color: PL },
+          { label: "市場株価から", color: COLORS.highlight },
+        ].map(({ label, color: c }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: COLORS.textLight }}>
+            <div style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
+            {label}
           </div>
         ))}
       </div>
+
       {done ? (
-        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}` }}>
+        <div style={{ ...STYLES.card, textAlign: "center", background: COLORS.secondary + "12", border: `2px solid ${COLORS.secondary}`, marginBottom: 8 }}>
           <div style={{ fontSize: 24, marginBottom: 4 }}>✅</div>
           <div style={{ fontWeight: 800, color: COLORS.secondary }}>セクションF 完了！</div>
         </div>

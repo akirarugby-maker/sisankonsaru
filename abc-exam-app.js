@@ -6629,90 +6629,760 @@ function BasicsSectionF({
 }) {
   const [showQuiz, setShowQuiz] = useState(false);
   const done = state.chapProgress?.ch6?.A ?? false;
+
+  // 色定義
+  const BS = "#4A90D9"; // B/S カラー（青）
+  const PL = "#27AE60"; // P/L カラー（緑）
+  const KPI_COLORS = {
+    roe: "#E74C3C",
+    roa: "#E67E22",
+    per: "#9B59B6",
+    pbr: "#3498DB",
+    ryudo: "#16A085",
+    jiko: "#2ECC71",
+    div: "#F39C12"
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(InfoBox, {
     title: "\u8CA1\u52D9\u8AF8\u8868\u306E\u6D3B\u7528",
     color: color,
     youtubeQuery: "\u8CA1\u52D9\u8AF8\u8868 \u8CB8\u501F\u5BFE\u7167\u8868 \u640D\u76CA\u8A08\u7B97\u66F8 \u6295\u8CC7\u5206\u6790 \u308F\u304B\u308A\u3084\u3059\u304F"
-  }, "\u4F01\u696D\u5206\u6790\u30FB\u682A\u5F0F\u8A55\u4FA1\u306E\u57FA\u790E\u3068\u306A\u308B\u8CA1\u52D9\u8AF8\u8868\u306E\u8AAD\u307F\u65B9\u3068\u4E3B\u8981\u6307\u6A19\u3002 ABC\u8A66\u9A13\u3067\u306F\u7B2C6\u7AE0\u3067\u51FA\u984C\u3055\u308C\u308B\u91CD\u8981\u30C6\u30FC\u30DE\u3002", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "\u4E3B\u8981\u8CA1\u52D9\u6307\u6A19\uFF1A"), "ROE\uFF08\u53CE\u76CA\u6027\uFF09\uFF0FROA\uFF08\u8CC7\u7523\u52B9\u7387\uFF09\uFF0FPBR\uFF08\u682A\u4FA1\u7D14\u8CC7\u7523\u500D\u7387\uFF09\uFF0F PER\uFF08\u682A\u4FA1\u53CE\u76CA\u7387\uFF09\uFF0F\u6D41\u52D5\u6BD4\u7387\uFF08\u5B89\u5168\u6027\uFF09\uFF0F\u81EA\u5DF1\u8CC7\u672C\u6BD4\u7387"), /*#__PURE__*/React.createElement("div", {
+  }, "\u4F01\u696D\u5206\u6790\u30FB\u682A\u5F0F\u8A55\u4FA1\u306E\u57FA\u790E\u3002KPI\u304CB/S\u3068P/L\u306E\u3069\u306E\u6570\u5B57\u304B\u3089\u8A08\u7B97\u3055\u308C\u308B\u304B\u3092\u7406\u89E3\u3057\u3088\u3046\u3002"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: BS + "12",
+      borderRadius: 14,
+      padding: "10px 12px",
+      border: `2px solid ${BS}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      color: BS,
+      marginBottom: 4
+    }
+  }, "\uD83C\uDFDB\uFE0F B/S\uFF08\u8CB8\u501F\u5BFE\u7167\u8868\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, "\u3042\u308B\u6642\u70B9\u3067\u306E", /*#__PURE__*/React.createElement("strong", null, "\u8CA1\u7523\u306E\u72B6\u6CC1"), "\u3092\u793A\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u300C\u4F55\u3092\u6301\u3063\u3066\u3044\u3066\u3001\u3069\u3046\u8ABF\u9054\u3057\u305F\u304B\u300D")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: PL + "12",
+      borderRadius: 14,
+      padding: "10px 12px",
+      border: `2px solid ${PL}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 13,
+      color: PL,
+      marginBottom: 4
+    }
+  }, "\uD83D\uDCCA P/L\uFF08\u640D\u76CA\u8A08\u7B97\u66F8\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.text,
+      lineHeight: 1.7
+    }
+  }, "1\u5E74\u9593\u306E", /*#__PURE__*/React.createElement("strong", null, "\u3082\u3046\u3051\u306E\u7D4C\u7DEF"), "\u3092\u793A\u3059\u3002", /*#__PURE__*/React.createElement("br", null), "\u300C\u58F2\u4E0A\u304B\u3089\u5229\u76CA\u304C\u751F\u307E\u308C\u308B\u307E\u3067\u300D"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 14,
+      color: BS,
+      marginBottom: 10
+    }
+  }, "\uD83C\uDFDB\uFE0F B/S\uFF08\u8CB8\u501F\u5BFE\u7167\u8868\uFF09\u306E\u69CB\u9020"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 0,
+      border: `2px solid ${BS}40`,
+      borderRadius: 12,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRight: `1px solid ${BS}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: BS + "20",
+      padding: "6px 10px",
+      fontWeight: 800,
+      fontSize: 12,
+      color: BS,
+      textAlign: "center"
+    }
+  }, "\u8CC7\u7523\u306E\u90E8\uFF08\u4F55\u3092\u6301\u3063\u3066\u3044\u308B\u304B\uFF09"), [{
+    label: "流動資産",
+    items: ["現金・預金", "売掛金", "棚卸資産"],
+    id: "ryudo-shisan",
+    color: "#E8F4FD"
+  }, {
+    label: "固定資産",
+    items: ["建物・設備", "土地", "投資有価証券"],
+    id: "kotei-shisan",
+    color: "#D6EAF8"
+  }].map(({
+    label,
+    items,
+    id,
+    color: bg
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: id,
+    id: id,
+    style: {
+      background: bg,
+      padding: "8px 10px",
+      borderTop: `1px solid ${BS}20`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 11,
+      color: BS,
+      marginBottom: 4
+    }
+  }, label), items.map(it => /*#__PURE__*/React.createElement("div", {
+    key: it,
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight,
+      paddingLeft: 8
+    }
+  }, "\u30FB", it)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#D5F5E3",
+      padding: "8px 10px",
+      borderTop: `1px solid ${BS}20`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 11,
+      color: "#1A5276"
+    }
+  }, "\u7DCF\u8CC7\u7523 = \u6D41\u52D5\uFF0B\u56FA\u5B9A"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "ROA\u30FB\u81EA\u5DF1\u8CC7\u672C\u6BD4\u7387\u306E\u5206\u6BCD"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: BS + "20",
+      padding: "6px 10px",
+      fontWeight: 800,
+      fontSize: 12,
+      color: BS,
+      textAlign: "center"
+    }
+  }, "\u8CA0\u50B5\uFF0B\u7D14\u8CC7\u7523\uFF08\u3069\u3046\u8ABF\u9054\u3057\u305F\u304B\uFF09"), [{
+    label: "流動負債",
+    items: ["買掛金", "短期借入金"],
+    bg: "#FDEDEC"
+  }, {
+    label: "固定負債",
+    items: ["長期借入金", "社債"],
+    bg: "#FADBD8"
+  }].map(({
+    label,
+    items,
+    bg
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      background: bg,
+      padding: "8px 10px",
+      borderTop: `1px solid ${BS}20`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 11,
+      color: COLORS.danger,
+      marginBottom: 4
+    }
+  }, label), items.map(it => /*#__PURE__*/React.createElement("div", {
+    key: it,
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight,
+      paddingLeft: 8
+    }
+  }, "\u30FB", it)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#D5F5E3",
+      padding: "8px 10px",
+      borderTop: `2px solid ${PL}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 11,
+      color: "#1E8449",
+      marginBottom: 2
+    }
+  }, "\u81EA\u5DF1\u8CC7\u672C\uFF08\u7D14\u8CC7\u7523\uFF09"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: COLORS.textLight
+    }
+  }, "\u30FB\u8CC7\u672C\u91D1\u3000\u30FB\u5229\u76CA\u5270\u4F59\u91D1"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: "#1E8449",
+      fontWeight: 700,
+      marginTop: 2
+    }
+  }, "ROE\u30FBPBR\u306E\u5206\u6BCD")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      textAlign: "center",
+      marginTop: 6
+    }
+  }, "\u5DE6\u8FBA\uFF08\u8CC7\u7523\uFF09= \u53F3\u8FBA\uFF08\u8CA0\u50B5\uFF0B\u81EA\u5DF1\u8CC7\u672C\uFF09\u304C\u5E38\u306B\u7B49\u3057\u3044 \u2190 \u3053\u308C\u304C\u300C\u8CB8\u501F\u5BFE\u7167\u8868\u300D\u306E\u610F\u5473")), /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       marginBottom: 12
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontWeight: 800,
-      fontSize: 13,
-      color,
+      fontWeight: 900,
+      fontSize: 14,
+      color: PL,
       marginBottom: 10
     }
-  }, "\u8CA1\u52D9\u6307\u6A19\u65E9\u898B\u8868"), [{
-    name: "ROE",
-    formula: "当期純利益 ÷ 自己資本 × 100",
-    memo: "株主目線の収益性（目安: 10%以上）"
-  }, {
-    name: "ROA",
-    formula: "純利益（営業利益）÷ 総資産 × 100",
-    memo: "資産効率（業種平均と比較）"
-  }, {
-    name: "PBR",
-    formula: "株価 ÷ BPS",
-    memo: "1倍未満＝理論上割安"
-  }, {
-    name: "PER",
-    formula: "株価 ÷ EPS",
-    memo: "業種平均との比較が重要"
-  }, {
-    name: "配当利回り",
-    formula: "年間配当 ÷ 株価 × 100",
-    memo: "高利回り＝必ずしも優良ではない"
-  }, {
-    name: "流動比率",
-    formula: "流動資産 ÷ 流動負債 × 100",
-    memo: "200%以上が目安（短期安全性）"
-  }, {
-    name: "自己資本比率",
-    formula: "自己資本 ÷ 総資産 × 100",
-    memo: "40%以上が目安（財務健全性）"
-  }, {
-    name: "デュポン分析",
-    formula: "ROE = 純利益率 × 総資産回転率 × レバレッジ",
-    memo: "ROEを3要素に分解"
-  }].map(item => /*#__PURE__*/React.createElement("div", {
-    key: item.name,
-    style: {
-      padding: "7px 0",
-      borderBottom: `1px solid ${COLORS.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDCCA P/L\uFF08\u640D\u76CA\u8A08\u7B97\u66F8\uFF09\u306E\u69CB\u9020"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
-      justifyContent: "space-between",
-      marginBottom: 2
+      flexDirection: "column",
+      gap: 0,
+      border: `2px solid ${PL}40`,
+      borderRadius: 12,
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("span", {
+  }, [{
+    label: "売上高",
+    sub: "商品・サービスの売上",
+    bg: "#EBF5EB",
+    color: PL,
+    bold: true,
+    kpi: null
+  }, {
+    label: "− 売上原価",
+    sub: "商品の仕入れ・製造コスト",
+    bg: "#F9F9F9",
+    color: COLORS.danger,
+    bold: false,
+    kpi: null
+  }, {
+    label: "= 売上総利益（粗利）",
+    sub: "売上高 − 売上原価",
+    bg: "#D5F5E3",
+    color: PL,
+    bold: true,
+    kpi: null
+  }, {
+    label: "− 販管費",
+    sub: "広告費・人件費・家賃など",
+    bg: "#F9F9F9",
+    color: COLORS.danger,
+    bold: false,
+    kpi: null
+  }, {
+    label: "= 営業利益",
+    sub: "本業でのもうけ",
+    bg: "#D5F5E3",
+    color: PL,
+    bold: true,
+    kpi: "ROA（営業利益÷総資産）"
+  }, {
+    label: "± 営業外損益",
+    sub: "受取利息・支払利息など",
+    bg: "#F9F9F9",
+    color: COLORS.textLight,
+    bold: false,
+    kpi: null
+  }, {
+    label: "= 経常利益",
+    sub: "通常の企業活動での利益",
+    bg: "#D5F5E3",
+    color: PL,
+    bold: true,
+    kpi: null
+  }, {
+    label: "± 特別損益",
+    sub: "資産売却益・災害損失など",
+    bg: "#F9F9F9",
+    color: COLORS.textLight,
+    bold: false,
+    kpi: null
+  }, {
+    label: "= 当期純利益",
+    sub: "最終的な利益（税引後）",
+    bg: "#A9DFBF",
+    color: "#1E8449",
+    bold: true,
+    kpi: "ROE・ROA・PER・デュポンの分子"
+  }].map(({
+    label,
+    sub,
+    bg,
+    color: c,
+    bold,
+    kpi
+  }, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
     style: {
-      fontWeight: 800,
-      fontSize: 12,
-      color: COLORS.text
+      background: bg,
+      padding: "7px 12px",
+      borderTop: i > 0 ? `1px solid ${PL}20` : "none",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
     }
-  }, item.name), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: bold ? 800 : 400,
+      fontSize: 12,
+      color: c
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 10,
       color: COLORS.textLight
     }
-  }, item.memo)), /*#__PURE__*/React.createElement("div", {
+  }, sub)), kpi && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: "monospace",
-      fontSize: 12,
-      color,
-      fontWeight: 600
+      fontSize: 9,
+      color: "#fff",
+      background: KPI_COLORS.roe,
+      borderRadius: 6,
+      padding: "2px 6px",
+      fontWeight: 700,
+      maxWidth: 100,
+      textAlign: "right",
+      lineHeight: 1.4
     }
-  }, item.formula)))), done ? /*#__PURE__*/React.createElement("div", {
+  }, kpi))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...STYLES.card,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      fontSize: 14,
+      color,
+      marginBottom: 12
+    }
+  }, "\uD83D\uDD17 KPI\u65E9\u898B\u56F3 \u2015 \u3069\u306E\u8CA1\u52D9\u6570\u5024\u304B\u3089\u8A08\u7B97\u3059\u308B\u304B"), [{
+    name: "ROE",
+    nameJp: "自己資本利益率",
+    key: "roe",
+    formula: "当期純利益 ÷ 自己資本 × 100",
+    num: {
+      label: "当期純利益",
+      src: "P/L",
+      srcColor: PL
+    },
+    den: {
+      label: "自己資本",
+      src: "B/S",
+      srcColor: BS
+    },
+    memo: "株主目線の収益性。目安：10%以上"
+  }, {
+    name: "ROA",
+    nameJp: "総資産利益率",
+    key: "roa",
+    formula: "当期純利益 ÷ 総資産 × 100",
+    num: {
+      label: "当期純利益",
+      src: "P/L",
+      srcColor: PL
+    },
+    den: {
+      label: "総資産",
+      src: "B/S",
+      srcColor: BS
+    },
+    memo: "資産の活用効率。業種平均と比較"
+  }, {
+    name: "PER",
+    nameJp: "株価収益率",
+    key: "per",
+    formula: "株価 ÷ EPS（1株当期純利益）",
+    num: {
+      label: "株価",
+      src: "市場",
+      srcColor: COLORS.highlight
+    },
+    den: {
+      label: "EPS（純利益÷株数）",
+      src: "P/L",
+      srcColor: PL
+    },
+    memo: "割高・割安の目安。業種比較が重要"
+  }, {
+    name: "PBR",
+    nameJp: "株価純資産倍率",
+    key: "pbr",
+    formula: "株価 ÷ BPS（1株純資産）",
+    num: {
+      label: "株価",
+      src: "市場",
+      srcColor: COLORS.highlight
+    },
+    den: {
+      label: "BPS（自己資本÷株数）",
+      src: "B/S",
+      srcColor: BS
+    },
+    memo: "1倍未満＝理論上割安（解散価値以下）"
+  }, {
+    name: "流動比率",
+    nameJp: "短期安全性",
+    key: "ryudo",
+    formula: "流動資産 ÷ 流動負債 × 100",
+    num: {
+      label: "流動資産",
+      src: "B/S",
+      srcColor: BS
+    },
+    den: {
+      label: "流動負債",
+      src: "B/S",
+      srcColor: BS
+    },
+    memo: "200%以上が目安。1年内の支払い能力"
+  }, {
+    name: "自己資本比率",
+    nameJp: "財務健全性",
+    key: "jiko",
+    formula: "自己資本 ÷ 総資産 × 100",
+    num: {
+      label: "自己資本",
+      src: "B/S",
+      srcColor: BS
+    },
+    den: {
+      label: "総資産",
+      src: "B/S",
+      srcColor: BS
+    },
+    memo: "40%以上が目安。借金依存度の裏返し"
+  }, {
+    name: "配当利回り",
+    nameJp: "インカムゲイン率",
+    key: "div",
+    formula: "年間配当 ÷ 株価 × 100",
+    num: {
+      label: "年間配当",
+      src: "P/L",
+      srcColor: PL
+    },
+    den: {
+      label: "株価",
+      src: "市場",
+      srcColor: COLORS.highlight
+    },
+    memo: "高利回り＝必ずしも優良ではない"
+  }].map(({
+    name,
+    nameJp,
+    key,
+    formula,
+    num,
+    den,
+    memo
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: key,
+    style: {
+      marginBottom: 10,
+      background: KPI_COLORS[key] + "08",
+      borderRadius: 14,
+      padding: "10px 14px",
+      border: `1.5px solid ${KPI_COLORS[key]}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: KPI_COLORS[key],
+      borderRadius: 8,
+      padding: "3px 10px",
+      fontWeight: 900,
+      fontSize: 13,
+      color: "#fff"
+    }
+  }, name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, nameJp)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: "center",
+      background: num.srcColor + "18",
+      borderRadius: 10,
+      padding: "6px 8px",
+      border: `1.5px solid ${num.srcColor}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: num.srcColor,
+      marginBottom: 2
+    }
+  }, "[", num.src, "]"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: COLORS.text
+    }
+  }, num.label)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      fontSize: 18,
+      fontWeight: 900,
+      color: KPI_COLORS[key],
+      minWidth: 20
+    }
+  }, "\xF7"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: "center",
+      background: den.srcColor + "18",
+      borderRadius: 10,
+      padding: "6px 8px",
+      border: `1.5px solid ${den.srcColor}40`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: den.srcColor,
+      marginBottom: 2
+    }
+  }, "[", den.src, "]"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: COLORS.text
+    }
+  }, den.label)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      fontSize: 14,
+      fontWeight: 900,
+      color: KPI_COLORS[key],
+      minWidth: 16
+    }
+  }, "="), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: "center",
+      background: KPI_COLORS[key] + "20",
+      borderRadius: 10,
+      padding: "6px 8px",
+      border: `1.5px solid ${KPI_COLORS[key]}50`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: KPI_COLORS[key],
+      fontWeight: 700,
+      marginBottom: 2
+    }
+  }, "KPI"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 900,
+      color: KPI_COLORS[key]
+    }
+  }, name))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      lineHeight: 1.5
+    }
+  }, "\uD83D\uDCA1 ", memo))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8F5FF",
+      borderRadius: 14,
+      padding: "12px 14px",
+      border: `1.5px solid ${COLORS.highlight}30`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.highlight,
+      borderRadius: 8,
+      padding: "3px 10px",
+      fontWeight: 900,
+      fontSize: 13,
+      color: "#fff"
+    }
+  }, "\u30C7\u30E5\u30DD\u30F3\u5206\u6790"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, "ROE\u30923\u3064\u306B\u5206\u89E3\u3057\u3066\u539F\u56E0\u3092\u5206\u6790")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      flexWrap: "wrap"
+    }
+  }, [{
+    label: "純利益率",
+    sub: "純利益÷売上",
+    src: "P/L÷P/L",
+    srcColor: PL
+  }, {
+    op: "×"
+  }, {
+    label: "総資産回転率",
+    sub: "売上÷総資産",
+    src: "P/L÷B/S",
+    srcColor: "#9B59B6"
+  }, {
+    op: "×"
+  }, {
+    label: "財務レバレッジ",
+    sub: "総資産÷自己資本",
+    src: "B/S÷B/S",
+    srcColor: BS
+  }, {
+    op: "="
+  }, {
+    label: "ROE",
+    sub: "純利益÷自己資本",
+    src: "P/L÷B/S",
+    srcColor: KPI_COLORS.roe,
+    highlight: true
+  }].map((item, i) => item.op ? /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 16,
+      fontWeight: 900,
+      color: COLORS.highlight
+    }
+  }, item.op) : /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      textAlign: "center",
+      background: item.srcColor + "15",
+      borderRadius: 10,
+      padding: "6px 8px",
+      border: `1.5px solid ${item.srcColor}${item.highlight ? "80" : "30"}`,
+      flex: "1 1 60px",
+      minWidth: 60
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: item.srcColor,
+      marginBottom: 2
+    }
+  }, item.src), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: item.highlight ? 900 : 700,
+      color: item.highlight ? item.srcColor : COLORS.text
+    }
+  }, item.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: COLORS.textLight
+    }
+  }, item.sub)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: COLORS.textLight,
+      marginTop: 8,
+      lineHeight: 1.6
+    }
+  }, "\uD83D\uDCA1 ROE\u304C\u4F4E\u3044\u539F\u56E0\u304C\u300C\u5229\u76CA\u7387\u306E\u4F4E\u3055\u300D\u300C\u8CC7\u7523\u56DE\u8EE2\u7387\u306E\u4F4E\u3055\u300D\u300C\u81EA\u5DF1\u8CC7\u672C\u6BD4\u7387\u306E\u9AD8\u3055\u300D\u306E\u3069\u308C\u304B\u3092\u7279\u5B9A\u3067\u304D\u308B"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 12,
+      flexWrap: "wrap"
+    }
+  }, [{
+    label: "B/S（貸借対照表）から",
+    color: BS
+  }, {
+    label: "P/L（損益計算書）から",
+    color: PL
+  }, {
+    label: "市場株価から",
+    color: COLORS.highlight
+  }].map(({
+    label,
+    color: c
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      fontSize: 11,
+      color: COLORS.textLight
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 12,
+      height: 12,
+      borderRadius: 3,
+      background: c
+    }
+  }), label))), done ? /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card,
       textAlign: "center",
       background: COLORS.secondary + "12",
-      border: `2px solid ${COLORS.secondary}`
+      border: `2px solid ${COLORS.secondary}`,
+      marginBottom: 8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
