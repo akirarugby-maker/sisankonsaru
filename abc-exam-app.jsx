@@ -4839,6 +4839,8 @@ function MiniCalcCard({ quiz, onAnswer }) {
 
   if (!quiz) return null;
 
+  const isCorrect = answered && selected === quiz.answer;
+
   return (
     <div style={{ ...STYLES.card }}>
       <div style={{ ...STYLES.sectionTitle, fontSize: 14, color: COLORS.accent, marginBottom: 2 }}>
@@ -4868,9 +4870,31 @@ function MiniCalcCard({ quiz, onAnswer }) {
         })}
       </div>
       {answered && (
-        <div style={{ marginTop: 10, padding: "8px 12px", background: COLORS.primary + "0A", borderRadius: 8, fontSize: 12, color: COLORS.text, lineHeight: 1.6 }}>
-          {quiz.explanation}
-        </div>
+        <>
+          <div style={{
+            marginTop: 10,
+            padding: "10px 14px",
+            background: isCorrect ? COLORS.secondary + "18" : COLORS.danger + "12",
+            border: `1.5px solid ${isCorrect ? COLORS.secondary : COLORS.danger}`,
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontWeight: 700,
+            fontSize: 14,
+            color: isCorrect ? COLORS.secondary : COLORS.danger,
+          }}>
+            {isCorrect ? "⭕ 正解！" : "❌ 不正解"}
+            {!isCorrect && (
+              <span style={{ fontWeight: 400, fontSize: 12 }}>
+                正解：{["①","②","③","④"][quiz.answer]} {quiz.choices[quiz.answer]}
+              </span>
+            )}
+          </div>
+          <div style={{ marginTop: 8, padding: "8px 12px", background: COLORS.primary + "0A", borderRadius: 8, fontSize: 12, color: COLORS.text, lineHeight: 1.6 }}>
+            {quiz.explanation}
+          </div>
+        </>
       )}
     </div>
   );

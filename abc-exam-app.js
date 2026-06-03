@@ -4224,6 +4224,7 @@ function MiniCalcCard({
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
   if (!quiz) return null;
+  const isCorrect = answered && selected === quiz.answer;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       ...STYLES.card
@@ -4298,9 +4299,28 @@ function MiniCalcCard({
         fontFamily: "'Noto Sans JP', sans-serif"
       }
     }, ["①", "②", "③", "④"][i], " ", c);
-  })), answered && /*#__PURE__*/React.createElement("div", {
+  })), answered && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 10,
+      padding: "10px 14px",
+      background: isCorrect ? COLORS.secondary + "18" : COLORS.danger + "12",
+      border: `1.5px solid ${isCorrect ? COLORS.secondary : COLORS.danger}`,
+      borderRadius: 10,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontWeight: 700,
+      fontSize: 14,
+      color: isCorrect ? COLORS.secondary : COLORS.danger
+    }
+  }, isCorrect ? "⭕ 正解！" : "❌ 不正解", !isCorrect && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 400,
+      fontSize: 12
+    }
+  }, "\u6B63\u89E3\uFF1A", ["①", "②", "③", "④"][quiz.answer], " ", quiz.choices[quiz.answer])), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
       padding: "8px 12px",
       background: COLORS.primary + "0A",
       borderRadius: 8,
@@ -4308,7 +4328,7 @@ function MiniCalcCard({
       color: COLORS.text,
       lineHeight: 1.6
     }
-  }, quiz.explanation));
+  }, quiz.explanation)));
 }
 
 // --- SearchBar: 全タブ横断検索 ---
